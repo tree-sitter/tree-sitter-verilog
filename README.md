@@ -1,2 +1,1 @@
-# tree-sitter-verilog
-Verilog grammar for tree-sitter
+http://tree-sitter.github.io/tree-sitter/creating-parsers

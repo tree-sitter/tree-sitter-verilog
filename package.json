@@ -1,0 +1,23 @@
+{
+  "name": "tree-sitter-verilog",
+  "version": "0.1.0",
+  "description": "Verilog grammar for tree-sitter",
+  "main": "index.js",
+  "keywords": [
+    "parser",
+    "tree-sitter",
+    "verilog"
+  ],
+  "scripts": {
+    "build": "tree-sitter generate && node-gyp build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Aliaksei Chapyzhenka",
+  "license": "MIT",
+  "dependencies": {
+    "nan": "^2.11.1"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "^0.13.10"
+  }
+}
