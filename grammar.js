@@ -15,7 +15,7 @@ function sep1(separator, rule) {
 */
 
 const rules = {
-  source_files: $ => repeat($._description),
+  source_file: $ => repeat($._description),
 
   /* A.1.2 SystemVerilog source text */
 
@@ -55,7 +55,7 @@ const rules = {
     // $.identifier, // module_identifier
 
     // package_import_declaration*
-    optional($.parameter_port_list),
+    // optional($.parameter_port_list),
     $.list_of_ports, ';'
   ),
 
@@ -90,26 +90,31 @@ const rules = {
     seq(
       $.module_header,
       choice(
+        // seq(
+        //   '(', ')', ';',
+        //   // timeunits_declaration?
+        //   repeat($._module_item),
+        // ),
         seq(
           '(', '.*', ')', ';',
           // timeunits_declaration?
-          repeat($._module_item),
+          // repeat($._module_item),
         ),
         seq(
           $.module_nonansi_header,
-          repeat($._module_item),
+          // repeat($._module_item),
         ),
-        seq(
-          $.module_ansi_header,
-          // timeunits_declaration?
-          repeat($._non_port_module_item),
-        ),
+        // seq(
+        //   $.module_ansi_header,
+        //   // timeunits_declaration?
+        //   // repeat($._non_port_module_item),
+        // ),
       ),
       'endmodule', optional(seq(':', $.module_identifier))
     ),
     seq('extern', $.module_header, choice(
-      $.module_nonansi_header,
-      $.module_ansi_header
+      // $.module_nonansi_header,
+      // $.module_ansi_header
     )),
   ),
 
@@ -137,7 +142,7 @@ const rules = {
   ),
 
   list_of_ports: $ => seq( // reordered : commaSep -> commaSep1
-    '(', commaSep1($.port), ')'
+    '(', commaSep($.port), ')'
   ),
 
   list_of_port_declarations: $ => seq( // reordered : commaSep -> commaSep1
@@ -152,18 +157,18 @@ const rules = {
   ),
 
   port: $ => choice( // reordered
-    seq('.', $.port_identifier, '(', optional($._port_expression), ')'),
+    // seq('.', $.port_identifier, '(', optional($._port_expression), ')'),
     $._port_expression
   ),
 
   _port_expression: $ => choice(
     $._port_reference,
-    seq('{', sep1(',', $._port_reference), '}')
+    // seq('{', sep1(',', $._port_reference), '}')
   ),
 
   _port_reference: $ => choice(
     $.port_identifier,
-    $.constant_select
+    // $.constant_select
   ),
 
   port_direction: $ => choice(
@@ -2408,7 +2413,7 @@ const rules = {
   constant_select: $ => seq(
     optional(
       repeat(seq(
-        '.', $.member_identifier, $.constant_bit_select
+        '.', $.member_identifier, optional($.constant_bit_select)
       )),
       '.', $.member_identifier
     ),
@@ -2627,7 +2632,7 @@ const rules = {
     optional(seq('$root', '.')),
     repeat(seq(
       $.identifier,
-      $.constant_bit_select,
+      optional($.constant_bit_select),
       '.'
     )),
     $.identifier

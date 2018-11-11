@@ -1,0 +1,89 @@
+============================================
+empty module
+============================================
+
+module mod (); endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+    )
+    (module_nonansi_header (list_of_ports))
+  )
+)
+
+============================================
+empty module with nonANSI io
+============================================
+
+module mod (clk);
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+    )
+    (module_nonansi_header
+      (list_of_ports
+        (port (port_identifier (_port_identifier (simple_identifier))))
+      )
+    )
+  )
+)
+
+============================================
+empty module with nonANSI ios
+============================================
+
+module mod (clk, reset_n, inp, oup);
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+    )
+    (module_nonansi_header
+      (list_of_ports
+        (port (port_identifier (_port_identifier (simple_identifier))))
+        (port (port_identifier (_port_identifier (simple_identifier))))
+        (port (port_identifier (_port_identifier (simple_identifier))))
+        (port (port_identifier (_port_identifier (simple_identifier))))
+      )
+    )
+  )
+)
+
+============================================
+empty module with ANSI io
+============================================
+
+module mod (input clk);
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+    )
+    (module_nonansi_header
+      (list_of_ports
+        (port (port_identifier (_port_identifier (simple_identifier))))
+      )
+    )
+  )
+)
