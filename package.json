@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "build": "tree-sitter generate && node-gyp build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tree-sitter test"
   },
   "author": "Aliaksei Chapyzhenka",
   "license": "MIT",
