@@ -1533,7 +1533,7 @@ const rules = {
 
   event_expression: $ => choice( // reordered : brake recursion
     seq($.event_expression_2, 'or', $.event_expression),
-    seq($.event_expression_2, ',',  $.event_expression),
+    seq($.event_expression_2, ',', $.event_expression),
     seq($.edge_identifier, $.expression), // reordered : help parser
     seq(
       optional($.edge_identifier),
@@ -1678,503 +1678,503 @@ const rules = {
     // type_reference
   ),
 
-    // constant_assignment_pattern_expression = assignment_pattern_expression
+  // constant_assignment_pattern_expression = assignment_pattern_expression
 
-    assignment_pattern_net_lvalue: $ => seq(
-      '\'{', sep1(',', $.net_lvalue), '}'
+  assignment_pattern_net_lvalue: $ => seq(
+    '\'{', sep1(',', $.net_lvalue), '}'
+  ),
+
+  assignment_pattern_variable_lvalue: $ => seq(
+    '\'{', sep1(',', $.variable_lvalue), '}'
+  ),
+
+  // A.6.8 Looping statements
+
+  // loop_statement =
+  // forever statement_or_null
+  // | repeat ( expression ) statement_or_null
+  // | while ( expression ) statement_or_null
+  // | for ( [ for_initialization ] ; [ expression ] ; [ for_step ] )
+  // statement_or_null
+  // | do statement_or_null while ( expression ) ;
+  // | foreach ( ps_or_hierarchical_array_identifier [ loop_variables ] )
+  //    statement
+  // for_initialization =
+  // list_of_variable_assignments
+  // | for_variable_declaration { , for_variable_declaration }
+  // for_variable_declaration =
+  // [ var ] data_type variable_identifier = expression
+  //   { , variable_identifier = expression }14
+  // for_step = for_step_assignment { , for_step_assignment }
+  // for_step_assignment =
+  // operator_assignment
+  // | inc_or_dec_expression
+  // | function_subroutine_call
+  // loop_variables
+  //   = [ index_variable_identifier ] { , [ index_variable_identifier ] }
+  // A.6.9 Subroutine call statements
+  // subroutine_call_statement =
+  // subroutine_call ;
+  // | void ' ( function_subroutine_call ) ;
+
+  // A.6.9 Subroutine call statements
+
+  // A.6.10 Assertion statements
+
+  // assertion_item =
+  // concurrent_assertion_item
+  // | deferred_immediate_assertion_item
+  // deferred_immediate_assertion_item
+  //  = [ block_identifier : ] deferred_immediate_assertion_statement
+  // procedural_assertion_statement =
+  // concurrent_assertion_statement
+  // | immediate_assertion_statement
+  // | checker_instantiation
+  // immediate_assertion_statement =
+  // simple_immediate_assertion_statement
+  // | deferred_immediate_assertion_statement
+  // simple_immediate_assertion_statement =
+  // simple_immediate_assert_statement
+  // | simple_immediate_assume_statement
+  // | simple_immediate_cover_statement
+  // simple_immediate_assert_statement =
+  // assert ( expression ) action_block
+  // simple_immediate_assume_statement =
+  // assume ( expression ) action_block
+  // simple_immediate_cover_statement =
+  // cover ( expression ) statement_or_null
+  // deferred_immediate_assertion_statement =
+  // deferred_immediate_assert_statement
+  // | deferred_immediate_assume_statement
+  // | deferred_immediate_cover_statement
+  // deferred_immediate_assert_statement =
+  // assert #0 ( expression ) action_block
+  // | assert final ( expression ) action_block
+  // deferred_immediate_assume_statement =
+  // assume #0 ( expression ) action_block
+  // | assume final ( expression ) action_block
+  // deferred_immediate_cover_statement =
+  // cover #0 ( expression ) statement_or_null
+  // | cover final ( expression ) statement_or_null
+
+  // A.6.11 Clocking block
+
+  // clocking_declaration
+  // = [ default ] clocking [ clocking_identifier ] clocking_event ;
+  // { clocking_item }
+  // endclocking [ : clocking_identifier ]
+  // | global clocking [ clocking_identifier ] clocking_event ;
+  //   endclocking [ : clocking_identifier ]
+
+  clocking_event: $ => seq('@', choice(
+    $.identifier,
+    seq('@', '(', $.event_expression, ')')
+  )),
+
+  // clocking_item =
+  // default default_skew ;
+  // | clocking_direction list_of_clocking_decl_assign ;
+  // | ( attribute_instance __ )* assertion_item_declaration
+  // default_skew =
+  // input clocking_skew
+  // | output clocking_skew
+  // | input clocking_skew output clocking_skew
+  // clocking_direction =
+  // input [ clocking_skew ]
+  // | output [ clocking_skew ]
+  // | input [ clocking_skew ] output [ clocking_skew ]
+  // | inout
+  // list_of_clocking_decl_assign
+  //   = clocking_decl_assign { , clocking_decl_assign }
+  // clocking_decl_assign = signal_identifier [ = expression ]
+  // clocking_skew =
+  // edge_identifier [ delay_control ]
+  // | delay_control
+  // clocking_drive =
+  // clockvar_expression <= [ cycle_delay ] expression
+
+  cycle_delay: $ => seq('##', choice(
+    $.integral_number,
+    $.identifier,
+    seq('(', $.expression, ')')
+  )),
+
+  clockvar: $ => $.hierarchical_identifier,
+
+  clockvar_expression: $ => seq($.clockvar, $.select),
+
+  // A.6.12 Randsequence
+
+  // randsequence_statement = randsequence ( [ production_identifier ] )
+  // production { production }
+  // endsequence
+  // production
+  //   = [ data_type_or_void ] production_identifier
+  //  [ ( tf_port_list ) ] : rs_rule { | rs_rule } ;
+  // rs_rule = rs_production_list [ := weight_specification [ rs_code_block ] ]
+  // rs_production_list =
+  // rs_prod { rs_prod }
+  // | rand join [ ( expression ) ] production_item
+  //   production_item { production_item }
+  // weight_specification =
+  // integral_number
+  // | ps_identifier
+  // | ( expression )
+  // rs_code_block = { { data_declaration } { statement_or_null } }
+  // rs_prod =
+  // production_item
+  // | rs_code_block
+  // | rs_if_else
+  // | rs_repeat
+  // | rs_case
+  // production_item = production_identifier [ ( list_of_arguments ) ]
+  // rs_if_else = if ( expression ) production_item [ else production_item ]
+  // rs_repeat = repeat ( expression ) production_item
+  // rs_case = case ( case_expression ) rs_case_item { rs_case_item } endcase
+  // rs_case_item =
+  // case_item_expression { , case_item_expression } : production_item ;
+  // | default [ : ] production_item ;
+  // A.7 Specify section
+  // A.7.1 Specify block declaration
+  // specify_block = specify { specify_item } endspecify
+  // specify_item =
+  // specparam_declaration
+  // | pulsestyle_declaration
+  // | showcancelled_declaration
+  // | path_declaration
+  // | system_timing_check
+  // pulsestyle_declaration =
+  // pulsestyle_onevent list_of_path_outputs ;
+  // | pulsestyle_ondetect list_of_path_outputs ;
+  // showcancelled_declaration =
+  // showcancelled list_of_path_outputs ;
+  // | noshowcancelled list_of_path_outputs ;
+
+  // A.7 Specify section
+
+  // A.7.1 Specify block declaration
+
+  // A.7.2 Specify path declarations
+
+  // path_declaration =
+  // simple_path_declaration ;
+  // | edge_sensitive_path_declaration ;
+  // | state_dependent_path_declaration ;
+  // simple_path_declaration =
+  // parallel_path_description = path_delay_value
+  // | full_path_description = path_delay_value
+  // parallel_path_description =
+  // ( specify_input_terminal_descriptor [ polarity_operator ]
+  //    => specify_output_terminal_descriptor )
+  // full_path_description =
+  // ( list_of_path_inputs [ polarity_operator ] *> list_of_path_outputs )
+  // list_of_path_inputs =
+  // specify_input_terminal_descriptor { , specify_input_terminal_descriptor }
+  // list_of_path_outputs =
+  // specify_output_terminal_descriptor { , specify_output_terminal_descriptor }
+  // A.7.3 Specify block terminals
+  // specify_input_terminal_descriptor =
+  // input_identifier [ [ constant_range_expression ] ]
+  // specify_output_terminal_descriptor =
+  // output_identifier [ [ constant_range_expression ] ]
+  // input_identifier
+  //   = input_port_identifier | inout_port_identifier
+  //  | interface_identifier.port_identifier
+  // output_identifier = output_port_identifier | inout_port_identifier | interface_identifier.port_identifier
+
+  // A.7.3 Specify block terminals
+
+  // A.7.4 Specify path delays
+
+  // path_delay_value =
+  // list_of_path_delay_expressions
+  // | ( list_of_path_delay_expressions )
+  // list_of_path_delay_expressions =
+  // t_path_delay_expression
+  // | trise_path_delay_expression , tfall_path_delay_expression
+  // | trise_path_delay_expression , tfall_path_delay_expression
+  //   , tz_path_delay_expression
+  // | t01_path_delay_expression , t10_path_delay_expression
+  //   , t0z_path_delay_expression ,
+  // tz1_path_delay_expression , t1z_path_delay_expression
+  //   , tz0_path_delay_expression
+  // | t01_path_delay_expression , t10_path_delay_expression
+  //   , t0z_path_delay_expression ,
+  // tz1_path_delay_expression , t1z_path_delay_expression
+  //   , tz0_path_delay_expression ,
+  // t0x_path_delay_expression , tx1_path_delay_expression
+  //   , t1x_path_delay_expression ,
+  // tx0_path_delay_expression , txz_path_delay_expression
+  //   , tzx_path_delay_expression
+  // t_path_delay_expression = path_delay_expression
+  // trise_path_delay_expression = path_delay_expression
+  // tfall_path_delay_expression = path_delay_expression
+  // tz_path_delay_expression = path_delay_expression
+  // t01_path_delay_expression = path_delay_expression
+  // t10_path_delay_expression = path_delay_expression
+  // t0z_path_delay_expression = path_delay_expression
+  // tz1_path_delay_expression = path_delay_expression
+  // t1z_path_delay_expression = path_delay_expression
+  // tz0_path_delay_expression = path_delay_expression
+  // t0x_path_delay_expression = path_delay_expression
+  // tx1_path_delay_expression = path_delay_expression
+  // t1x_path_delay_expression = path_delay_expression
+  // tx0_path_delay_expression = path_delay_expression
+  // txz_path_delay_expression = path_delay_expression
+  // tzx_path_delay_expression = path_delay_expression
+  // path_delay_expression = constant_mintypmax_expression
+  // edge_sensitive_path_declaration =
+  // parallel_edge_sensitive_path_description = path_delay_value
+  // | full_edge_sensitive_path_description = path_delay_value
+  // parallel_edge_sensitive_path_description =
+  // ( [ edge_identifier ] specify_input_terminal_descriptor
+  //  [ polarity_operator ] =>
+  // ( specify_output_terminal_descriptor [ polarity_operator ]
+  //   : data_source_expression ) )
+  // full_edge_sensitive_path_description =
+  // ( [ edge_identifier ] list_of_path_inputs [ polarity_operator ] *>
+  // ( list_of_path_outputs [ polarity_operator ] : data_source_expression ) )
+  // data_source_expression = expression
+
+  edge_identifier: $ => choice('posedge', 'negedge', 'edge'),
+
+  // state_dependent_path_declaration =
+  // if ( module_path_expression ) simple_path_declaration
+  // | if ( module_path_expression ) edge_sensitive_path_declaration
+  // | ifnone simple_path_declaration
+  // polarity_operator = + | -
+
+  // A.7.5 System timing checks
+
+  // A.7.5.1 System timing check commands
+
+  // system_timing_check|||||||||||=
+  // $setup_timing_check
+  // $hold_timing_check
+  // $setuphold_timing_check
+  // $recovery_timing_check
+  // $removal_timing_check
+  // $recrem_timing_check
+  // $skew_timing_check
+  // $timeskew_timing_check
+  // $fullskew_timing_check
+  // $period_timing_check
+  // $width_timing_check
+  // $nochange_timing_check
+  // $setup_timing_check =
+  // $setup ( data_event , reference_event , timing_check_limit
+  //  [ , [ notifier ] ] ) ;
+  // $hold_timing_check =
+  // $hold ( reference_event , data_event , timing_check_limit
+  //  [ , [ notifier ] ] ) ;
+  // $setuphold_timing_check =
+  // $setuphold ( reference_event , data_event
+  //   , timing_check_limit , timing_check_limit
+  // [ , [ notifier ] [ , [ timestamp_condition ] [ , [ timecheck_condition ]
+  // [ , [ delayed_reference ] [ , [ delayed_data ] ] ] ] ] ] ) ;
+  // $recovery_timing_check =
+  // $recovery ( reference_event , data_event , timing_check_limit
+  //  [ , [ notifier ] ] ) ;
+  // $removal_timing_check =
+  // $removal ( reference_event , data_event , timing_check_limit
+  //  [ , [ notifier ] ] ) ;
+  // $recrem_timing_check =
+  // $recrem ( reference_event , data_event ,
+  //  timing_check_limit , timing_check_limit
+  // [ , [ notifier ] [ , [ timestamp_condition ] [ , [ timecheck_condition ]
+  // [ , [ delayed_reference ] [ , [ delayed_data ] ] ] ] ] ] ) ;
+  // $skew_timing_check =
+  // $skew ( reference_event , data_event , timing_check_limit
+  //  [ , [ notifier ] ] ) ;
+  // $timeskew_timing_check =
+  // $timeskew ( reference_event , data_event , timing_check_limit
+  // [ , [ notifier ] [ , [ event_based_flag ]
+  //  [ , [ remain_active_flag ] ] ] ] ) ;
+  // $fullskew_timing_check =
+  // $fullskew ( reference_event , data_event
+  //  , timing_check_limit , timing_check_limit
+  // [ , [ notifier ] [ , [ event_based_flag ]
+  //  [ , [ remain_active_flag ] ] ] ] ) ;
+  // $period_timing_check =
+  // $period ( controlled_reference_event , timing_check_limit
+  //  [ , [ notifier ] ] ) ;
+  // $width_timing_check =
+  // $width ( controlled_reference_event , timing_check_limit
+  //  , threshold [ , [ notifier ] ] ) ;
+  // $nochange_timing_check =
+  // $nochange ( reference_event , data_event
+  //  , start_edge_offset , end_edge_offset [ , [ notifier ] ] );
+
+  // A.7.5.2 System timing check command arguments
+
+  // timecheck_condition = mintypmax_expression
+  // controlled_reference_event = controlled_timing_check_event
+  // data_event = timing_check_event
+  // delayed_data =
+  // terminal_identifier
+  // | terminal_identifier [ constant_mintypmax_expression ]
+  // delayed_reference =
+  // terminal_identifier
+  // | terminal_identifier [ constant_mintypmax_expression ]
+  // end_edge_offset = mintypmax_expression
+  // event_based_flag = constant_expression
+  // notifier = variable_identifier
+  // reference_event = timing_check_event
+  // remain_active_flag = constant_mintypmax_expression
+  // timestamp_condition = mintypmax_expression
+  // start_edge_offset = mintypmax_expression
+  // threshold = constant_expression
+  // timing_check_limit = expression
+
+  // A.7.5.3 System timing check event definitions
+
+  // timing_check_event =
+  // [timing_check_event_control] specify_terminal_descriptor
+  //    [ &&& timing_check_condition ]
+  // controlled_timing_check_event =
+  // timing_check_event_control specify_terminal_descriptor
+  //  [ &&& timing_check_condition ]
+  // timing_check_event_control =
+  // posedge
+  // | negedge
+  // | edge
+  // | edge_control_specifier
+  // specify_terminal_descriptor =
+  // specify_input_terminal_descriptor
+  // | specify_output_terminal_descriptor
+  // edge_control_specifier = edge [ edge_descriptor { , edge_descriptor } ]
+  // edge_descriptor33 = 01 | 10 | z_or_x zero_or_one | zero_or_one z_or_x
+  // zero_or_one = 0 | 1
+  // z_or_x = x | X | z | Z
+  // timing_check_condition =
+  // scalar_timing_check_condition
+  // | ( scalar_timing_check_condition )
+  // scalar_timing_check_condition =
+  // expression
+  // | ~ expression
+  // | expression == scalar_constant
+  // | expression === scalar_constant
+  // | expression != scalar_constant
+  // | expression !== scalar_constant
+  // scalar_constant = 1'b0 | 1'b1 | 1'B0 | 1'B1 | 'b0 | 'b1 | 'B0 | 'B1 | 1 | 0
+  //
+  //
+  //
+  //
+  // A.8 Expressions
+
+  // A.8.1 Concatenations
+
+  concatenation: $ => seq(
+    '{', sep1(',', $.expression), '}'
+  ),
+
+  constant_concatenation: $ => seq(
+    '{', sep1(',', $.constant_expression), '}'
+  ),
+
+  constant_multiple_concatenation: $ => seq(
+    '{', $.constant_expression, $.constant_concatenation, '}'
+  ),
+
+  // module_path_concatenation
+  //  = { module_path_expression { , module_path_expression } }
+  // module_path_multiple_concatenation
+  //  = { constant_expression module_path_concatenation }
+
+  multiple_concatenation: $ => seq(
+    '{', $.expression, $.concatenation, '}'
+  ),
+
+  // streaming_concatenation
+  //  = { stream_operator [ slice_size ] stream_concatenation }
+  // stream_operator = >> | <<
+  // slice_size = simple_type | constant_expression
+  // stream_concatenation = { stream_expression { , stream_expression } }
+  // stream_expression = expression [ with [ array_range_expression ] ]
+  // array_range_expression =
+  // expression
+  // | expression : expression
+  // | expression +: expression
+  // | expression -: expression
+  // empty_queue35 = { }
+
+  // A.8.2 Subroutine calls
+
+  // constant_function_call = function_subroutine_call36
+  // tf_call37 = ps_or_hierarchical_tf_identifier ( attribute_instance __ )*
+  //  [ ( list_of_arguments ) ]
+  // system_tf_call =
+  // system_tf_identifier [ ( list_of_arguments ) ]
+  //
+  //
+  // | system_tf_identifier ( data_type [ , expression ] )
+  // subroutine_call =
+  // tf_call
+  // | system_tf_call
+  // | method_call
+  // | [ std:: ] randomize_call
+  // function_subroutine_call = subroutine_call
+  // list_of_arguments =
+  // [ expression ] { , [ expression ] } { , . identifier ( [ expression ] ) }
+  // | . identifier ( [ expression ] ) { , . identifier ( [ expression ] ) }
+  // method_call = method_call_root . method_call_body
+  // method_call_body =
+  // method_identifier ( attribute_instance __ )* [ ( list_of_arguments ) ]
+  // | built_in_method_call
+  // built_in_method_call =
+  // array_manipulation_call
+  // | randomize_call
+  // array_manipulation_call =
+  // array_method_name ( attribute_instance __ )*
+  // [ ( list_of_arguments ) ]
+  // [ with ( expression ) ]
+  // randomize_call =
+  // randomize ( attribute_instance __ )*
+  // [ ( [ variable_identifier_list | null ] ) ]
+  // [ with [ ( [ identifier_list ] ) ] constraint_block ]38
+  // method_call_root = primary | implicit_class_handle
+  // array_method_name =
+  // method_identifier | unique | and | or | xor
+  //
+  //
+
+
+
+
+
+  // A.8.3 Expressions
+
+  inc_or_dec_expression: $ => choice(
+    seq($.inc_or_dec_operator, repeat($.attribute_instance), $.variable_lvalue),
+    seq($.variable_lvalue, repeat($.attribute_instance), $.inc_or_dec_operator)
+  ),
+
+  conditional_expression: $ => seq(
+    $.cond_predicate,
+    '?',
+    repeat($.attribute_instance), $.expression,
+    ':',
+    $.expression
+  ),
+
+  // Reordered from the original spec to satisfy the parser
+  constant_expression: $ => choice(
+    seq(
+      $.constant_expression_2,
+      $.binary_operator,
+      repeat($.attribute_instance),
+      $.constant_expression_2
     ),
-
-    assignment_pattern_variable_lvalue: $ => seq(
-      '\'{', sep1(',', $.variable_lvalue), '}'
+    seq(
+      $.constant_expression_2,
+      '?',
+      repeat($.attribute_instance),
+      sep1(':', $.constant_expression)
     ),
-
-    // A.6.8 Looping statements
-
-    // loop_statement =
-    // forever statement_or_null
-    // | repeat ( expression ) statement_or_null
-    // | while ( expression ) statement_or_null
-    // | for ( [ for_initialization ] ; [ expression ] ; [ for_step ] )
-    // statement_or_null
-    // | do statement_or_null while ( expression ) ;
-    // | foreach ( ps_or_hierarchical_array_identifier [ loop_variables ] )
-    //    statement
-    // for_initialization =
-    // list_of_variable_assignments
-    // | for_variable_declaration { , for_variable_declaration }
-    // for_variable_declaration =
-    // [ var ] data_type variable_identifier = expression
-    //   { , variable_identifier = expression }14
-    // for_step = for_step_assignment { , for_step_assignment }
-    // for_step_assignment =
-    // operator_assignment
-    // | inc_or_dec_expression
-    // | function_subroutine_call
-    // loop_variables
-    //   = [ index_variable_identifier ] { , [ index_variable_identifier ] }
-    // A.6.9 Subroutine call statements
-    // subroutine_call_statement =
-    // subroutine_call ;
-    // | void ' ( function_subroutine_call ) ;
-
-    // A.6.9 Subroutine call statements
-
-    // A.6.10 Assertion statements
-
-    // assertion_item =
-    // concurrent_assertion_item
-    // | deferred_immediate_assertion_item
-    // deferred_immediate_assertion_item
-    //  = [ block_identifier : ] deferred_immediate_assertion_statement
-    // procedural_assertion_statement =
-    // concurrent_assertion_statement
-    // | immediate_assertion_statement
-    // | checker_instantiation
-    // immediate_assertion_statement =
-    // simple_immediate_assertion_statement
-    // | deferred_immediate_assertion_statement
-    // simple_immediate_assertion_statement =
-    // simple_immediate_assert_statement
-    // | simple_immediate_assume_statement
-    // | simple_immediate_cover_statement
-    // simple_immediate_assert_statement =
-    // assert ( expression ) action_block
-    // simple_immediate_assume_statement =
-    // assume ( expression ) action_block
-    // simple_immediate_cover_statement =
-    // cover ( expression ) statement_or_null
-    // deferred_immediate_assertion_statement =
-    // deferred_immediate_assert_statement
-    // | deferred_immediate_assume_statement
-    // | deferred_immediate_cover_statement
-    // deferred_immediate_assert_statement =
-    // assert #0 ( expression ) action_block
-    // | assert final ( expression ) action_block
-    // deferred_immediate_assume_statement =
-    // assume #0 ( expression ) action_block
-    // | assume final ( expression ) action_block
-    // deferred_immediate_cover_statement =
-    // cover #0 ( expression ) statement_or_null
-    // | cover final ( expression ) statement_or_null
-
-    // A.6.11 Clocking block
-
-    // clocking_declaration
-    // = [ default ] clocking [ clocking_identifier ] clocking_event ;
-    // { clocking_item }
-    // endclocking [ : clocking_identifier ]
-    // | global clocking [ clocking_identifier ] clocking_event ;
-    //   endclocking [ : clocking_identifier ]
-
-    clocking_event: $ => seq('@', choice(
-      $.identifier,
-      seq('@', '(', $.event_expression, ')')
-    )),
-
-    // clocking_item =
-    // default default_skew ;
-    // | clocking_direction list_of_clocking_decl_assign ;
-    // | ( attribute_instance __ )* assertion_item_declaration
-    // default_skew =
-    // input clocking_skew
-    // | output clocking_skew
-    // | input clocking_skew output clocking_skew
-    // clocking_direction =
-    // input [ clocking_skew ]
-    // | output [ clocking_skew ]
-    // | input [ clocking_skew ] output [ clocking_skew ]
-    // | inout
-    // list_of_clocking_decl_assign
-    //   = clocking_decl_assign { , clocking_decl_assign }
-    // clocking_decl_assign = signal_identifier [ = expression ]
-    // clocking_skew =
-    // edge_identifier [ delay_control ]
-    // | delay_control
-    // clocking_drive =
-    // clockvar_expression <= [ cycle_delay ] expression
-
-    cycle_delay: $ => seq('##', choice(
-      $.integral_number,
-      $.identifier,
-      seq('(', $.expression, ')')
-    )),
-
-    clockvar: $ => $.hierarchical_identifier,
-
-    clockvar_expression: $ => seq($.clockvar, $.select),
-
-    // A.6.12 Randsequence
-
-    // randsequence_statement = randsequence ( [ production_identifier ] )
-    // production { production }
-    // endsequence
-    // production
-    //   = [ data_type_or_void ] production_identifier
-    //  [ ( tf_port_list ) ] : rs_rule { | rs_rule } ;
-    // rs_rule = rs_production_list [ := weight_specification [ rs_code_block ] ]
-    // rs_production_list =
-    // rs_prod { rs_prod }
-    // | rand join [ ( expression ) ] production_item
-    //   production_item { production_item }
-    // weight_specification =
-    // integral_number
-    // | ps_identifier
-    // | ( expression )
-    // rs_code_block = { { data_declaration } { statement_or_null } }
-    // rs_prod =
-    // production_item
-    // | rs_code_block
-    // | rs_if_else
-    // | rs_repeat
-    // | rs_case
-    // production_item = production_identifier [ ( list_of_arguments ) ]
-    // rs_if_else = if ( expression ) production_item [ else production_item ]
-    // rs_repeat = repeat ( expression ) production_item
-    // rs_case = case ( case_expression ) rs_case_item { rs_case_item } endcase
-    // rs_case_item =
-    // case_item_expression { , case_item_expression } : production_item ;
-    // | default [ : ] production_item ;
-    // A.7 Specify section
-    // A.7.1 Specify block declaration
-    // specify_block = specify { specify_item } endspecify
-    // specify_item =
-    // specparam_declaration
-    // | pulsestyle_declaration
-    // | showcancelled_declaration
-    // | path_declaration
-    // | system_timing_check
-    // pulsestyle_declaration =
-    // pulsestyle_onevent list_of_path_outputs ;
-    // | pulsestyle_ondetect list_of_path_outputs ;
-    // showcancelled_declaration =
-    // showcancelled list_of_path_outputs ;
-    // | noshowcancelled list_of_path_outputs ;
-
-    // A.7 Specify section
-
-    // A.7.1 Specify block declaration
-
-    // A.7.2 Specify path declarations
-
-    // path_declaration =
-    // simple_path_declaration ;
-    // | edge_sensitive_path_declaration ;
-    // | state_dependent_path_declaration ;
-    // simple_path_declaration =
-    // parallel_path_description = path_delay_value
-    // | full_path_description = path_delay_value
-    // parallel_path_description =
-    // ( specify_input_terminal_descriptor [ polarity_operator ]
-    //    => specify_output_terminal_descriptor )
-    // full_path_description =
-    // ( list_of_path_inputs [ polarity_operator ] *> list_of_path_outputs )
-    // list_of_path_inputs =
-    // specify_input_terminal_descriptor { , specify_input_terminal_descriptor }
-    // list_of_path_outputs =
-    // specify_output_terminal_descriptor { , specify_output_terminal_descriptor }
-    // A.7.3 Specify block terminals
-    // specify_input_terminal_descriptor =
-    // input_identifier [ [ constant_range_expression ] ]
-    // specify_output_terminal_descriptor =
-    // output_identifier [ [ constant_range_expression ] ]
-    // input_identifier
-    //   = input_port_identifier | inout_port_identifier
-    //  | interface_identifier.port_identifier
-    // output_identifier = output_port_identifier | inout_port_identifier | interface_identifier.port_identifier
-
-    // A.7.3 Specify block terminals
-
-    // A.7.4 Specify path delays
-
-    // path_delay_value =
-    // list_of_path_delay_expressions
-    // | ( list_of_path_delay_expressions )
-    // list_of_path_delay_expressions =
-    // t_path_delay_expression
-    // | trise_path_delay_expression , tfall_path_delay_expression
-    // | trise_path_delay_expression , tfall_path_delay_expression
-    //   , tz_path_delay_expression
-    // | t01_path_delay_expression , t10_path_delay_expression
-    //   , t0z_path_delay_expression ,
-    // tz1_path_delay_expression , t1z_path_delay_expression
-    //   , tz0_path_delay_expression
-    // | t01_path_delay_expression , t10_path_delay_expression
-    //   , t0z_path_delay_expression ,
-    // tz1_path_delay_expression , t1z_path_delay_expression
-    //   , tz0_path_delay_expression ,
-    // t0x_path_delay_expression , tx1_path_delay_expression
-    //   , t1x_path_delay_expression ,
-    // tx0_path_delay_expression , txz_path_delay_expression
-    //   , tzx_path_delay_expression
-    // t_path_delay_expression = path_delay_expression
-    // trise_path_delay_expression = path_delay_expression
-    // tfall_path_delay_expression = path_delay_expression
-    // tz_path_delay_expression = path_delay_expression
-    // t01_path_delay_expression = path_delay_expression
-    // t10_path_delay_expression = path_delay_expression
-    // t0z_path_delay_expression = path_delay_expression
-    // tz1_path_delay_expression = path_delay_expression
-    // t1z_path_delay_expression = path_delay_expression
-    // tz0_path_delay_expression = path_delay_expression
-    // t0x_path_delay_expression = path_delay_expression
-    // tx1_path_delay_expression = path_delay_expression
-    // t1x_path_delay_expression = path_delay_expression
-    // tx0_path_delay_expression = path_delay_expression
-    // txz_path_delay_expression = path_delay_expression
-    // tzx_path_delay_expression = path_delay_expression
-    // path_delay_expression = constant_mintypmax_expression
-    // edge_sensitive_path_declaration =
-    // parallel_edge_sensitive_path_description = path_delay_value
-    // | full_edge_sensitive_path_description = path_delay_value
-    // parallel_edge_sensitive_path_description =
-    // ( [ edge_identifier ] specify_input_terminal_descriptor
-    //  [ polarity_operator ] =>
-    // ( specify_output_terminal_descriptor [ polarity_operator ]
-    //   : data_source_expression ) )
-    // full_edge_sensitive_path_description =
-    // ( [ edge_identifier ] list_of_path_inputs [ polarity_operator ] *>
-    // ( list_of_path_outputs [ polarity_operator ] : data_source_expression ) )
-    // data_source_expression = expression
-
-    edge_identifier: $ => choice('posedge', 'negedge', 'edge'),
-
-      // state_dependent_path_declaration =
-      // if ( module_path_expression ) simple_path_declaration
-      // | if ( module_path_expression ) edge_sensitive_path_declaration
-      // | ifnone simple_path_declaration
-      // polarity_operator = + | -
-
-      // A.7.5 System timing checks
-
-      // A.7.5.1 System timing check commands
-
-      // system_timing_check|||||||||||=
-      // $setup_timing_check
-      // $hold_timing_check
-      // $setuphold_timing_check
-      // $recovery_timing_check
-      // $removal_timing_check
-      // $recrem_timing_check
-      // $skew_timing_check
-      // $timeskew_timing_check
-      // $fullskew_timing_check
-      // $period_timing_check
-      // $width_timing_check
-      // $nochange_timing_check
-      // $setup_timing_check =
-      // $setup ( data_event , reference_event , timing_check_limit
-      //  [ , [ notifier ] ] ) ;
-      // $hold_timing_check =
-      // $hold ( reference_event , data_event , timing_check_limit
-      //  [ , [ notifier ] ] ) ;
-      // $setuphold_timing_check =
-      // $setuphold ( reference_event , data_event
-      //   , timing_check_limit , timing_check_limit
-      // [ , [ notifier ] [ , [ timestamp_condition ] [ , [ timecheck_condition ]
-      // [ , [ delayed_reference ] [ , [ delayed_data ] ] ] ] ] ] ) ;
-      // $recovery_timing_check =
-      // $recovery ( reference_event , data_event , timing_check_limit
-      //  [ , [ notifier ] ] ) ;
-      // $removal_timing_check =
-      // $removal ( reference_event , data_event , timing_check_limit
-      //  [ , [ notifier ] ] ) ;
-      // $recrem_timing_check =
-      // $recrem ( reference_event , data_event ,
-      //  timing_check_limit , timing_check_limit
-      // [ , [ notifier ] [ , [ timestamp_condition ] [ , [ timecheck_condition ]
-      // [ , [ delayed_reference ] [ , [ delayed_data ] ] ] ] ] ] ) ;
-      // $skew_timing_check =
-      // $skew ( reference_event , data_event , timing_check_limit
-      //  [ , [ notifier ] ] ) ;
-      // $timeskew_timing_check =
-      // $timeskew ( reference_event , data_event , timing_check_limit
-      // [ , [ notifier ] [ , [ event_based_flag ]
-      //  [ , [ remain_active_flag ] ] ] ] ) ;
-      // $fullskew_timing_check =
-      // $fullskew ( reference_event , data_event
-      //  , timing_check_limit , timing_check_limit
-      // [ , [ notifier ] [ , [ event_based_flag ]
-      //  [ , [ remain_active_flag ] ] ] ] ) ;
-      // $period_timing_check =
-      // $period ( controlled_reference_event , timing_check_limit
-      //  [ , [ notifier ] ] ) ;
-      // $width_timing_check =
-      // $width ( controlled_reference_event , timing_check_limit
-      //  , threshold [ , [ notifier ] ] ) ;
-      // $nochange_timing_check =
-      // $nochange ( reference_event , data_event
-      //  , start_edge_offset , end_edge_offset [ , [ notifier ] ] );
-
-      // A.7.5.2 System timing check command arguments
-
-      // timecheck_condition = mintypmax_expression
-      // controlled_reference_event = controlled_timing_check_event
-      // data_event = timing_check_event
-      // delayed_data =
-      // terminal_identifier
-      // | terminal_identifier [ constant_mintypmax_expression ]
-      // delayed_reference =
-      // terminal_identifier
-      // | terminal_identifier [ constant_mintypmax_expression ]
-      // end_edge_offset = mintypmax_expression
-      // event_based_flag = constant_expression
-      // notifier = variable_identifier
-      // reference_event = timing_check_event
-      // remain_active_flag = constant_mintypmax_expression
-      // timestamp_condition = mintypmax_expression
-      // start_edge_offset = mintypmax_expression
-      // threshold = constant_expression
-      // timing_check_limit = expression
-
-      // A.7.5.3 System timing check event definitions
-
-      // timing_check_event =
-      // [timing_check_event_control] specify_terminal_descriptor
-      //    [ &&& timing_check_condition ]
-      // controlled_timing_check_event =
-      // timing_check_event_control specify_terminal_descriptor
-      //  [ &&& timing_check_condition ]
-      // timing_check_event_control =
-      // posedge
-      // | negedge
-      // | edge
-      // | edge_control_specifier
-      // specify_terminal_descriptor =
-      // specify_input_terminal_descriptor
-      // | specify_output_terminal_descriptor
-      // edge_control_specifier = edge [ edge_descriptor { , edge_descriptor } ]
-      // edge_descriptor33 = 01 | 10 | z_or_x zero_or_one | zero_or_one z_or_x
-      // zero_or_one = 0 | 1
-      // z_or_x = x | X | z | Z
-      // timing_check_condition =
-      // scalar_timing_check_condition
-      // | ( scalar_timing_check_condition )
-      // scalar_timing_check_condition =
-      // expression
-      // | ~ expression
-      // | expression == scalar_constant
-      // | expression === scalar_constant
-      // | expression != scalar_constant
-      // | expression !== scalar_constant
-      // scalar_constant = 1'b0 | 1'b1 | 1'B0 | 1'B1 | 'b0 | 'b1 | 'B0 | 'B1 | 1 | 0
-      //
-      //
-      //
-      //
-      // A.8 Expressions
-
-      // A.8.1 Concatenations
-
-      concatenation: $ => seq(
-        '{', sep1(',', $.expression), '}'
-      ),
-
-      constant_concatenation: $ => seq(
-        '{', sep1(',', $.constant_expression), '}'
-      ),
-
-      constant_multiple_concatenation: $ => seq(
-        '{', $.constant_expression, $.constant_concatenation, '}'
-      ),
-
-      // module_path_concatenation
-      //  = { module_path_expression { , module_path_expression } }
-      // module_path_multiple_concatenation
-      //  = { constant_expression module_path_concatenation }
-
-      multiple_concatenation: $ => seq(
-        '{', $.expression, $.concatenation, '}'
-      ),
-
-      // streaming_concatenation
-      //  = { stream_operator [ slice_size ] stream_concatenation }
-      // stream_operator = >> | <<
-      // slice_size = simple_type | constant_expression
-      // stream_concatenation = { stream_expression { , stream_expression } }
-      // stream_expression = expression [ with [ array_range_expression ] ]
-      // array_range_expression =
-      // expression
-      // | expression : expression
-      // | expression +: expression
-      // | expression -: expression
-      // empty_queue35 = { }
-
-      // A.8.2 Subroutine calls
-
-      // constant_function_call = function_subroutine_call36
-      // tf_call37 = ps_or_hierarchical_tf_identifier ( attribute_instance __ )*
-      //  [ ( list_of_arguments ) ]
-      // system_tf_call =
-      // system_tf_identifier [ ( list_of_arguments ) ]
-      //
-      //
-      // | system_tf_identifier ( data_type [ , expression ] )
-      // subroutine_call =
-      // tf_call
-      // | system_tf_call
-      // | method_call
-      // | [ std:: ] randomize_call
-      // function_subroutine_call = subroutine_call
-      // list_of_arguments =
-      // [ expression ] { , [ expression ] } { , . identifier ( [ expression ] ) }
-      // | . identifier ( [ expression ] ) { , . identifier ( [ expression ] ) }
-      // method_call = method_call_root . method_call_body
-      // method_call_body =
-      // method_identifier ( attribute_instance __ )* [ ( list_of_arguments ) ]
-      // | built_in_method_call
-      // built_in_method_call =
-      // array_manipulation_call
-      // | randomize_call
-      // array_manipulation_call =
-      // array_method_name ( attribute_instance __ )*
-      // [ ( list_of_arguments ) ]
-      // [ with ( expression ) ]
-      // randomize_call =
-      // randomize ( attribute_instance __ )*
-      // [ ( [ variable_identifier_list | null ] ) ]
-      // [ with [ ( [ identifier_list ] ) ] constraint_block ]38
-      // method_call_root = primary | implicit_class_handle
-      // array_method_name =
-      // method_identifier | unique | and | or | xor
-      //
-      //
-
-
-
-
-
-      // A.8.3 Expressions
-
-      inc_or_dec_expression: $ => choice(
-        seq($.inc_or_dec_operator, repeat($.attribute_instance), $.variable_lvalue),
-        seq($.variable_lvalue, repeat($.attribute_instance), $.inc_or_dec_operator)
-      ),
-
-      conditional_expression: $ => seq(
-        $.cond_predicate,
-        '?',
-        repeat($.attribute_instance), $.expression,
-        ':',
-        $.expression
-      ),
-
-      // Reordered from the original spec to satisfy the parser
-      constant_expression: $ => choice(
-        seq(
-          $.constant_expression_2,
-          $.binary_operator,
-          repeat($.attribute_instance),
-          $.constant_expression_2
-        ),
-        seq(
-          $.constant_expression_2,
-          '?',
-          repeat($.attribute_instance),
-          sep1(':', $.constant_expression)
-        ),
-        $.constant_primary,
-        seq($.unary_operator, repeat($.attribute_instance), $.constant_primary)
-      ),
+    $.constant_primary,
+    seq($.unary_operator, repeat($.attribute_instance), $.constant_primary)
+  ),
 
   // TODO Left recursion fix
 
@@ -2564,11 +2564,11 @@ const rules = {
   // z_digit ::= z | Z | ?
   // unbased_unsized_literal ::= '0 | '1 | 'z_or_x
 
-/* A.9 General */
+  /* A.9 General */
 
-/* A.9.1 Attributes */
+  /* A.9.1 Attributes */
 
-attribute_instance: $ => seq('(*', sep1(',', $.attr_spec), '*)'),
+  attribute_instance: $ => seq('(*', sep1(',', $.attr_spec), '*)'),
 
   attr_spec: $ => seq($.attr_name, optional('=', $.constant_expression)),
 
@@ -2727,9 +2727,9 @@ attribute_instance: $ => seq('(*', sep1(',', $.attr_spec), '*)'),
   udp_identifier: $ => alias($.identifier, $._udp_identifier),
   variable_identifier: $ => alias($.identifier, $._variable_identifier),
 
-/* A.9.4 White space */
+  /* A.9.4 White space */
 
-// white_space ::= space | tab | newline | eof};
+  // white_space ::= space | tab | newline | eof};
 
 };
 
