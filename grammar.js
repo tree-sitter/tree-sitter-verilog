@@ -7,7 +7,10 @@ function commaSep1(rule) {
 }
 
 function sep1(separator, rule) {
-  return seq(rule, repeat(seq(separator, rule)))
+  return prec.left(seq(
+    rule,
+    repeat(prec.left(seq(separator, rule)))
+  ))
 }
 
 /*
@@ -21,13 +24,13 @@ const rules = {
 
   _description: $ => choice(
     $.module_declaration
-    /*/ udp_declaration
-    / interface_declaration
-    / program_declaration
-    / package_declaration
-    / ( attribute_instance __ )* package_item
-    / ( attribute_instance __ )* bind_directive
-    / config_declaration*/
+    // $.udp_declaration,
+    // $.interface_declaration,
+    // $.program_declaration,
+    // $.package_declaration,
+    // seq(repeat($.attribute_instance), $.package_item),
+    // seq(repeat($.attribute_instance), $.bind_directive),
+    // $.config_declaration,
   ),
 
   // module_nonansi_header ::=
@@ -72,7 +75,7 @@ const rules = {
     //    interface_ansi_header, or program_ansi_header shall be followed
     //    by a parameter_port_list or list_of_port_declarations, or both.
     choice(
-      seq($.parameter_port_list, optional($.list_of_port_declarations)),
+      // seq($.parameter_port_list, optional($.list_of_port_declarations)),
       $.list_of_port_declarations,
     ),
     ';'
@@ -83,7 +86,7 @@ const rules = {
     $.module_keyword,
     optional($.lifetime),
     $.module_identifier,
-    // optional($.parameter_port_list)
+    optional($.parameter_port_list)
   ),
 
   module_declaration: $ => choice(
@@ -104,17 +107,17 @@ const rules = {
           $.module_nonansi_header,
           // repeat($._module_item),
         ),
-        // seq(
-        //   $.module_ansi_header,
-        //   // timeunits_declaration?
-        //   // repeat($._non_port_module_item),
-        // ),
+        seq(
+          $.module_ansi_header,
+          // timeunits_declaration?
+          repeat($._non_port_module_item),
+        ),
       ),
       'endmodule', optional(seq(':', $.module_identifier))
     ),
     seq('extern', $.module_header, choice(
-      // $.module_nonansi_header,
-      // $.module_ansi_header
+      $.module_nonansi_header,
+      $.module_ansi_header
     )),
   ),
 
@@ -124,13 +127,13 @@ const rules = {
 
   parameter_port_list: $ => seq(
     '#', '(',
-    choice(
-      seq(
-        $.list_of_param_assignments,
-        repeat(seq(',', $._parameter_port_declaration))
-      ),
-      commaSep($._parameter_port_declaration)
-    ),
+    // choice(
+    //   seq(
+    //     $.list_of_param_assignments,
+    //     repeat(seq(',', $._parameter_port_declaration))
+    //   ),
+    //   commaSep($._parameter_port_declaration)
+    // ),
     ')'
   ),
 
@@ -141,12 +144,18 @@ const rules = {
     /*/ 'type' list_of_type_assignments*/
   ),
 
-  list_of_ports: $ => seq( // reordered : commaSep -> commaSep1
+  list_of_ports: $ => seq(
     '(', commaSep($.port), ')'
   ),
 
   list_of_port_declarations: $ => seq( // reordered : commaSep -> commaSep1
-    '(', commaSep1(seq(repeat($.attribute_instance), $.ansi_port_declaration)), ')'
+    '(',
+    sep1(',', seq(
+      repeat($.attribute_instance),
+      $.ansi_port_declaration
+    )),
+    // sep1(',', seq($.attribute_instance, $.ansi_port_declaration)),
+    ')'
   ),
 
   port_declaration: $ => seq(
@@ -162,13 +171,13 @@ const rules = {
   ),
 
   _port_expression: $ => choice(
-    $._port_reference,
-    // seq('{', sep1(',', $._port_reference), '}')
+    $.port_reference,
+    // seq('{', sep1(',', $.port_reference), '}')
   ),
 
-  _port_reference: $ => choice(
+  port_reference: $ => seq(
     $.port_identifier,
-    // $.constant_select
+    optional($.constant_select)
   ),
 
   port_direction: $ => choice(
@@ -198,25 +207,27 @@ const rules = {
 
   ansi_port_declaration: $ => choice(
     seq(
-      optional(choice($.net_port_header, $.interface_port_header)),
+      // optional(choice($.net_port_header, $.interface_port_header))
+      $.net_port_header, // reordered : made net_port_header mandatory
+
       $.port_identifier,
       repeat($.unpacked_dimension),
       optional(seq('=', $.constant_expression))
     ),
-    seq(
-      optional($.variable_port_header),
-      $.port_identifier,
-      repeat($._variable_dimension),
-      optional('=', $.constant_expression)
-    ),
-    seq(
-      optional($.port_direction),
-      '.',
-      $.port_identifier,
-      '(',
-      optional($.expression),
-      ')'
-    )
+    // seq(
+    //   optional($.variable_port_header),
+    //   $.port_identifier,
+    //   repeat($._variable_dimension),
+    //   optional('=', $.constant_expression)
+    // ),
+    // seq(
+    //   optional($.port_direction),
+    //   '.',
+    //   $.port_identifier,
+    //   '(',
+    //   optional($.expression),
+    //   ')'
+    // )
   ),
 
   /*
@@ -230,16 +241,16 @@ const rules = {
   finish_number: $ => choice('0', '1', '2'),
 
   _module_common_item: $ => choice(
-    $._module_or_generate_item_declaration,
+    // $._module_or_generate_item_declaration,
     //  $.interface_instantiation,
     //  $.program_instantiation,
     //  $.assertion_item,
     //  $.bind_directive,
-    $.continuous_assign,
+    // $.continuous_assign,
     //  $.net_alias,
     //  $.initial_construct,
     //  $.final_construct,
-    $.always_construct
+    // $.always_construct
     //  $.loop_generate_construct,
     //  $.conditional_generate_construct,
     //  $.elaboration_system_task
@@ -526,7 +537,7 @@ const rules = {
     /*/ class_type*/
     'event',
     /*/ ps_covergroup_identifier*/
-    $.type_reference
+    // $.type_reference
   ),
 
   _data_type_or_implicit: $ => choice(
@@ -591,8 +602,8 @@ const rules = {
 
   net_port_type: $ => choice(
     seq(optional($.net_type), $._data_type_or_implicit),
-    $.net_type_identifier,
-    seq('interconnect', $.implicit_data_type)
+    // $.net_type_identifier,
+    // seq('interconnect', $.implicit_data_type)
   ),
 
   variable_port_type: $ => alias($._var_data_type, $._variable_port_type),
@@ -816,7 +827,10 @@ const rules = {
   // A.2.5 Declaration ranges
 
   unpacked_dimension: $ => seq(
-    '[', choice($.constant_range, $.constant_expression), ']'
+    '[', choice(
+      $.constant_range,
+      // $.constant_expression
+    ), ']'
   ),
 
   packed_dimension: $ => choice(
@@ -1023,7 +1037,7 @@ const rules = {
     sep1(',', $.named_parameter_assignment)
   ),
 
-  ordered_parameter_assignment: $ => $.param_expression,
+  ordered_parameter_assignment: $ => alias($.param_expression, $._ordered_parameter_assignment),
 
   named_parameter_assignment: $ => seq(
     '.', $.parameter_identifier, '(', optional($.param_expression), ')'
@@ -1537,8 +1551,8 @@ const rules = {
   ),
 
   event_expression: $ => choice( // reordered : brake recursion
-    seq($.event_expression_2, 'or', $.event_expression),
-    seq($.event_expression_2, ',', $.event_expression),
+    seq($.event_expression, 'or', $.event_expression),
+    seq($.event_expression, ',', $.event_expression),
     seq($.edge_identifier, $.expression), // reordered : help parser
     seq(
       optional($.edge_identifier),
@@ -1552,19 +1566,19 @@ const rules = {
     seq('(', $.event_expression, ')')
   ),
 
-  event_expression_2: $ => choice( // reordered : help parser
-    seq($.edge_identifier, $.expression), // reordered : help parser
-    seq(
-      optional($.edge_identifier),
-      $.expression,
-      optional(seq('iff', $.expression))
-    ),
-    // seq(
-    //   $.sequence_instance,
-    //   optional(seq('iff', $.expression))
-    // ),
-    seq('(', $.event_expression, ')')
-  ),
+  // event_expression_2: $ => choice( // reordered : help parser
+  //   seq($.edge_identifier, $.expression), // reordered : help parser
+  //   seq(
+  //     optional($.edge_identifier),
+  //     $.expression,
+  //     optional(seq('iff', $.expression))
+  //   ),
+  //   // seq(
+  //   //   $.sequence_instance,
+  //   //   optional(seq('iff', $.expression))
+  //   // ),
+  //   seq('(', $.event_expression, ')')
+  // ),
 
   _procedural_timing_control: $ => choice(
     $.delay_control,
@@ -1609,11 +1623,11 @@ const rules = {
   cond_predicate: $ => sep1('&&&', $.expression_or_cond_pattern),
 
   expression_or_cond_pattern: $ => choice(
-    $.expression_2,
+    $.expression,
     $.cond_pattern
   ),
 
-  cond_pattern: $ => seq($.expression_2, 'matches', $.pattern),
+  cond_pattern: $ => seq($.expression, 'matches', $.pattern),
 
   // A.6.7 Case statements
 
@@ -2165,25 +2179,25 @@ const rules = {
 
   // Reordered from the original spec to satisfy the parser
   constant_expression: $ => choice(
-    seq(
-      $.constant_expression_2,
+    prec.left(seq(
+      $.constant_expression,
       $.binary_operator,
       repeat($.attribute_instance),
-      $.constant_expression_2
-    ),
-    seq(
-      $.constant_expression_2,
+      $.constant_expression
+    )),
+    prec.left(seq(
+      $.constant_expression,
       '?',
       repeat($.attribute_instance),
       sep1(':', $.constant_expression)
-    ),
+    )),
     $.constant_primary,
     seq($.unary_operator, repeat($.attribute_instance), $.constant_primary)
   ),
 
   // TODO Left recursion fix
 
-  constant_expression_2: $ => $.constant_primary,
+  // constant_expression_2: $ => $.constant_primary,
 
   /*/ unary_operator __ ( attribute_instance __ )* constant_primary*/
   // / constant_expression __
@@ -2192,9 +2206,9 @@ const rules = {
   // / constant_expression __ '?' ( __ attribute_instance )* __
   //   constant_expression __ ':' __ constant_expression
 
-  constant_mintypmax_expression: $ => choice(
+  constant_mintypmax_expression: $ => seq(
     $.constant_expression,
-    seq($.constant_expression, ':', $.constant_expression, ':', $.constant_expression)
+    optional(seq(':', $.constant_expression, ':', $.constant_expression))
   ),
 
   constant_param_expression: $ => choice(
@@ -2228,26 +2242,26 @@ const rules = {
   ),
 
   expression: $ => choice( // reordered
-    seq('(', $.operator_assignment, ')'),
-    seq($.expression_2, $.binary_operator, repeat($.attribute_instance), $.expression),
-    $.inc_or_dec_expression,
+    $.primary,
     seq($.unary_operator, repeat($.attribute_instance), $.primary),
-    $.conditional_expression,
+    $.inc_or_dec_expression,
+    // seq('(', $.operator_assignment, ')'),
+    // seq($.expression, $.binary_operator, repeat($.attribute_instance), $.expression),
+    // $.conditional_expression,
     // $.inside_expression,
-    $.tagged_union_expression,
-    $.primary
+    // $.tagged_union_expression,
   ),
 
-  expression_2: $ => choice( // reordered
-    seq($.unary_operator, repeat($.attribute_instance), $.primary),
-    $.inc_or_dec_expression,
-    seq('(', $.operator_assignment, ')'),
-    $.tagged_union_expression,
-    $.primary,
-    $.conditional_expression,
-    // $.inside_expression,
-    // seq($.expression_2, $.binary_operator, repeat($.attribute_instance), $.expression),
-  ),
+  // expression_2: $ => choice( // reordered
+  //   seq($.unary_operator, repeat($.attribute_instance), $.primary),
+  //   $.inc_or_dec_expression,
+  //   seq('(', $.operator_assignment, ')'),
+  //   $.tagged_union_expression,
+  //   $.primary,
+  //   $.conditional_expression,
+  //   // $.inside_expression,
+  //   // seq($.expression_2, $.binary_operator, repeat($.attribute_instance), $.expression),
+  // ),
 
   tagged_union_expression: $ => seq(
     'tagged',
@@ -2265,9 +2279,9 @@ const rules = {
   ),
 
   // reordered
-  mintypmax_expression: $ => choice(
-    seq($.expression, ':', $.expression, ':', $.expression),
-    $.expression //  __!':'
+  mintypmax_expression: $ => seq(
+    $.expression,
+    optional(seq(':', $.expression, ':', $.expression))
   ),
 
   module_path_conditional_expression: $ => seq(
@@ -2361,7 +2375,7 @@ const rules = {
     // $.streaming_concatenation,
     // $.sequence_method_call,
     'this',
-    '$',
+    // '$',
     'null'
   ),
 
@@ -2392,7 +2406,8 @@ const rules = {
   // 'super'
   //
 
-  bit_select: $ => repeat1(seq('[', $.expression, ']')), // reordered : matched empty string
+  // bit_select: $ => repeat1(seq('[', $.expression, ']')), // reordered : matched empty string
+  bit_select: $ => seq('[', $.expression, ']'), // reordered : matched empty string
 
   select: $ => seq(
     optional(
@@ -2408,7 +2423,8 @@ const rules = {
   //   // [ { . member_identifier bit_select } . member_identifier ] bit_select
   //
 
-  constant_bit_select: $ => repeat1(seq('[', $.constant_expression, ']')), // reordered : matched empty string
+  // constant_bit_select: $ => repeat1(seq('[', $.constant_expression, ']')), // reordered : matched empty string
+  constant_bit_select: $ => seq('[', $.constant_expression, ']'), // reordered : 1 time
 
   constant_select: $ => seq(
     optional(
@@ -2436,8 +2452,7 @@ const rules = {
   ),
 
   variable_lvalue: $ => choice(
-    //( implicit_class_handle __ '.' / package_scope )?
-    seq($.hierarchical_variable_identifier, $.select),
+    // ( implicit_class_handle __ '.' / package_scope )? ($.hierarchical_variable_identifier, $.select),
     seq('{', sep1(',', $.variable_lvalue), '}'),
     seq(optional($.assignment_pattern_expression_type), $.assignment_pattern_variable_lvalue),
     // $.streaming_concatenation
@@ -2630,11 +2645,7 @@ const rules = {
 
   hierarchical_identifier: $ => seq(
     optional(seq('$root', '.')),
-    repeat(seq(
-      $.identifier,
-      optional($.constant_bit_select),
-      '.'
-    )),
+    repeat1(seq($.identifier, $.constant_bit_select, '.')), // reordered : repeat -> repeat1
     $.identifier
   ),
 
@@ -2718,7 +2729,7 @@ const rules = {
   */
 
   // simple_identifier ::= [ a-zA-Z_ ] { [ a-zA-Z0-9_$ ] }
-  simple_identifier: $ => /[a-zA-Z_]\w*/,
+  simple_identifier: $ => token(/[a-zA-Z_]\w*/),
 
   specparam_identifier: $ => alias($.identifier, $._specparam_identifier),
 

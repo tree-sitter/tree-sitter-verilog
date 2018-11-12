@@ -8,11 +8,10 @@ module mod (); endmodule
 
 (source_file
   (module_declaration
-    (module_header
-      (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
+    (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+    (module_nonansi_header
+      (list_of_ports)
     )
-    (module_nonansi_header (list_of_ports))
   )
 )
 
@@ -27,13 +26,12 @@ endmodule
 
 (source_file
   (module_declaration
-    (module_header
-      (module_keyword)
+    (module_header (module_keyword)
       (module_identifier (_module_identifier (simple_identifier)))
     )
     (module_nonansi_header
       (list_of_ports
-        (port (port_identifier (_port_identifier (simple_identifier))))
+        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
       )
     )
   )
@@ -50,16 +48,15 @@ endmodule
 
 (source_file
   (module_declaration
-    (module_header
-      (module_keyword)
+    (module_header (module_keyword)
       (module_identifier (_module_identifier (simple_identifier)))
     )
     (module_nonansi_header
       (list_of_ports
-        (port (port_identifier (_port_identifier (simple_identifier))))
-        (port (port_identifier (_port_identifier (simple_identifier))))
-        (port (port_identifier (_port_identifier (simple_identifier))))
-        (port (port_identifier (_port_identifier (simple_identifier))))
+        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
+        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
+        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
+        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
       )
     )
   )
@@ -69,21 +66,54 @@ endmodule
 empty module with ANSI io
 ============================================
 
-module mod (input clk);
+module mod (output out);
 endmodule
 
 ----
 
 (source_file
   (module_declaration
-    (module_header
-      (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
-    )
-    (module_nonansi_header
-      (list_of_ports
-        (port (port_identifier (_port_identifier (simple_identifier))))
+    (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+    (module_ansi_header (list_of_port_declarations
+      (ansi_port_declaration
+        (net_port_header
+          (port_direction)
+          (net_port_type (data_type (MISSING)))
+        )
+        (port_identifier (_port_identifier (simple_identifier)))
       )
-    )
+    ))
+  )
+)
+
+============================================
+module with ANSI ios
+============================================
+
+module mod (input alfa, output logic beta);
+
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+    (module_ansi_header (list_of_port_declarations
+      (ansi_port_declaration
+        (net_port_header
+          (port_direction)
+          (net_port_type (data_type (MISSING)))
+        )
+        (port_identifier (_port_identifier (simple_identifier)))
+      )
+      (ansi_port_declaration
+        (net_port_header
+          (port_direction)
+          (net_port_type (data_type (integer_vector_type)))
+        )
+        (port_identifier (_port_identifier (simple_identifier)))
+      )
+    ))
   )
 )
