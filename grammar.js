@@ -105,7 +105,7 @@ const rules = {
         ),
         seq(
           $.module_nonansi_header,
-          // repeat($._module_item),
+          repeat($._module_item),
         ),
         seq(
           $.module_ansi_header,
@@ -160,9 +160,13 @@ const rules = {
 
   port_declaration: $ => seq(
     repeat($.attribute_instance),
-    $.inout_declaration
-    // ref_declaration
-    // interface_port_declaration
+    choice(
+      $.inout_declaration,
+      $.input_declaration,
+      $.output_declaration,
+      $.ref_declaration,
+      // $.interface_port_declaration,
+    )
   ),
 
   port: $ => choice( // reordered
@@ -257,7 +261,7 @@ const rules = {
   ),
 
   _module_item: $ => choice(
-    seq($.port_declaration, ';'),
+    // seq($.port_declaration, ';'),
     $._non_port_module_item
   ),
 
@@ -397,31 +401,31 @@ const rules = {
 
   /* A.2.1.2 Port declarations */
 
-  inout_declaration: $ => choice(
-    // input_declaration
-    // output_declaration
+  inout_declaration: $ => seq(
+    'inout',
+    $.net_port_type,
+    $.list_of_port_identifiers
+  ),
 
-    seq(
-      choice('inout', 'input', 'output'),
-      $.net_port_type,
-      $.list_of_port_identifiers
-    ),
-    seq(
-      choice('input', 'output'),
-      $.variable_port_type,
-      $.list_of_variable_identifiers
+  input_declaration: $ => seq(
+    'input', choice(
+      seq($.net_port_type, $.list_of_port_identifiers),
+      seq($.variable_port_type, $.list_of_variable_identifiers)
     )
   ),
 
-  /*
-  interface_port_declaration
-    = interface_identifier
-      list_of_interface_identifiers
-    / interface_identifier
-      '.'
-      modport_identifier
-      list_of_interface_identifiers
-  */
+  output_declaration: $ => seq(
+    'output', choice(
+      seq($.net_port_type, $.list_of_port_identifiers),
+      seq($.variable_port_type, $.list_of_variable_identifiers)
+    )
+  ),
+
+  interface_port_declaration: $ => seq(
+    $.interface_identifier,
+    optional(seq('.', $.modport_identifier)),
+    $.list_of_interface_identifiers
+  ),
 
   ref_declaration: $ => seq(
     'ref',
@@ -711,12 +715,19 @@ const rules = {
 
   list_of_defparam_assignments: $ => sep1(',', $.defparam_assignment),
 
-  /*
-  list_of_genvar_identifiers = genvar_identifier { , genvar_identifier }
-  list_of_interface_identifiers = interface_identifier { unpacked_dimension }
-  { , interface_identifier { unpacked_dimension } }
-  list_of_net_decl_assignments = net_decl_assignment { , net_decl_assignment }
-  */
+  // list_of_genvar_identifiers = genvar_identifier { , genvar_identifier }
+
+  list_of_interface_identifiers: $ => seq(
+    $.interface_identifier,
+    repeat($.unpacked_dimension),
+    repeat(seq(
+      ',',
+      $.interface_identifier,
+      repeat($.unpacked_dimension)
+    ))
+  ),
+
+  // list_of_net_decl_assignments = net_decl_assignment { , net_decl_assignment }
 
   list_of_param_assignments: $ => sep1(',', $.param_assignment),
 

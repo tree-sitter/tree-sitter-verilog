@@ -132,6 +132,13 @@
                     {
                       "type": "SYMBOL",
                       "name": "module_nonansi_header"
+                    },
+                    {
+                      "type": "REPEAT",
+                      "content": {
+                        "type": "SYMBOL",
+                        "name": "_module_item"
+                      }
                     }
                   ]
                 },
@@ -399,8 +406,25 @@
           }
         },
         {
-          "type": "SYMBOL",
-          "name": "inout_declaration"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "inout_declaration"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "input_declaration"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "output_declaration"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "ref_declaration"
+            }
+          ]
         }
       ]
     },
@@ -615,19 +639,6 @@
     "_module_item": {
       "type": "CHOICE",
       "members": [
-        {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "port_declaration"
-            },
-            {
-              "type": "STRING",
-              "value": ";"
-            }
-          ]
-        },
         {
           "type": "SYMBOL",
           "name": "_non_port_module_item"
@@ -860,63 +871,133 @@
       ]
     },
     "inout_declaration": {
-      "type": "CHOICE",
+      "type": "SEQ",
       "members": [
         {
-          "type": "SEQ",
+          "type": "STRING",
+          "value": "inout"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "net_port_type"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "list_of_port_identifiers"
+        }
+      ]
+    },
+    "input_declaration": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "input"
+        },
+        {
+          "type": "CHOICE",
           "members": [
             {
-              "type": "CHOICE",
+              "type": "SEQ",
               "members": [
                 {
-                  "type": "STRING",
-                  "value": "inout"
+                  "type": "SYMBOL",
+                  "name": "net_port_type"
                 },
                 {
-                  "type": "STRING",
-                  "value": "input"
-                },
-                {
-                  "type": "STRING",
-                  "value": "output"
+                  "type": "SYMBOL",
+                  "name": "list_of_port_identifiers"
                 }
               ]
             },
             {
-              "type": "SYMBOL",
-              "name": "net_port_type"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "variable_port_type"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "list_of_variable_identifiers"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "output_declaration": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "output"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "net_port_type"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "list_of_port_identifiers"
+                }
+              ]
             },
             {
-              "type": "SYMBOL",
-              "name": "list_of_port_identifiers"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "variable_port_type"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "list_of_variable_identifiers"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "interface_port_declaration": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "interface_identifier"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "."
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "modport_identifier"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
             }
           ]
         },
         {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "input"
-                },
-                {
-                  "type": "STRING",
-                  "value": "output"
-                }
-              ]
-            },
-            {
-              "type": "SYMBOL",
-              "name": "variable_port_type"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "list_of_variable_identifiers"
-            }
-          ]
+          "type": "SYMBOL",
+          "name": "list_of_interface_identifiers"
         }
       ]
     },
@@ -2091,6 +2172,45 @@
           }
         ]
       }
+    },
+    "list_of_interface_identifiers": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "interface_identifier"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "unpacked_dimension"
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": ","
+              },
+              {
+                "type": "SYMBOL",
+                "name": "interface_identifier"
+              },
+              {
+                "type": "REPEAT",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "unpacked_dimension"
+                }
+              }
+            ]
+          }
+        }
+      ]
     },
     "list_of_param_assignments": {
       "type": "PREC_LEFT",
