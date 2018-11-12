@@ -2762,5 +2762,6 @@ const rules = {
 
 module.exports = grammar({
   name: 'verilog',
-  rules: rules
+  rules: rules,
+  extras: $ => [/\s/, $.comment]
 });
