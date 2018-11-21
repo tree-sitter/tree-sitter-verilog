@@ -32,7 +32,7 @@ endmodule
   (module_nonansi_header (list_of_ports))
     (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
       (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
-      (expression (primary (identifier (simple_identifier))))
+      (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
     ))))
   )
 )
@@ -53,9 +53,9 @@ endmodule
     (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
       (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
       (expression
-        (expression (primary (identifier (simple_identifier))))
+        (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
         (binary_operator)
-        (expression (primary (identifier (simple_identifier))))
+        (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
       )
     ))))
   )
@@ -79,7 +79,7 @@ endmodule
     (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
     (expression
       (unary_operator)
-      (primary (identifier (simple_identifier)))
+      (primary (hierarchical_identifier (identifier (simple_identifier))))
     )
   )))))
 )
@@ -105,9 +105,9 @@ endmodule
     (expression
       (expression (primary (mintypmax_expression
         (expression
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
           (binary_operator)
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
         )
       )))
       (binary_operator)
@@ -115,7 +115,7 @@ endmodule
         (unary_operator)
         (primary (mintypmax_expression
           (expression
-            (expression (primary (identifier (simple_identifier))))
+            (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
             (binary_operator)
             (expression (primary (primary_literal (number (integral_number)))))
           )
@@ -123,4 +123,55 @@ endmodule
       )
     )
   ))))
+))
+
+============================================
+assign concatenation
+============================================
+
+module mod ();
+  assign {a, b} = {b,c, d};
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (continuous_assign
+    (list_of_net_assignments (net_assignment
+      (net_lvalue
+        (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+        (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+      )
+      (expression (primary (concatenation
+        (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+        (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+        (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+      )))
+    ))
+  ))
+))
+
+============================================
+assign bit_select
+============================================
+
+module mod ();
+  assign a = b[3];
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (continuous_assign
+    (list_of_net_assignments (net_assignment
+      (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+      (expression (primary (hierarchical_identifier (identifier (simple_identifier))) (select (bit_select
+        (expression (primary (primary_literal (number (integral_number)))))
+      ))))
+    ))
+  ))
 ))

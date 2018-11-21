@@ -2369,12 +2369,12 @@ const rules = {
 
   primary: $ => choice(
     $.primary_literal,
-    $.identifier,
-    // seq(
-    //   // optional(choice($.class_qualifier, $.package_scope)),
-    //   $.hierarchical_identifier,
-    //   // $.select
-    // ),
+    // $.identifier,
+    seq(
+      // optional(choice($.class_qualifier, $.package_scope)),
+      $.hierarchical_identifier,
+      optional($.select)
+    ),
     // $.empty_queue,
     seq($.concatenation, optional('[', $.range_expression, ']')),
     seq($.multiple_concatenation, optional('[', $.range_expression, ']')),
@@ -2392,8 +2392,10 @@ const rules = {
 
   // class_qualifier = 'local::' ? (__ implicit_class_handle __ '.' / __ class_scope) ?
   //
-  //   range_expression = expression /
-  //   part_select_range
+  range_expression: $ => choice(
+    $.expression,
+    $.part_select_range
+  ),
   //
 
   primary_literal: $ => choice(
@@ -2417,16 +2419,16 @@ const rules = {
   // 'super'
   //
 
-  // bit_select: $ => repeat1(seq('[', $.expression, ']')), // reordered : matched empty string
-  bit_select: $ => seq('[', $.expression, ']'), // reordered : matched empty string
+  bit_select: $ => repeat1(seq('[', $.expression, ']')), // reordered : matched empty string
+  // bit_select: $ => seq('[', $.expression, ']'), // reordered : matched empty string
 
   select: $ => seq(
-    optional(
+    optional(seq(
       repeat('.', $.member_identifier, $.bit_select),
       '.', $.member_identifier
-    ),
+    )),
     $.bit_select,
-    optional(seq('[', $.part_select_range, ']'))
+    // optional(seq('[', $.part_select_range, ']'))
   ),
 
   //
@@ -2458,7 +2460,7 @@ const rules = {
 
   net_lvalue: $ => choice(
     seq($.ps_or_hierarchical_net_identifier, optional($.constant_select)),
-    // seq('{', sep1(',', $.net_lvalue), '}'),
+    seq('{', sep1(',', $.net_lvalue), '}'),
     // seq(optional($.assignment_pattern_expression_type), $.assignment_pattern_net_lvalue)
   ),
 
