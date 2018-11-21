@@ -1,0 +1,126 @@
+============================================
+assign net <- constant
+============================================
+
+module mod ();
+  assign a = 5;
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+    (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
+      (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+      (expression (primary (primary_literal (number (integral_number))))))))
+    )
+))
+
+============================================
+assign net <- net
+============================================
+
+module mod ();
+  assign a = b;
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+    (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
+      (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+      (expression (primary (identifier (simple_identifier))))
+    ))))
+  )
+)
+
+============================================
+assign net <- net op net
+============================================
+
+module mod ();
+  assign a = b & c;
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+    (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
+      (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+      (expression
+        (expression (primary (identifier (simple_identifier))))
+        (binary_operator)
+        (expression (primary (identifier (simple_identifier))))
+      )
+    ))))
+  )
+)
+
+
+============================================
+assign net <- unary_operator net
+============================================
+
+module mod ();
+  assign a = ~|c;
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
+    (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+    (expression
+      (unary_operator)
+      (primary (identifier (simple_identifier)))
+    )
+  )))))
+)
+
+============================================
+assign net <- parenthesized expression
+============================================
+
+module mod ();
+  assign a = (
+    b + c)
+      | &(b
+        & 5 );
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
+    (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+    (expression
+      (expression (primary (mintypmax_expression
+        (expression
+          (expression (primary (identifier (simple_identifier))))
+          (binary_operator)
+          (expression (primary (identifier (simple_identifier))))
+        )
+      )))
+      (binary_operator)
+      (expression
+        (unary_operator)
+        (primary (mintypmax_expression
+          (expression
+            (expression (primary (identifier (simple_identifier))))
+            (binary_operator)
+            (expression (primary (primary_literal (number (integral_number)))))
+          )
+        ))
+      )
+    )
+  ))))
+))

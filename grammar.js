@@ -250,7 +250,7 @@ const rules = {
     //  $.program_instantiation,
     //  $.assertion_item,
     //  $.bind_directive,
-    // $.continuous_assign,
+    $.continuous_assign,
     //  $.net_alias,
     //  $.initial_construct,
     //  $.final_construct,
@@ -679,15 +679,15 @@ const rules = {
 
   delay3: $ => seq('#', choice(
     $.delay_value,
-    seq(
-      '(',
-      $.mintypmax_expression, optional(seq(
-        $.mintypmax_expression, optional(
-          $.mintypmax_expression
-        )
-      )),
-      ')'
-    )
+    // seq(
+    //   '(',
+    //   $.mintypmax_expression,
+    //   optional(seq(
+    //     $.mintypmax_expression,
+    //     optional($.mintypmax_expression)
+    //   )),
+    //   ')'
+    // )
   )),
 
   delay2: $ => seq('#', choice(
@@ -1351,7 +1351,11 @@ const rules = {
 
   continuous_assign: $ => seq(
     'assign', choice(
-      seq(optional($.drive_strength), optional($.delay3), $.list_of_net_assignments),
+      seq(
+        optional($.drive_strength),
+        optional($.delay3),
+        $.list_of_net_assignments
+      ),
       // seq(optional($.delay_control), $.list_of_variable_assignments)
     ), ';'
   ),
@@ -1361,11 +1365,7 @@ const rules = {
   // list_of_variable_assignments = variable_assignment { , variable_assignment }
   // net_alias = alias net_lvalue = net_lvalue { = net_lvalue } ;
 
-  net_assignment: $ => seq(
-    $.net_lvalue,
-    '=', // !=
-    $.expression
-  ),
+  net_assignment: $ => seq($.net_lvalue, '=', $.expression),
 
   // A.6.2 Procedural blocks and assignments
 
@@ -2257,7 +2257,7 @@ const rules = {
     seq($.unary_operator, repeat($.attribute_instance), $.primary),
     $.inc_or_dec_expression,
     // seq('(', $.operator_assignment, ')'),
-    // seq($.expression, $.binary_operator, repeat($.attribute_instance), $.expression),
+    prec.left(seq($.expression, $.binary_operator, repeat($.attribute_instance), $.expression)),
     // $.conditional_expression,
     // $.inside_expression,
     // $.tagged_union_expression,
@@ -2291,8 +2291,7 @@ const rules = {
 
   // reordered
   mintypmax_expression: $ => seq(
-    $.expression,
-    optional(seq(':', $.expression, ':', $.expression))
+    $.expression, optional(seq(':', $.expression, ':', $.expression))
   ),
 
   module_path_conditional_expression: $ => seq(
@@ -2370,10 +2369,11 @@ const rules = {
 
   primary: $ => choice(
     $.primary_literal,
+    $.identifier,
     // seq(
-    //   optional(choice($.class_qualifier, $.package_scope)),
+    //   // optional(choice($.class_qualifier, $.package_scope)),
     //   $.hierarchical_identifier,
-    //   $.select
+    //   // $.select
     // ),
     // $.empty_queue,
     seq($.concatenation, optional('[', $.range_expression, ']')),
@@ -2438,12 +2438,12 @@ const rules = {
   constant_bit_select: $ => seq('[', $.constant_expression, ']'), // reordered : 1 time
 
   constant_select: $ => seq(
-    optional(
-      repeat(seq(
-        '.', $.member_identifier, optional($.constant_bit_select)
-      )),
-      '.', $.member_identifier
-    ),
+    // optional(
+    //   repeat(seq(
+    //     '.', $.member_identifier, optional($.constant_bit_select)
+    //   )),
+    // ),
+    // '.', $.member_identifier,
     $.constant_bit_select,
     optional('[', $.constant_part_select_range, ']')
   ),
@@ -2457,9 +2457,9 @@ const rules = {
   // A.8.5 Expression left-side values
 
   net_lvalue: $ => choice(
-    seq($.ps_or_hierarchical_net_identifier, $.constant_select),
-    seq('{', sep1(',', $.net_lvalue), '}'),
-    seq(optional($.assignment_pattern_expression_type), $.assignment_pattern_net_lvalue)
+    seq($.ps_or_hierarchical_net_identifier, optional($.constant_select)),
+    // seq('{', sep1(',', $.net_lvalue), '}'),
+    // seq(optional($.assignment_pattern_expression_type), $.assignment_pattern_net_lvalue)
   ),
 
   variable_lvalue: $ => choice(
@@ -2655,9 +2655,10 @@ const rules = {
   hierarchical_event_identifier: $ => $.hierarchical_identifier,
 
   hierarchical_identifier: $ => seq(
-    optional(seq('$root', '.')),
-    repeat1(seq($.identifier, $.constant_bit_select, '.')), // reordered : repeat -> repeat1
-    $.identifier
+    // optional(seq('$root', '.')),
+    // repeat1(seq($.identifier, $.constant_bit_select, '.')), // reordered : repeat -> repeat1
+    // $.identifier
+    $.identifier //, repeat(seq('.', $.identifier))
   ),
 
   hierarchical_net_identifier: $ => $.hierarchical_identifier,
@@ -2711,7 +2712,7 @@ const rules = {
   */
 
   ps_or_hierarchical_net_identifier: $ => choice(
-    seq(optional($.package_scope), $.net_identifier),
+    // seq(optional($.package_scope), $.net_identifier),
     $.hierarchical_net_identifier
   ),
 
