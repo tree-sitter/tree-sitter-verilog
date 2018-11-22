@@ -1,12 +1,19 @@
 os: linux
 language: node_js
-compiler: gcc
 node_js:
   - "11"
   - "10"
   - "9"
   - "8"
   - "6"
+env:
+  - CXX=g++-5
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-5
 install:
   - g++ --version
   - npm --version
