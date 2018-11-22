@@ -59,7 +59,8 @@ const rules = {
 
     // package_import_declaration*
     // optional($.parameter_port_list),
-    $.list_of_ports, ';'
+    $.list_of_ports,
+    ';'
   ),
 
   module_ansi_header: $ => seq(
@@ -140,9 +141,7 @@ const rules = {
     seq('type', $.list_of_type_assignments)
   ),
 
-  list_of_ports: $ => seq(
-    '(', commaSep($.port), ')'
-  ),
+  list_of_ports: $ => seq('(', optional(sep1(',', $.port)), ')'),
 
   list_of_port_declarations: $ => seq( // reordered : commaSep -> commaSep1
     '(',
@@ -468,19 +467,32 @@ const rules = {
 
   */
 
-  net_declaration: $ => seq(
-    $.net_type,
-    optional(choice($.drive_strength, $.charge_strength)),
-    optional(choice('vectored', 'scalared'))
+  net_declaration: $ => choice(
+    seq(
+      $.net_type,
+      optional(choice($.drive_strength, $.charge_strength)),
+      optional(choice('vectored', 'scalared')),
+      $._data_type_or_implicit,
+      optional($.delay3),
+      $.list_of_net_decl_assignments,
+      ';'
+    ),
+    // seq(
+    //   $.net_type_identifier,
+    //   optional($.delay_control),
+    //   $.list_of_net_decl_assignments,
+    //   ';'
+    // ),
+    // seq(
+    //   'interconnect',
+    //   $.implicit_data_type,
+    //   optional(seq('#', $.delay_value)),
+    //   sep1(',' , seq($.net_identifier, repeat($.unpacked_dimension))),
+    //   ';'
+    // )
   ),
 
   /*
-  data_type_or_implicit [ delay3 ] list_of_net_decl_assignments ;
-  | net_type_identifier [ delay_control ]
-  list_of_net_decl_assignments ;
-  | interconnect implicit_data_type [ # delay_value ]
-  net_identifier { unpacked_dimension }
-  [ , net_identifier { unpacked_dimension }] ;
 
   type_declaration ::=
   typedef data_type type_identifier { variable_dimension } ;
@@ -716,7 +728,7 @@ const rules = {
     ))
   ),
 
-  // list_of_net_decl_assignments = net_decl_assignment { , net_decl_assignment }
+  list_of_net_decl_assignments: $ => sep1(',', $.net_decl_assignment),
 
   list_of_param_assignments: $ => sep1(',', $.param_assignment),
 
@@ -2195,17 +2207,6 @@ const rules = {
     )),
   ),
 
-  // TODO Left recursion fix
-
-  // constant_expression_2: $ => $.constant_primary,
-
-  /*/ unary_operator __ ( attribute_instance __ )* constant_primary*/
-  // / constant_expression __
-  //   binary_operator ( __ attribute_instance )* __
-  //   constant_expression
-  // / constant_expression __ '?' ( __ attribute_instance )* __
-  //   constant_expression __ ':' __ constant_expression
-
   constant_mintypmax_expression: $ => seq(
     $.constant_expression,
     optional(seq(':', $.constant_expression, ':', $.constant_expression))
@@ -2417,7 +2418,7 @@ const rules = {
       '.', $.member_identifier
     )),
     $.bit_select,
-    // optional(seq('[', $.part_select_range, ']'))
+    optional(seq('[', $.part_select_range, ']'))
   ),
 
   //

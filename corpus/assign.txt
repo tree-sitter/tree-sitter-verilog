@@ -175,3 +175,26 @@ endmodule
     ))
   ))
 ))
+
+============================================
+assign bit_select
+============================================
+
+module mod ();
+  assign a = b[3:1];
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (continuous_assign
+    (list_of_net_assignments (net_assignment
+      (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+      (expression (primary (hierarchical_identifier (identifier (simple_identifier))) (select (bit_select
+        (expression (primary (primary_literal (number (integral_number)))))
+      ))))
+    ))
+  ))
+))
