@@ -19,7 +19,6 @@
     "nan": "^2.11.1"
   },
   "devDependencies": {
-    "node-gyp": "^3.8.0",
     "tree-sitter-cli": "^0.13.10"
   }
 }
