@@ -1,4 +1,6 @@
 os: linux
+dist: trusty
+sudo: required
 language: node_js
 node_js:
   - "11"
@@ -7,13 +9,13 @@ node_js:
   - "8"
   - "6"
 env:
-  - CXX=g++-5
+  - CXX=g++-7
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-5
+      - g++-7
 install:
   - g++ --version
   - npm --version
