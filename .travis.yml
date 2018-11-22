@@ -1,0 +1,17 @@
+os:
+  - linux
+sudo: true
+env:
+  matrix:
+  - TRAVIS_NODE_VERSION="11"
+  - TRAVIS_NODE_VERSION="10"
+  - TRAVIS_NODE_VERSION="9"
+  - TRAVIS_NODE_VERSION="8"
+  - TRAVIS_NODE_VERSION="6"
+before_install:
+  - sudo apt-get -qq update
+install:
+  - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
+  - npm --version
+  - npm install
+script: npm test
