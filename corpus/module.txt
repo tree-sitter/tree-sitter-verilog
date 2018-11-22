@@ -1,5 +1,5 @@
 ============================================
-empty module
+module with empty io
 ============================================
 
 module mod (); endmodule
@@ -8,10 +8,108 @@ module mod (); endmodule
 
 (source_file
   (module_declaration
-    (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
-    (module_nonansi_header
-      (list_of_ports)
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
     )
+    (module_nonansi_header (list_of_ports))
+  )
+)
+
+============================================
+module with empty parameters and empty io
+============================================
+
+module mod #()();
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+      (parameter_port_list)
+    )
+    (module_nonansi_header (list_of_ports))
+  )
+)
+
+============================================
+module with parameter and empty io
+============================================
+
+module mod #(
+  parameter A=5
+)();
+
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+      (parameter_port_list
+        (parameter_port_declaration (any_parameter_declaration (list_of_param_assignments
+          (param_assignment
+            (parameter_identifier (_parameter_identifier (simple_identifier)))
+            (constant_param_expression (constant_mintypmax_expression (constant_expression (constant_primary (primary_literal (number (integral_number)))))))
+          )
+        )))
+      )
+    )
+    (module_nonansi_header (list_of_ports))
+  )
+)
+
+============================================
+module with parameters and empty io
+============================================
+
+module mod #(
+  parameter  A = 5,
+  localparam B = 32/4
+)();
+
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+      (parameter_port_list
+        (parameter_port_declaration (any_parameter_declaration (list_of_param_assignments
+          (param_assignment
+            (parameter_identifier (_parameter_identifier (simple_identifier)))
+            (constant_param_expression (constant_mintypmax_expression (constant_expression
+              (constant_primary (primary_literal (number (integral_number))))
+            )))
+          )
+        )))
+        (parameter_port_declaration (any_parameter_declaration (list_of_param_assignments
+          (param_assignment
+            (parameter_identifier (_parameter_identifier (simple_identifier)))
+            (constant_param_expression (constant_mintypmax_expression (constant_expression
+              (constant_expression
+                (constant_primary (primary_literal (number (integral_number))))
+              )
+              (binary_operator)
+              (constant_expression
+                (constant_primary (primary_literal (number (integral_number))))
+              )
+            )))
+          )
+        )))
+      )
+    )
+    (module_nonansi_header (list_of_ports))
   )
 )
 

@@ -127,21 +127,17 @@ const rules = {
 
   parameter_port_list: $ => seq(
     '#', '(',
-    // choice(
-    //   seq(
-    //     $.list_of_param_assignments,
-    //     repeat(seq(',', $._parameter_port_declaration))
-    //   ),
-    //   commaSep($._parameter_port_declaration)
-    // ),
+    optional(choice(
+      seq($.list_of_param_assignments, repeat(seq(',', $.parameter_port_declaration))),
+      sep1(',', $.parameter_port_declaration)
+    )),
     ')'
   ),
 
-  _parameter_port_declaration: $ => choice(
-    $.parameter_declaration,
-    $.local_parameter_declaration,
-    seq($.data_type, $.list_of_param_assignments)
-    /*/ 'type' list_of_type_assignments*/
+  parameter_port_declaration: $ => choice(
+    $.any_parameter_declaration,
+    seq($.data_type, $.list_of_param_assignments),
+    seq('type', $.list_of_type_assignments)
   ),
 
   list_of_ports: $ => seq(
@@ -169,9 +165,9 @@ const rules = {
     )
   ),
 
-  port: $ => choice( // reordered
-    // seq('.', $.port_identifier, '(', optional($._port_expression), ')'),
-    $._port_expression
+  port: $ => choice(
+    $._port_expression,
+    seq('.', $.port_identifier, '(', optional($._port_expression), ')')
   ),
 
   _port_expression: $ => choice(
@@ -252,7 +248,7 @@ const rules = {
     //  $.bind_directive,
     $.continuous_assign,
     //  $.net_alias,
-    //  $.initial_construct,
+    // $.initial_construct,
     //  $.final_construct,
     // $.always_construct
     //  $.loop_generate_construct,
@@ -344,13 +340,7 @@ const rules = {
     //  / extern_constraint_declaration
     //  / class_declaration
     //  / class_constructor_declaration
-    seq(
-      choice(
-        $.local_parameter_declaration,
-        $.parameter_declaration
-      ),
-      ';'
-    ),
+    seq($.any_parameter_declaration, ';'),
     //  / covergroup_declaration
     //  / overload_declaration
     //  / assertion_item_declaration
@@ -376,18 +366,17 @@ const rules = {
 
   /* A.2.1.1 Module parameter declarations */
 
-  local_parameter_declaration: $ => seq(
-    'localparam',
+  /* combined:
+    local_parameter_declaration
+    parameter_declaration
+  */
+  any_parameter_declaration: $ => seq(
+    choice('parameter', 'localparam'),
     choice(
-      seq($._data_type_or_implicit, $.list_of_param_assignments),
-      seq('type', $.list_of_type_assignments)
-    )
-  ),
-
-  parameter_declaration: $ => seq(
-    'parameter',
-    choice(
-      seq($._data_type_or_implicit, $.list_of_param_assignments),
+      seq(
+        optional($._data_type_or_implicit), // FIXED optional
+        $.list_of_param_assignments
+      ),
       seq('type', $.list_of_type_assignments)
     )
   ),
@@ -944,8 +933,7 @@ const rules = {
     repeat($.attribute_instance),
     choice(
       $.data_declaration,
-      seq($.local_parameter_declaration, ';'),
-      seq($.parameter_declaration, ';'),
+      seq($.any_parameter_declaration, ';'),
       $.overload_declaration,
       // $.let_declaration
     )
@@ -2190,6 +2178,8 @@ const rules = {
 
   // Reordered from the original spec to satisfy the parser
   constant_expression: $ => choice(
+    $.constant_primary,
+    seq($.unary_operator, repeat($.attribute_instance), $.constant_primary),
     prec.left(seq(
       $.constant_expression,
       $.binary_operator,
@@ -2200,10 +2190,9 @@ const rules = {
       $.constant_expression,
       '?',
       repeat($.attribute_instance),
-      sep1(':', $.constant_expression)
+      ':',
+      $.constant_expression
     )),
-    $.constant_primary,
-    seq($.unary_operator, repeat($.attribute_instance), $.constant_primary)
   ),
 
   // TODO Left recursion fix
