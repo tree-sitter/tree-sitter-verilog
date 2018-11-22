@@ -1,15 +1,11 @@
-matrix:
-  include:
-    - os: linux
-      addons:
-        apt:
-          packages:
-            - g++-4.9
-      env:
-        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
-sudo: true
+os: linux
 language: cpp
 compiler: gcc
+sudo: true
+addons:
+  apt:
+    packages:
+      - g++-8
 env:
   matrix:
   - TRAVIS_NODE_VERSION="11"
