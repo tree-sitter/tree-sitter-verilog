@@ -9,7 +9,8 @@
     "verilog"
   ],
   "scripts": {
-    "build": "tree-sitter generate && node-gyp build",
+    "install": "tree-sitter generate",
+    "postinstall": "node-gyp configure build",
     "test": "tree-sitter test"
   },
   "author": "Aliaksei Chapyzhenka",
@@ -18,6 +19,7 @@
     "nan": "^2.11.1"
   },
   "devDependencies": {
+    "node-gyp": "^3.8.0",
     "tree-sitter-cli": "^0.13.10"
   }
 }

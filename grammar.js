@@ -2418,7 +2418,7 @@ const rules = {
       '.', $.member_identifier
     )),
     $.bit_select,
-    optional(seq('[', $.part_select_range, ']'))
+    // optional(seq('[', $.part_select_range, ']'))
   ),
 
   //
