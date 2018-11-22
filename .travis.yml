@@ -5,7 +5,7 @@ sudo: true
 addons:
   apt:
     packages:
-      - g++-8
+      - g++-7
 env:
   matrix:
   - TRAVIS_NODE_VERSION="11"
