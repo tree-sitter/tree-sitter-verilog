@@ -2,38 +2,20 @@ os: linux
 dist: trusty
 sudo: required
 language: node_js
-matrix:
-  include:
-    - addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-        apt:
-          packages:
-            - g++-6
-      env:
-        - CXX=g++-6
-      node_js:
-        - "11"
-        - "10"
-        - "9"
-        - "8"
-        - "6"
-    - addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-        apt:
-          packages:
-            - g++-7
-      env:
-        - CXX=g++-7
-      node_js:
-        - "11"
-        - "10"
-        - "9"
-        - "8"
-        - "6"
+node_js:
+  - "11"
+  - "10"
+  - "9"
+  - "8"
+  - "6"
+env:
+  - CXX=g++-7
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-7
 install:
   - g++ --version
   - npm --version
