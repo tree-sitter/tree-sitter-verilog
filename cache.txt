@@ -42,9 +42,16 @@ expression
 
 
 
-select
-  bit_select
-    expression
+expression
+  primary
+    select
+      bit_select
+        expression
+      part_select_range -> [ ]
+        constant_range -> :
+          constant_expression
+        indexed_range
+
 
 parameter_port_list -> # ( )
   list_of_param_assignments
@@ -74,8 +81,14 @@ _data_type_or_implicit
 
 module_declaration
   module_header
-    module_nonansi_header
-    list_of_ports -> ;
+    module_nonansi_header -> ;
+      list_of_ports -> ( )
+        port
+          _port_expression
+            port_reference
+              constant_select1
+
+
     _module_item*
       _non_port_module_item
         module_or_generate_item
@@ -85,6 +98,29 @@ module_declaration
                 net_declaration
                   net_type
                   net_type_identifier
+        module_declaration
+
+
+
+(LOOP)
+
+    constant_primary
+      constant_select1
+        constant_bit_select
+          constant_expression
+            constant_primary
+
+
+
+expression
+  primary -> hierarchical_identifier
+    select1 => [ ]
+      part_select_range
+        constant_range                 <-- BREAK LOOP
+          constant_expression
+            constant_primary
+              primary_literal
+                number
 
 
 
