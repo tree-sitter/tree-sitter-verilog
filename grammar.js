@@ -144,6 +144,7 @@ const rules = {
           // timeunits_declaration?
           repeat($._non_port_module_item),
         ),
+        ';'
       ),
       'endmodule', optional(seq(':', $.module_identifier))
     ),
@@ -1122,8 +1123,8 @@ const rules = {
   ),
 
   ordered_port_connection: $ => seq(
-    repeat1($.attribute_instance), // reordered : repeat -> repeat1
-    optional($.expression)
+    repeat($.attribute_instance),
+    $.expression
   ),
 
   // from spec:
