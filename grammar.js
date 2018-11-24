@@ -1,3 +1,23 @@
+const PREC = {
+  PARENT: 17,     // () [] :: .                                   Left Highest
+  UNARY: 16,      // + - ! ~ & ~& | ~| ^ ~^ ^~ ++ -- (unary)
+  POW: 15,        // **                                           Left
+  MUL: 14,        // * / %                                        Left
+  ADD: 13,        // + - (binary)                                 Left
+  SHIFT: 12,      // << >> <<< >>>                                Left
+  RELATIONAL: 11, // < <= > >= inside dist                        Left
+  EQUAL: 10,      // == != === !== ==? !=?                        Left
+  AND: 9,         // & (binary)                                   Left
+  XOR: 8,         // ^ ~^ ^~ (binary)                             Left
+  OR: 7,          // | (binary)                                   Left
+  LOGICAL_AND: 6, // &&                                           Left
+  LOGICAL_OR: 5,  // ||                                           Left
+  CONDITIONAL: -2,// ?: (conditional operator)                    Right
+  IMPLICATION: -3,// –> <–>                                       Right
+  ASIGN: -4,      // = += -= *= /= %= &= ^= |= <<= >>= <<<= >>>= := :/ <= None
+  CONCAT: -5,     // {} {{}}                            Concatenation   Lowest
+};
+
 function commaSep(rule) {
   return optional(sep1(',', rule))
 }
@@ -11,6 +31,10 @@ function sep1(separator, rule) {
     rule,
     repeat(prec.left(seq(separator, rule)))
   ))
+}
+
+function exprOp ($, prior, ops) {
+  return prec.left(prior, seq($.expression, token(ops), repeat($.attribute_instance), $.expression));
 }
 
 /*
@@ -2276,7 +2300,18 @@ const rules = {
     seq($.unary_operator, repeat($.attribute_instance), $.primary),
     $.inc_or_dec_expression,
     // seq('(', $.operator_assignment, ')'),
-    prec.left(seq($.expression, $.binary_operator, repeat($.attribute_instance), $.expression)),
+    exprOp($, PREC.ADD, choice('+', '-')),
+    exprOp($, PREC.MUL, choice('*', '/', '%')),
+    exprOp($, PREC.EQUAL, choice('==','!=', '===', '!==','==?', '!=?')),
+    exprOp($, PREC.LOGICAL_AND, '&&'),
+    exprOp($, PREC.LOGICAL_OR, '||'),
+    exprOp($, PREC.POW, '**'),
+    exprOp($, PREC.RELATIONAL, choice('<', '<=', '>', '>=')),
+    exprOp($, PREC.AND, '&'),
+    exprOp($, PREC.OR, '|'),
+    exprOp($, PREC.XOR, choice('^', '^~', '~^')),
+    exprOp($, PREC.SHIFT, choice('>>', '<<', '>>>', '<<<')),
+    exprOp($, PREC.IMPLICATION, choice('->', '<->')),
     // $.conditional_expression,
     // $.inside_expression,
     // $.tagged_union_expression,
