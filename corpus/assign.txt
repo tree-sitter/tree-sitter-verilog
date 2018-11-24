@@ -169,15 +169,18 @@ endmodule
   (module_or_generate_item (continuous_assign
     (list_of_net_assignments (net_assignment
       (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
-      (expression (primary (hierarchical_identifier (identifier (simple_identifier))) (select (bit_select
-        (expression (primary (primary_literal (number (integral_number)))))
-      ))))
+      (expression (primary
+        (hierarchical_identifier (identifier (simple_identifier)))
+        (select1
+          (expression (primary (primary_literal (number (integral_number)))))
+        )
+      ))
     ))
   ))
 ))
 
 ============================================
-assign bit_select
+assign slice
 ============================================
 
 module mod ();
@@ -192,9 +195,13 @@ endmodule
   (module_or_generate_item (continuous_assign
     (list_of_net_assignments (net_assignment
       (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
-      (expression (primary (hierarchical_identifier (identifier (simple_identifier))) (select (bit_select
-        (expression (primary (primary_literal (number (integral_number)))))
-      ))))
+      (expression (primary
+        (hierarchical_identifier (identifier (simple_identifier)))
+        (select1 (part_select_range (constant_range
+          (number (integral_number))
+          (constant_expression (constant_primary (primary_literal (number (integral_number)))))
+        )))
+      ))
     ))
   ))
 ))

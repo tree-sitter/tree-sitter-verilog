@@ -7,3 +7,52 @@ module mod ();
 endmodule
 
 ----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+    )
+    (module_nonansi_header (list_of_ports))
+    (module_or_generate_item (net_declaration
+      (net_type)
+      (list_of_net_decl_assignments (net_decl_assignment (net_identifier (_net_identifier (simple_identifier)))))
+    ))
+  )
+)
+
+============================================
+nets declaration
+============================================
+
+module mod ();
+  wire a, b, c;
+  wire ddd;
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+    )
+    (module_nonansi_header (list_of_ports))
+    (module_or_generate_item (net_declaration
+      (net_type)
+      (list_of_net_decl_assignments
+        (net_decl_assignment (net_identifier (_net_identifier (simple_identifier))))
+        (net_decl_assignment (net_identifier (_net_identifier (simple_identifier))))
+        (net_decl_assignment (net_identifier (_net_identifier (simple_identifier))))
+      )
+    ))
+    (module_or_generate_item (net_declaration
+      (net_type)
+      (list_of_net_decl_assignments
+        (net_decl_assignment (net_identifier (_net_identifier (simple_identifier))))
+      )
+    ))
+  )
+)
