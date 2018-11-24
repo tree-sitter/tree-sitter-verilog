@@ -207,7 +207,7 @@ precedence or, xor, and, eq
 ============================================
 
 module mod ();
-  assign z = a | b ^ c & d == e;
+  assign z = a | b ^ c & |d == e;
 endmodule
 
 ----
@@ -224,7 +224,10 @@ endmodule
         (expression
           (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
           (expression
-            (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+            (expression
+              (unary_operator)
+              (primary (hierarchical_identifier (identifier (simple_identifier))))
+            )
             (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
           )
         )

@@ -102,7 +102,6 @@ endmodule
             (parameter_identifier (_parameter_identifier (simple_identifier)))
             (constant_param_expression (constant_mintypmax_expression (constant_expression
               (constant_expression (constant_primary (primary_literal (number (integral_number)))))
-              (binary_operator)
               (constant_expression (constant_primary (primary_literal (number (integral_number)))))
             )))
           )

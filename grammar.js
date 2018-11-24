@@ -37,6 +37,10 @@ function exprOp ($, prior, ops) {
   return prec.left(prior, seq($.expression, token(ops), repeat($.attribute_instance), $.expression));
 }
 
+function constExprOp ($, prior, ops) {
+  return prec.left(prior, seq($.constant_expression, token(ops), repeat($.attribute_instance), $.constant_expression));
+}
+
 /*
     Verilog parser grammar based on IEEE Std 1800-2012.
 */
@@ -2231,25 +2235,38 @@ const rules = {
     seq($.variable_lvalue, repeat($.attribute_instance), $.inc_or_dec_operator)
   ),
 
-  conditional_expression: $ => seq(
+  conditional_expression: $ => prec.left(PREC.CONDITIONAL, seq(
     $.cond_predicate,
     '?',
     repeat($.attribute_instance), $.expression,
     ':',
     $.expression
-  ),
+  )),
 
   // Reordered from the original spec to satisfy the parser
   constant_expression: $ => choice(
     $.constant_primary,
-    seq($.unary_operator, repeat($.attribute_instance), $.constant_primary),
-    prec.left(seq(
-      $.constant_expression,
-      $.binary_operator,
+
+    prec.left(PREC.UNARY, seq(
+      $.unary_operator,
       repeat($.attribute_instance),
-      $.constant_expression
+      $.constant_primary
     )),
-    prec.left(seq(
+
+    constExprOp($, PREC.ADD, choice('+', '-')),
+    constExprOp($, PREC.MUL, choice('*', '/', '%')),
+    constExprOp($, PREC.EQUAL, choice('==','!=', '===', '!==','==?', '!=?')),
+    constExprOp($, PREC.LOGICAL_AND, '&&'),
+    constExprOp($, PREC.LOGICAL_OR, '||'),
+    constExprOp($, PREC.POW, '**'),
+    constExprOp($, PREC.RELATIONAL, choice('<', '<=', '>', '>=')),
+    constExprOp($, PREC.AND, '&'),
+    constExprOp($, PREC.OR, '|'),
+    constExprOp($, PREC.XOR, choice('^', '^~', '~^')),
+    constExprOp($, PREC.SHIFT, choice('>>', '<<', '>>>', '<<<')),
+    constExprOp($, PREC.IMPLICATION, choice('->', '<->')),
+
+    prec.left(PREC.CONDITIONAL, seq(
       $.constant_expression,
       '?',
       repeat($.attribute_instance),
@@ -2297,9 +2314,16 @@ const rules = {
 
   expression: $ => choice( // reordered
     $.primary,
-    seq($.unary_operator, repeat($.attribute_instance), $.primary),
-    $.inc_or_dec_expression,
+
+    prec.left(PREC.UNARY, seq(
+      $.unary_operator,
+      repeat($.attribute_instance),
+      $.primary
+    )),
+
+    prec.left(PREC.UNARY, $.inc_or_dec_expression),
     // seq('(', $.operator_assignment, ')'),
+
     exprOp($, PREC.ADD, choice('+', '-')),
     exprOp($, PREC.MUL, choice('*', '/', '%')),
     exprOp($, PREC.EQUAL, choice('==','!=', '===', '!==','==?', '!=?')),
@@ -2312,6 +2336,7 @@ const rules = {
     exprOp($, PREC.XOR, choice('^', '^~', '~^')),
     exprOp($, PREC.SHIFT, choice('>>', '<<', '>>>', '<<<')),
     exprOp($, PREC.IMPLICATION, choice('->', '<->')),
+
     // $.conditional_expression,
     // $.inside_expression,
     // $.tagged_union_expression,
@@ -2586,42 +2611,6 @@ const rules = {
     '|', // ![ |= ]) /
     '^', // ![ |= ]) /
     '~', // ![ | ^ &= ])
-  ),
-
-
-  binary_operator: $ => choice(
-    '===',
-    '!==',
-    '==?',
-    '!=?',
-    '<->',
-    '>>>', // !'='),
-    '<<<', // !'='),
-    '>>', // ![ >= ]),
-    '<<', // ![ <= ]),
-
-    '+', // ![ += ]),
-    '-', // ![ -= ]),
-
-    '*', // ![ *= ]),
-    '/', // !'='),
-    '%', // !'='),
-
-    '==', // !'='),
-    '!=', // !'='),
-    '&&',
-    '||',
-    '**',
-    '<=',
-    '>=',
-    '^~',
-    '~^',
-    '<', // ![ <= ]),
-    '>', // ![ >= ]),
-    '&', // ![ &= ]),
-    '|', // ![ != ]),
-    '^', // ![~ = ]),
-    '->'
   ),
 
   inc_or_dec_operator: $ => choice('++', '--'),
