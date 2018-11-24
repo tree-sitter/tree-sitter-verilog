@@ -351,7 +351,7 @@ const rules = {
 
   _package_or_generate_item_declaration: $ => choice(
     $.net_declaration,
-    // $.data_declaration,
+    $.data_declaration,
     //  / task_declaration
     //  / function_declaration
     //  / checker_declaration
@@ -544,8 +544,8 @@ const rules = {
 
   data_type: $ => choice(
     seq($.integer_vector_type, optional($._signing), repeat($.packed_dimension)),
-    seq($.integer_atom_type, optional($._signing)),
-    $.non_integer_type,
+    // seq($.integer_atom_type, optional($._signing)),
+    // $.non_integer_type,
     //  / struct_union ( 'packed' signing? )?
     //    '{' struct_union_member struct_union_member* '}'
     //    packed_dimension*
@@ -567,7 +567,7 @@ const rules = {
 
   _data_type_or_implicit: $ => choice(
     $.data_type,
-    $.implicit_data_type
+    // $.implicit_data_type
   ),
 
   implicit_data_type: $ => seq(
@@ -830,12 +830,12 @@ const rules = {
       repeat($._variable_dimension),
       optional(seq('=', $.expression))
     ),
-    seq(
-      $.dynamic_array_variable_identifier,
-      $.unsized_dimension,
-      repeat($._variable_dimension),
-      optional(seq('=', $.dynamic_array_new))
-    ),
+    // seq(
+    //   $.dynamic_array_variable_identifier,
+    //   $.unsized_dimension,
+    //   repeat($._variable_dimension),
+    //   optional(seq('=', $.dynamic_array_new))
+    // ),
     // seq(
     //   $.class_variable_identifier
     //   optional(seq('=', $.class_new))
