@@ -15,12 +15,12 @@
   "main": "index.js",
   "files": [
     "grammar.js",
+    "binding.gyp",
     "src/*"
   ],
   "keywords": [
     "parser",
     "tree-sitter",
-    "binding.gyp",
     "verilog"
   ],
   "directories": {
