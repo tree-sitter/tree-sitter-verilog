@@ -26,8 +26,7 @@
     "example": "examples"
   },
   "scripts": {
-    "preinstall": "echo '(preinstall)'",
-    "prepare": "tree-sitter generate && node-gyp configure build",
+    "install": "if [ ! -d ./src ]; then tree-sitter generate; fi && node-gyp configure build",
     "test": "tree-sitter test"
   },
   "dependencies": {
