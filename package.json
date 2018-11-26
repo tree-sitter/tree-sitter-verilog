@@ -20,6 +20,7 @@
   "keywords": [
     "parser",
     "tree-sitter",
+    "binding.gyp",
     "verilog"
   ],
   "directories": {
