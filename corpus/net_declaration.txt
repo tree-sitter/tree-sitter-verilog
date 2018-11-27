@@ -1,5 +1,5 @@
 ============================================
-net declaration
+wire
 ============================================
 
 module mod ();
@@ -23,7 +23,88 @@ endmodule
 )
 
 ============================================
-nets declaration
+wire [31:0]
+============================================
+
+module mod ();
+  wire [31:0] a;
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+    )
+    (module_nonansi_header (list_of_ports))
+    (module_or_generate_item (net_declaration
+      (net_type)
+      (data_type_or_implicit1
+        (implicit_data_type1
+          (packed_dimension
+            (constant_range
+              (constant_expression (constant_primary (primary_literal (number (integral_number)))))
+              (constant_expression (constant_primary (primary_literal (number (integral_number)))))
+            )
+          )
+        )
+      )
+      (list_of_net_decl_assignments (net_decl_assignment (net_identifier (_net_identifier (simple_identifier)))))
+    ))
+  )
+)
+
+============================================
+wire [W-1:0]
+============================================
+
+module mod ();
+  wire [W-1:0] a;
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (_module_identifier (simple_identifier)))
+    )
+    (module_nonansi_header (list_of_ports))
+    (module_or_generate_item (net_declaration
+      (net_type)
+      (data_type_or_implicit1
+        (implicit_data_type1
+          (packed_dimension
+            (constant_range
+              (constant_expression
+                (constant_expression
+                  (constant_primary)
+                )
+                (constant_expression
+                  (constant_primary
+                    (primary_literal (number (integral_number)))
+                  )
+                )
+              )
+              (constant_expression
+                (constant_primary
+                  (primary_literal (number (integral_number)))
+                )
+              )
+            )
+          )
+        )
+      )
+      (list_of_net_decl_assignments (net_decl_assignment (net_identifier (_net_identifier (simple_identifier)))))
+    ))
+  )
+)
+
+============================================
+wire, reg, logic
 ============================================
 
 module mod ();
@@ -57,17 +138,20 @@ endmodule
       )
     ))
     (module_or_generate_item (data_declaration
-      (data_type (integer_vector_type))
+      (data_type_or_implicit1 (data_type (integer_vector_type)))
       (list_of_variable_decl_assignments
         (variable_decl_assignment (variable_identifier (_variable_identifier (simple_identifier))))
       )
     ))
     (module_or_generate_item (data_declaration
-      (data_type (integer_vector_type)
-        (packed_dimension (constant_range
-          (number (integral_number))
-          (constant_expression (constant_primary (primary_literal (number (integral_number)))))
-        ))
+      (data_type_or_implicit1
+        (data_type
+          (integer_vector_type)
+          (packed_dimension (constant_range
+            (constant_expression (constant_primary (primary_literal (number (integral_number)))))
+            (constant_expression (constant_primary (primary_literal (number (integral_number)))))
+          ))
+        )
       )
       (list_of_variable_decl_assignments
         (variable_decl_assignment (variable_identifier (_variable_identifier (simple_identifier))))

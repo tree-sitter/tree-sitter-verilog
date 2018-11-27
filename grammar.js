@@ -422,7 +422,7 @@ const rules = {
     choice('parameter', 'localparam'),
     choice(
       seq(
-        optional($._data_type_or_implicit), // FIXED optional
+        optional($.data_type_or_implicit1),
         $.list_of_param_assignments
       ),
       seq('type', $.list_of_type_assignments)
@@ -476,7 +476,7 @@ const rules = {
     optional('const'),
     optional('var'),
     optional($.lifetime),
-    $._data_type_or_implicit,
+    optional($.data_type_or_implicit1),
     $.list_of_variable_decl_assignments,
     ';'
   ),
@@ -521,7 +521,7 @@ const rules = {
       $.net_type,
       optional(choice($.drive_strength, $.charge_strength)),
       optional(choice('vectored', 'scalared')),
-      optional($._data_type_or_implicit), // <- optional
+      optional($.data_type_or_implicit1),
       optional($.delay3),
       $.list_of_net_decl_assignments,
       ';'
@@ -594,12 +594,12 @@ const rules = {
     // $.type_reference
   ),
 
-  _data_type_or_implicit: $ => choice(
+  data_type_or_implicit1: $ => choice(
     $.data_type,
-    // $.implicit_data_type
+    $.implicit_data_type1
   ),
 
-  implicit_data_type: $ => seq(
+  implicit_data_type1: $ => seq(
     optional($._signing),
     repeat1($.packed_dimension) // reordered : repeat -> repeat1
   ),
@@ -655,7 +655,8 @@ const rules = {
   net_type: $ => choice('supply0', 'supply1', 'tri', 'triand', 'trior', 'trireg', 'tri0', 'tri1', 'uwire', 'wire', 'wand', 'wor'),
 
   net_port_type: $ => choice(
-    seq(optional($.net_type), $._data_type_or_implicit),
+    seq($.net_type, optional($.data_type_or_implicit1)),
+    seq(optional($.net_type), $.data_type_or_implicit1),
     // $.net_type_identifier,
     // seq('interconnect', $.implicit_data_type)
   ),
@@ -664,7 +665,7 @@ const rules = {
 
   _var_data_type: $ => choice(
     $.data_type,
-    seq('var', $._data_type_or_implicit)
+    seq('var', optional($.data_type_or_implicit1))
   ),
 
   _signing: $ => choice('signed', 'unsigned'),
@@ -2244,7 +2245,6 @@ const rules = {
     $.expression
   )),
 
-  // Reordered from the original spec to satisfy the parser
   constant_expression: $ => choice(
     $.constant_primary,
 
@@ -2304,7 +2304,7 @@ const rules = {
   ),
 
   constant_range: $ => seq(
-    $.number, // $.constant_expression, LOOP
+    $.constant_expression,
     ':',
     $.constant_expression
   ),
@@ -2313,7 +2313,7 @@ const rules = {
     $.constant_expression, choice('+:', '-:'), $.constant_expression
   ),
 
-  expression: $ => choice( // reordered
+  expression: $ => choice(
     $.primary,
 
     prec.left(PREC.UNARY, seq(
@@ -2405,9 +2405,9 @@ const rules = {
   /* A.8.4 Primaries */
 
   constant_primary: $ => choice(
-    $.primary_literal,
+    prec.left(5, $.primary_literal), // PRECEDENCE FIX
     seq(
-      $.ps_parameter_identifier,
+      prec.left(token(/[a-zA-Z_]\w*/)), // $.ps_parameter_identifier, // FIX
       optional($.constant_select1)
     ),
     // seq(
@@ -2787,7 +2787,8 @@ const rules = {
     seq('$unit', '::')
   ),
 
-  parameter_identifier: $ => alias($.identifier, $._parameter_identifier),
+  parameter_identifier: $ => token(/[a-zA-Z_]\w*/),
+
   port_identifier: $ => alias($.identifier, $._port_identifier),
   production_identifier: $ => alias($.identifier, $._production_identifier),
   program_identifier: $ => alias($.identifier, $._program_identifier),

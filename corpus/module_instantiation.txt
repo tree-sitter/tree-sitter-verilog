@@ -197,13 +197,13 @@ endmodule
     (module_identifier (_module_identifier (simple_identifier)))
     (parameter_value_assignment (list_of_parameter_assignments
       (named_parameter_assignment
-        (parameter_identifier (_parameter_identifier (simple_identifier)))
+        (parameter_identifier)
         (param_expression
           (mintypmax_expression (expression (primary (primary_literal (number (integral_number))))))
         )
       )
       (named_parameter_assignment
-        (parameter_identifier (_parameter_identifier (simple_identifier)))
+        (parameter_identifier)
         (param_expression
           (mintypmax_expression (expression (primary (primary_literal (number (integral_number))))))
         )
