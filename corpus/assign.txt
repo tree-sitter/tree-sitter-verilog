@@ -194,7 +194,7 @@ endmodule
       (expression (primary
         (hierarchical_identifier (identifier (simple_identifier)))
         (select1 (part_select_range (constant_range
-          (number (integral_number))
+          (constant_expression (constant_primary (primary_literal (number (integral_number)))))
           (constant_expression (constant_primary (primary_literal (number (integral_number)))))
         )))
       ))
