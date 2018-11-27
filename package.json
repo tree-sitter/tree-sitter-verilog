@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-verilog",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Verilog grammar for tree-sitter",
   "main": "index.js",
   "keywords": [
