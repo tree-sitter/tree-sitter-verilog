@@ -305,7 +305,7 @@ const rules = {
   ),
 
   _module_item: $ => choice(
-    // seq($.port_declaration, ';'),
+    seq($.port_declaration, ';'),
     $._non_port_module_item
   ),
 
@@ -440,22 +440,36 @@ const rules = {
 
   inout_declaration: $ => seq(
     'inout',
-    $.net_port_type,
+    optional($.net_port_type),
     $.list_of_port_identifiers
   ),
 
   input_declaration: $ => seq(
     'input', choice(
-      seq($.net_port_type, $.list_of_port_identifiers),
-      seq($.variable_port_type, $.list_of_variable_identifiers)
-    )
+      seq(
+        optional($.net_port_type),
+        // $.list_of_port_identifiers
+      ),
+      seq(
+        optional($.variable_port_type),
+        // $.list_of_variable_identifiers
+      )
+    ),
+    $.list_of_port_identifiers
   ),
 
   output_declaration: $ => seq(
     'output', choice(
-      seq($.net_port_type, $.list_of_port_identifiers),
-      seq($.variable_port_type, $.list_of_variable_identifiers)
-    )
+      seq(
+        optional($.net_port_type),
+        // $.list_of_port_identifiers
+      ),
+      seq(
+        optional($.variable_port_type),
+        // $.list_of_variable_identifiers
+      ),
+    ),
+    $.list_of_port_identifiers
   ),
 
   interface_port_declaration: $ => seq(
@@ -664,7 +678,7 @@ const rules = {
   variable_port_type: $ => alias($._var_data_type, $._variable_port_type),
 
   _var_data_type: $ => choice(
-    $.data_type,
+    prec.left(-5, $.data_type),
     seq('var', optional($.data_type_or_implicit1))
   ),
 

@@ -136,6 +136,7 @@ empty module with nonANSI io
 ============================================
 
 module mod (clk);
+  input clk;
 endmodule
 
 ----
@@ -150,6 +151,13 @@ endmodule
         (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
       )
     )
+    (port_declaration
+      (input_declaration
+        (list_of_port_identifiers
+          (port_identifier (_port_identifier (simple_identifier)))
+        )
+      )
+    )
   )
 )
 
@@ -157,7 +165,13 @@ endmodule
 empty module with nonANSI ios
 ============================================
 
-module mod (clk, reset_n, inp, oup);
+module mod (clk, reset_n, inp, a, b);
+
+input clk;
+input [W-1:0] inp;
+output [3:0] a, b;
+
+
 endmodule
 
 ----
@@ -173,6 +187,64 @@ endmodule
         (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
         (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
         (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
+        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
+      )
+    )
+    (port_declaration
+      (input_declaration
+        (list_of_port_identifiers
+          (port_identifier (_port_identifier (simple_identifier)))
+        )
+      )
+    )
+    (port_declaration
+      (input_declaration
+        (net_port_type
+          (data_type_or_implicit1
+            (implicit_data_type1
+              (packed_dimension
+                (constant_range
+                  (constant_expression
+                    (constant_expression (constant_primary))
+                    (constant_expression (constant_primary
+                      (primary_literal (number (integral_number)))
+                    ))
+                  )
+                  (constant_expression (constant_primary
+                    (primary_literal (number (integral_number)))
+                  ))
+                )
+              )
+            )
+          )
+        )
+        (list_of_port_identifiers
+          (port_identifier (_port_identifier (simple_identifier)))
+        )
+      )
+    )
+    (port_declaration
+      (output_declaration
+        (net_port_type
+          (data_type_or_implicit1
+            (implicit_data_type1
+              (packed_dimension
+                (constant_range
+                  (constant_expression (constant_primary
+                    (primary_literal (number (integral_number)))
+                  ))
+                  (constant_expression (constant_primary
+                    (primary_literal (number (integral_number)))
+                  ))
+                )
+              )
+            )
+          )
+        )
+        (list_of_port_identifiers
+          (port_identifier (_port_identifier (simple_identifier)))
+          (port_identifier (_port_identifier (simple_identifier)))
+        )
       )
     )
   )

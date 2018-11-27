@@ -2,13 +2,15 @@
   zoo module
 */
 
-module add_sub #(parameter W = 8) (
-  input [W-1:0] x, y,
-  output logic [W-1:0] z,
-  input sign
-);
+module add_sub (x, y, z, sign);
 
-wire [W-1:0] add, sub;
+  parameter WIDTH = 8;
+
+  input [WIDTH-1:0] x, y;
+  output [WIDTH-1:0] z;
+  input sign;
+
+wire [WIDTH-1:0] add, sub;
 
 // logic
 assign add = x + y;
