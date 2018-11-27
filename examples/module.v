@@ -1,3 +1,38 @@
-module add ();
+/*
+  zoo module
+*/
+
+module add_sub #(parameter W = 8) (
+  input [W-1:0] x, y,
+  output logic [W-1:0] z,
+  input sign
+);
+
+wire [W-1:0] add, sub;
+
+// logic
+assign add = x + y;
+assign sub = x - y;
+assign z = sign ? sub : add;
+
+endmodule: add_sub
+
+
+module alu (
+  input [31:0] a,
+  input [31:0] b,
+  output [31:0] res,
+  input clk
+);
+
+
+
+wire [31:0] tmp;
+
+add_sub #(32) u0 (
+  .x(a), .y(b), .z(tmp), .sign(1'b0)
+);
+
+assign res = tmp;
 
 endmodule

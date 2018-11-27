@@ -2,19 +2,34 @@
   "name": "tree-sitter-verilog",
   "version": "0.6.0",
   "description": "Verilog grammar for tree-sitter",
+  "license": "MIT",
+  "author": "Aliaksei Chapyzhenka",
+  "homepage": "https://github.com/drom/tree-sitter-verilog#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drom/tree-sitter-verilog.git"
+  },
+  "bugs": {
+    "url": "https://github.com/drom/tree-sitter-verilog/issues"
+  },
   "main": "index.js",
+  "files": [
+    "grammar.js",
+    "binding.gyp",
+    "src/*"
+  ],
   "keywords": [
     "parser",
     "tree-sitter",
     "verilog"
   ],
+  "directories": {
+    "example": "examples"
+  },
   "scripts": {
-    "install": "tree-sitter generate",
-    "postinstall": "node-gyp configure build",
+    "install": "if [ ! -d ./src ]; then tree-sitter generate; fi && node-gyp configure build",
     "test": "tree-sitter test"
   },
-  "author": "Aliaksei Chapyzhenka",
-  "license": "MIT",
   "dependencies": {
     "nan": "^2.11.1"
   },
