@@ -1562,7 +1562,7 @@ const rules = {
     // $.jump_statement,
     // $.par_block,
     $.seq_block,
-    // $.procedural_timing_control_statement,
+    $.procedural_timing_control_statement,
     // $.wait_statement,
     // $.procedural_assertion_statement,
     // $.clocking_drive ';',
@@ -1598,11 +1598,11 @@ const rules = {
     seq('(', $.mintypmax_expression, ')')
   )),
 
-  event_control: $ => choice( // reordered
+  event_control: $ => choice(
     '@*',
     seq('@', '(*)'),
     seq('@', $.hierarchical_event_identifier),
-    seq('(', $.event_expression, ')'),
+    // seq('(', $.event_expression, ')'),
     // seq('@', $.ps_or_hierarchical_sequence_identifier)
   ),
 
