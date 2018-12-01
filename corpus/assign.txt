@@ -1,5 +1,5 @@
 ============================================
-assign net <- constant
+constant
 ============================================
 
 module mod ();
@@ -18,7 +18,7 @@ endmodule
 ))
 
 ============================================
-assign net <- net
+net
 ============================================
 
 module mod ();
@@ -38,7 +38,7 @@ endmodule
 )
 
 ============================================
-assign net <- net op net
+binary_operator
 ============================================
 
 module mod ();
@@ -62,7 +62,7 @@ endmodule
 
 
 ============================================
-assign net <- unary_operator net
+unary_operator
 ============================================
 
 module mod ();
@@ -84,7 +84,7 @@ endmodule
 )
 
 ============================================
-assign net <- parenthesized expression
+parenthesized expression
 ============================================
 
 module mod ();
@@ -122,7 +122,7 @@ endmodule
 ))
 
 ============================================
-assign concatenation
+concatenation
 ============================================
 
 module mod ();
@@ -150,7 +150,7 @@ endmodule
 ))
 
 ============================================
-assign bit_select
+bit_select
 ============================================
 
 module mod ();
@@ -176,7 +176,7 @@ endmodule
 ))
 
 ============================================
-assign slice
+part_select_range
 ============================================
 
 module mod ();
@@ -234,4 +234,38 @@ endmodule
       )
     )
   ))))
+))
+
+============================================
+conditional_expression
+============================================
+
+module mod ();
+  assign a = b == c ? d : e;
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (continuous_assign
+    (list_of_net_assignments
+      (net_assignment
+        (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+        (expression
+          (conditional_expression
+            (cond_predicate (expression_or_cond_pattern
+              (expression
+                (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+                (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+              )
+            ))
+            (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+            (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+          )
+        )
+      )
+    )
+  ))
 ))

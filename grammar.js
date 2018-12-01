@@ -1699,7 +1699,9 @@ const rules = {
 
   unique_priority: $ => choice('unique', 'unique0', 'priority'),
 
-  cond_predicate: $ => sep1('&&&', $.expression_or_cond_pattern),
+  cond_predicate: $ =>
+    $.expression_or_cond_pattern,
+    // sep1('&&&', $.expression_or_cond_pattern),
 
   expression_or_cond_pattern: $ => choice(
     $.expression,
@@ -2352,7 +2354,7 @@ const rules = {
     exprOp($, PREC.SHIFT, choice('>>', '<<', '>>>', '<<<')),
     exprOp($, PREC.IMPLICATION, choice('->', '<->')),
 
-    // $.conditional_expression,
+    $.conditional_expression,
     // $.inside_expression,
     // $.tagged_union_expression,
   ),
