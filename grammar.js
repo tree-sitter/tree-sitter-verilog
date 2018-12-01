@@ -298,7 +298,7 @@ const rules = {
     //  $.net_alias,
     // $.initial_construct,
     //  $.final_construct,
-    // $.always_construct
+    $.always_construct
     //  $.loop_generate_construct,
     //  $.conditional_generate_construct,
     //  $.elaboration_system_task
@@ -1144,7 +1144,7 @@ const rules = {
 
   // from spec:
   // named_port_connection ::=
-  // { attribute_instance } . port_identifier [ ( [ expression ] ) ]
+  //   { attribute_instance } . port_identifier [ ( [ expression ] ) ]
   // | { attribute_instance } .*
 
   named_port_connection: $ => seq(
@@ -1448,7 +1448,7 @@ const rules = {
     'always_ff'
   ),
 
-  // final_construct: $ => seq('final', $.function_statement),
+  final_construct: $ => seq('final', $.function_statement),
 
   blocking_assignment: $ => choice(
     seq(
@@ -1501,20 +1501,23 @@ const rules = {
     $.variable_lvalue, '<=', optional($.delay_or_event_control), $.expression
   ),
 
-  // procedural_continuous_assignment =
-  // assign variable_assignment
-  // | deassign variable_lvalue
-  // | force variable_assignment
-  // | force net_assignment
-  // | release variable_lvalue
-  // | release net_lvalue
-  // variable_assignment = variable_lvalue = expression
+  procedural_continuous_assignment: $ => choice(
+    seq('assign', $.variable_assignment),
+    seq('deassign', $.variable_lvalue),
+    seq('force', $.variable_assignment),
+    seq('force', $.net_assignment),
+    seq('release', $.variable_lvalue),
+    seq('release', $.net_lvalue)
+  ),
+
+  variable_assignment: $ => seq($.variable_lvalue, '=', $.expression),
 
   // A.6.3 Parallel and sequential blocks
 
-  // action_block =
-  // statement_or_null
-  // | [ statement ] else statement_or_null
+  action_block: $ => choice(
+    $.statement_or_null,
+    seq(optional($.statement), 'else', $.statement_or_null)
+  ),
 
   seq_block: $ => seq(
     'begin', optional(':', $.block_identifier),
@@ -1523,10 +1526,14 @@ const rules = {
     'end', optional(':', $.block_identifier)
   ),
 
-  // par_block =
-  // fork [ : block_identifier ] { block_item_declaration } { statement_or_null }
-  // join_keyword [ : block_identifier ]
-  // join_keyword = join | join_any | join_none
+  par_block: $ => seq(
+    'fork', optional(seq(':', $.block_identifier)),
+    repeat($.block_item_declaration),
+    repeat($.statement_or_null),
+    $.join_keyword, optional(seq(':', $.block_identifier))
+  ),
+
+  join_keyword: $ => choice('join', 'join_any', 'join_none'),
 
   // A.6.4 Statements
 
@@ -1542,20 +1549,20 @@ const rules = {
   ),
 
   statement_item: $ => choice(
-    seq($.blocking_assignment, ';'),
-    seq($.nonblocking_assignment, ';'),
+    // seq($.blocking_assignment, ';'),
+    // seq($.nonblocking_assignment, ';'),
     // seq($.procedural_continuous_assignment, ';'),
     $.case_statement,
-    $.conditional_statement,
-    seq($.inc_or_dec_expression, ';'),
+    // $.conditional_statement,
+    // seq($.inc_or_dec_expression, ';'),
     // $.subroutine_call_statement,
     // $.disable_statement,
     // $.event_trigger,
     // $.loop_statement,
     // $.jump_statement,
     // $.par_block,
-    $.seq_block, // reordered
-    $.procedural_timing_control_statement,
+    $.seq_block,
+    // $.procedural_timing_control_statement,
     // $.wait_statement,
     // $.procedural_assertion_statement,
     // $.clocking_drive ';',
@@ -1564,44 +1571,14 @@ const rules = {
     // $.expect_property_statement,
   ),
 
-  // function_statement_or_null =
-  // function_statement
-  // | ( attribute_instance __ )* ;
-  // variable_identifier_list = variable_identifier { , variable_identifier }
+  function_statement: $ => $.statement,
 
-  // statement_or_null1 = (attribute_instance __) * ';' /
-  // statement1
-  //
-  // statement1 = (block_identifier __ ':'
-  //   __) ? (attribute_instance __) * statement_item1
-  //
-  // statement_item1 'statement_item1' = blocking_assignment ';' /
-  // nonblocking_assignment ';'
-  // /*/ procedural_continuous_assignment ';'*/
-  // /
-  // case_statement /
-  // conditional_statement
-  // /*/ inc_or_dec_expression ';'*/
-  // /*/ subroutine_call_statement*/
-  // /*/ disable_statement*/
-  // /*/ event_trigger*/
-  // /*/ loop_statement*/
-  // /*/ jump_statement*/
-  // /*/ par_block*/
-  // /
-  // seq_block
-  // /*/ procedural_timing_control_statement*/
-  // /*/ wait_statement*/
-  // /*/ procedural_assertion_statement*/
-  // /*/ clocking_drive ';'*/
-  // /*/ randsequence_statement*/
-  // /*/ randcase_statement*/
-  // /*/ expect_property_statement*/
-  //
-  // // function_statement_or_null =
-  // // function_statement
-  // // | ( attribute_instance __ )* ;
-  // // variable_identifier_list = variable_identifier { , variable_identifier }
+  function_statement_or_null: $ => choice(
+    $.function_statement,
+    seq(repeat($.attribute_instance), ';')
+  ),
+
+  variable_identifier_list: $ => sep1(',', $.variable_identifier),
 
 
   // A.6.5 Timing control statements

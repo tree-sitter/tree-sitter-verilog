@@ -1,0 +1,19 @@
+============================================
+seq_block
+============================================
+
+module a_l ();
+
+always begin end
+
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item
+    (always_construct (always_keyword) (statement (statement_item (seq_block))))
+  )
+)) 
