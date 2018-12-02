@@ -1553,7 +1553,7 @@ const rules = {
     // seq($.nonblocking_assignment, ';'),
     // seq($.procedural_continuous_assignment, ';'),
     $.case_statement,
-    // $.conditional_statement,
+    $.conditional_statement,
     // seq($.inc_or_dec_expression, ';'),
     // $.subroutine_call_statement,
     // $.disable_statement,
@@ -1599,27 +1599,27 @@ const rules = {
   )),
 
   event_control: $ => choice(
+    // seq('@', $.hierarchical_event_identifier),
+    seq('@', '(', $.event_expression, ')'),
     '@*',
     seq('@', '(*)'),
-    seq('@', $.hierarchical_event_identifier),
-    // seq('(', $.event_expression, ')'),
     // seq('@', $.ps_or_hierarchical_sequence_identifier)
   ),
 
   event_expression: $ => choice( // reordered : brake recursion
-    seq($.event_expression, 'or', $.event_expression),
-    seq($.event_expression, ',', $.event_expression),
+    // seq($.event_expression, 'or', $.event_expression),
+    // seq($.event_expression, ',', $.event_expression),
     seq($.edge_identifier, $.expression), // reordered : help parser
-    seq(
-      optional($.edge_identifier),
-      $.expression,
-      optional(seq('iff', $.expression))
-    ),
+    // seq(
+    //   optional($.edge_identifier),
+    //   $.expression,
+    //   optional(seq('iff', $.expression))
+    // ),
     // seq(
     //   $.sequence_instance,
     //   optional(seq('iff', $.expression))
     // ),
-    seq('(', $.event_expression, ')')
+    // seq('(', $.event_expression, ')')
   ),
 
   // event_expression_2: $ => choice( // reordered : help parser
@@ -1666,13 +1666,12 @@ const rules = {
 
   // A.6.6 Conditional statements
 
-  conditional_statement: $ => seq(
+  conditional_statement: $ => prec.left(seq(
     optional($.unique_priority),
-    'if', '(', $.cond_predicate, ')',
-    $.statement_or_null,
-    repeat(seq('else', 'if', '(', $.cond_predicate, ')', $.statement_or_null)),
+    'if', '(', $.cond_predicate, ')', $.statement_or_null,
+    // repeat(seq('else', 'if', '(', $.cond_predicate, ')', $.statement_or_null)),
     optional(seq('else', $.statement_or_null))
-  ),
+  )),
 
   unique_priority: $ => choice('unique', 'unique0', 'priority'),
 

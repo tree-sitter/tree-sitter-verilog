@@ -43,3 +43,111 @@ endmodule
     )
   )
 ))
+
+============================================
+@(*)
+============================================
+
+module a ();
+
+always @(*) begin end
+
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item
+    (always_construct
+      (always_keyword)
+      (statement (statement_item (procedural_timing_control_statement
+        (event_control)
+        (statement_or_null (statement (statement_item (seq_block))))
+      )))
+    )
+  )
+))
+
+============================================
+@(posedge clk)
+============================================
+
+module a ();
+
+always @(posedge clk) begin end
+
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item
+    (always_construct
+      (always_keyword)
+      (statement (statement_item (procedural_timing_control_statement
+        (event_control (event_expression
+          (edge_identifier)
+          (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+        ))
+        (statement_or_null (statement (statement_item (seq_block))))
+      )))
+    )
+  )
+))
+
+============================================
+all
+============================================
+
+module abc ();
+
+always begin end
+always_ff begin end
+always_comb begin end
+always_latch begin end
+
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (always_construct (always_keyword) (statement (statement_item (seq_block)))))
+  (module_or_generate_item (always_construct (always_keyword) (statement (statement_item (seq_block)))))
+  (module_or_generate_item (always_construct (always_keyword) (statement (statement_item (seq_block)))))
+  (module_or_generate_item (always_construct (always_keyword) (statement (statement_item (seq_block)))))
+))
+
+============================================
+expr
+============================================
+
+module abc ();
+
+always_comb begin
+  a = b;
+end
+
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item
+    (always_construct (always_keyword)
+      (statement (statement_item (seq_block (block_item_declaration
+        (data_declaration (list_of_variable_decl_assignments (variable_decl_assignment
+          (variable_identifier (_variable_identifier (simple_identifier)))
+          (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+        )))
+      ))))
+    )
+  )
+))
