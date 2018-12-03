@@ -1607,8 +1607,8 @@ const rules = {
   ),
 
   event_expression: $ => choice( // reordered : brake recursion
-    // seq($.event_expression, 'or', $.event_expression),
-    // seq($.event_expression, ',', $.event_expression),
+    prec.left(seq($.event_expression, 'or', $.event_expression)),
+    prec.left(seq($.event_expression, ',', $.event_expression)),
     seq($.edge_identifier, $.expression), // reordered : help parser
     // seq(
     //   optional($.edge_identifier),
