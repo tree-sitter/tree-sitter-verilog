@@ -1,0 +1,19 @@
+============================================
+include ""
+============================================
+
+`include "foo.txt"
+
+----
+
+(source_file (preproc_include (preproc_filename_relative)))
+
+============================================
+include <>
+============================================
+
+`include <bar>
+
+----
+
+(source_file (preproc_include (preproc_filename_standard)))

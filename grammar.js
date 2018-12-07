@@ -41,16 +41,39 @@ function constExprOp ($, prior, ops) {
   return prec.left(prior, seq($.constant_expression, token(ops), repeat($.attribute_instance), $.constant_expression));
 }
 
+function directive (command) {
+  return alias(new RegExp('`' + command), 'directive_' + command);
+}
+
 /*
-    Verilog parser grammar based on IEEE Std 1800-2012.
+    Verilog parser grammar based on IEEE Std 1800-2017.
 */
 
 const rules = {
   source_file: $ => repeat($._description),
 
+  /* 22. Compiler directives */
+
+  preproc_filename_relative: $ => seq(
+    '"', token.immediate(prec(1, /[^\\"\n]+/)), '"'
+  ),
+
+  preproc_filename_standard: $ => seq(
+    '<', token.immediate(prec(1, /[^\\>\n]+/)), '>'
+  ),
+
+  preproc_include: $ => seq(
+    directive('include'),
+    choice(
+      $.preproc_filename_relative,
+      $.preproc_filename_standard
+    )
+  ),
+
   /* A.1.2 SystemVerilog source text */
 
   _description: $ => choice(
+    $.preproc_include,
     $.module_declaration
     // $.udp_declaration,
     // $.interface_declaration,
@@ -2484,15 +2507,13 @@ const rules = {
   //
   // time_unit = 's' / 'ms' / 'us' / 'ns' / 'ps' / 'fs'
   //
-  // string_literal = '\'' [.] ? '\''
-  //
-  //
-  // implicit_class_handle = 'this' / 'super' / 'this'
-  // '.'
-  // 'super'
-  //
 
+  string_literal: $ => token.immediate(prec(1, /[^\\"\n]+/)),
 
+  implicit_class_handle: $ => choice(
+    prec.left(seq('this', optional(seq('.', 'super')))),
+    'super'
+  ),
 
   // select1: $ => choice( // reordered -> non empty
   //   seq(
