@@ -2,7 +2,10 @@
   zoo module
 */
 
+`resetall
+`undefineall
 `include "isa.vh"
+`undef D
 `define D(x, y) initial $display("start", x, y)
 
 module add_sub (x, y, z, sign);

@@ -107,6 +107,27 @@ const rules = {
     optional(seq('(', $.list_of_actual_arguments, ')'))
   ),
 
+  /* 22-4 undef */
+
+  id_directive: $ => seq(
+    choice(
+      directive('ifdef'),
+      directive('ifndef'),
+      directive('elseif'),
+      directive('undef')
+    ),
+    $.text_macro_identifier
+  ),
+
+  zero_directive: $ => choice(
+    directive('resetall'),
+    directive('undefineall'),
+    directive('endif'),
+    directive('else')
+  ),
+
+  // TODO missing arguments, empty list of arguments
+
   list_of_actual_arguments: $ => sep1(',', $.actual_argument),
 
   actual_argument: $ => $.expression,
@@ -117,7 +138,10 @@ const rules = {
     $.include_compiler_directive,
     $.text_macro_definition,
     $.text_macro_usage,
-    $.module_declaration
+    $.id_directive,
+    $.zero_directive,
+    $.module_declaration,
+
     // $.udp_declaration,
     // $.interface_declaration,
     // $.program_declaration,

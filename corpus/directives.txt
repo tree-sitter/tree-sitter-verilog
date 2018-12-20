@@ -77,3 +77,41 @@ usage args
     )
   )
 )
+
+============================================
+undef
+============================================
+
+`undef Dff
+
+----
+
+(source_file
+  (id_directive
+    (text_macro_identifier (identifier (simple_identifier)))
+  )
+)
+
+============================================
+resetall
+============================================
+
+`resetall
+
+----
+
+(source_file
+  (zero_directive)
+)
+
+============================================
+undefineall
+============================================
+
+`undefineall
+
+----
+
+(source_file
+  (zero_directive)
+)
