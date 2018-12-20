@@ -113,7 +113,7 @@ const rules = {
     choice(
       directive('ifdef'),
       directive('ifndef'),
-      directive('elseif'),
+      directive('elsif'),
       directive('undef')
     ),
     $.text_macro_identifier

@@ -19,7 +19,14 @@ module add_sub (x, y, z, sign);
 wire [WIDTH-1:0] add, sub;
 
 // logic
-assign add = x + y;
+`ifdef E0
+  assign add = x + y;
+`elsif E1
+  assign add = x + y;
+`else
+  assign add = x + y;
+`endif
+
 assign sub = x - y;
 assign z = sign ? sub : add;
 
