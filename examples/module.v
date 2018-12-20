@@ -2,6 +2,9 @@
   zoo module
 */
 
+`include "isa.vh"
+`define D(x, y) initial $display("start", x, y)
+
 module add_sub (x, y, z, sign);
 
   parameter WIDTH = 8;
@@ -17,6 +20,8 @@ assign add = x + y;
 assign sub = x - y;
 assign z = sign ? sub : add;
 
+`D(5, 7);
+
 endmodule: add_sub
 
 
@@ -26,8 +31,6 @@ module alu (
   output [31:0] res,
   input clk
 );
-
-
 
 wire [31:0] tmp;
 

@@ -54,26 +54,69 @@ const rules = {
 
   /* 22. Compiler directives */
 
-  preproc_filename_relative: $ => seq(
+  /* 22-1 `include */
+
+  include_compiler_directive_relative: $ => seq(
     '"', token.immediate(prec(1, /[^\\"\n]+/)), '"'
   ),
 
-  preproc_filename_standard: $ => seq(
+  include_compiler_directive_standard: $ => seq(
     '<', token.immediate(prec(1, /[^\\>\n]+/)), '>'
   ),
 
-  preproc_include: $ => seq(
+  include_compiler_directive: $ => seq(
     directive('include'),
     choice(
-      $.preproc_filename_relative,
-      $.preproc_filename_standard
+      $.include_compiler_directive_relative,
+      $.include_compiler_directive_standard
     )
   ),
+
+  /* 22-2 `define */
+
+  default_text: $ => /\w+/,
+
+  macro_text: $ => /[^\(][^\n]+/,
+
+  text_macro_name: $ => seq(
+    $.text_macro_identifier,
+    optional(seq('(', $.list_of_formal_arguments, ')'))
+  ),
+
+  list_of_formal_arguments: $ => sep1(',', $.formal_argument),
+
+  formal_argument: $ => seq(
+    $.simple_identifier,
+    optional(seq('=', $.default_text))
+  ),
+
+  text_macro_identifier: $ => $.identifier,
+
+  text_macro_definition: $ => seq(
+    directive('define'),
+    $.text_macro_name,
+    $.macro_text,
+    '\n'
+  ),
+
+  /* 22-3 `usage */
+
+  text_macro_usage: $ => seq(
+    '`',
+    $.text_macro_identifier,
+    optional(seq('(', $.list_of_actual_arguments, ')'))
+  ),
+
+  list_of_actual_arguments: $ => sep1(',', $.actual_argument),
+
+  actual_argument: $ => $.expression,
 
   /* A.1.2 SystemVerilog source text */
 
   _description: $ => choice(
-    $.preproc_include,
+    $.include_compiler_directive,
+    $.text_macro_definition,
+    $.text_macro_usage,
     $.module_declaration
     // $.udp_declaration,
     // $.interface_declaration,

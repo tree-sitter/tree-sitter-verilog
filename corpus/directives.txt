@@ -6,8 +6,7 @@ include ""
 
 ----
 
-(source_file (preproc_include (preproc_filename_relative)))
-
+(source_file (include_compiler_directive (include_compiler_directive_relative)))
 ============================================
 include <>
 ============================================
@@ -16,4 +15,65 @@ include <>
 
 ----
 
-(source_file (preproc_include (preproc_filename_standard)))
+(source_file (include_compiler_directive (include_compiler_directive_standard)))
+
+============================================
+define
+============================================
+
+`define D(x, y) initial $display("start", x, y)
+
+----
+
+(source_file
+  (text_macro_definition
+    (text_macro_name
+      (text_macro_identifier (identifier (simple_identifier)))
+      (list_of_formal_arguments
+        (formal_argument (simple_identifier))
+        (formal_argument (simple_identifier))
+      )
+    )
+    (macro_text)
+  )
+)
+
+============================================
+usage
+============================================
+
+`Dff
+
+----
+
+(source_file
+  (text_macro_usage
+    (text_macro_identifier (identifier (simple_identifier)))
+  )
+)
+
+============================================
+usage args
+============================================
+
+`Dff(5, 7)
+
+----
+
+(source_file
+  (text_macro_usage
+    (text_macro_identifier (identifier (simple_identifier)))
+    (list_of_actual_arguments
+      (actual_argument
+        (expression
+          (primary (primary_literal (number (integral_number))))
+        )
+      )
+      (actual_argument
+        (expression
+          (primary (primary_literal (number (integral_number))))
+        )
+      )
+    )
+  )
+)
