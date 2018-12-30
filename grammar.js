@@ -33,6 +33,13 @@ function sep1(separator, rule) {
   ))
 }
 
+function psep1(precedence, separator, rule) {
+  return prec.left(precedence, seq(
+    rule,
+    repeat(prec.left(seq(separator, rule)))
+  ))
+}
+
 function exprOp ($, prior, ops) {
   return prec.left(prior, seq($.expression, token(ops), repeat($.attribute_instance), $.expression));
 }
@@ -76,7 +83,7 @@ const rules = {
 
   default_text: $ => /\w+/,
 
-  macro_text: $ => /[^\(][^\n]+/,
+  macro_text: $ => /[^\n]+/,
 
   text_macro_name: $ => seq(
     $.text_macro_identifier,
@@ -95,7 +102,7 @@ const rules = {
   text_macro_definition: $ => seq(
     directive('define'),
     $.text_macro_name,
-    $.macro_text,
+    optional($.macro_text),
     '\n'
   ),
 
@@ -126,28 +133,33 @@ const rules = {
     directive('else')
   ),
 
+  _directives: $ => choice(
+    $.include_compiler_directive,
+    $.text_macro_definition,
+    $.text_macro_usage,
+    $.id_directive,
+    $.zero_directive
+  ),
+
   // TODO missing arguments, empty list of arguments
 
   list_of_actual_arguments: $ => sep1(',', $.actual_argument),
 
   actual_argument: $ => $.expression,
 
+  /* A.1.1 Library source text */
+
   /* A.1.2 SystemVerilog source text */
 
   _description: $ => choice(
-    $.include_compiler_directive,
-    $.text_macro_definition,
-    $.text_macro_usage,
-    $.id_directive,
-    $.zero_directive,
+    $._directives,
     $.module_declaration,
-
     // $.udp_declaration,
-    // $.interface_declaration,
-    // $.program_declaration,
-    // $.package_declaration,
-    // seq(repeat($.attribute_instance), $.package_item),
-    // seq(repeat($.attribute_instance), $.bind_directive),
+    $.interface_declaration,
+    $.program_declaration,
+    $.package_declaration,
+    seq(repeat($.attribute_instance), $.package_item),
+    seq(repeat($.attribute_instance), $.bind_directive),
     // $.config_declaration,
   ),
 
@@ -215,11 +227,6 @@ const rules = {
     seq(
       $.module_header,
       choice(
-        // seq(
-        //   '(', ')', ';',
-        //   // timeunits_declaration?
-        //   repeat($._module_item),
-        // ),
         seq(
           '(', '.*', ')', ';',
           // timeunits_declaration?
@@ -234,7 +241,10 @@ const rules = {
           // timeunits_declaration?
           repeat($._non_port_module_item),
         ),
-        ';'
+        seq(
+          ';',
+          repeat($._module_item),
+        )
       ),
       'endmodule', optional(seq(':', $.module_identifier))
     ),
@@ -245,6 +255,176 @@ const rules = {
   ),
 
   module_keyword: $ => choice('module', 'macromodule'),
+
+  interface_declaration: $ => choice(
+    seq(
+      $.interface_nonansi_header,
+      optional($.timeunits_declaration),
+      repeat($.interface_item),
+      'endinterface', optional(seq(':', $.interface_identifier))
+    ),
+    seq(
+      $.interface_ansi_header,
+      optional($.timeunits_declaration),
+      repeat($.non_port_interface_item),
+      'endinterface', optional(seq(':', $.interface_identifier))
+    ),
+    seq(
+      repeat($.attribute_instance),
+      'interface',
+      $.interface_identifier,
+      '(', '.*', ')', ';',
+      optional($.timeunits_declaration),
+      repeat($.interface_item),
+      'endinterface', optional(seq(':', $.interface_identifier))
+    ),
+    seq('extern', $.interface_nonansi_header),
+    seq('extern', $.interface_ansi_header)
+  ),
+
+  interface_nonansi_header: $ => seq(
+    repeat($.attribute_instance),
+    'interface',
+    optional($.lifetime),
+    $.interface_identifier,
+    repeat($.package_import_declaration),
+    optional($.parameter_port_list),
+    $.list_of_ports,
+    ';'
+  ),
+
+  interface_ansi_header: $ => seq(
+    repeat($.attribute_instance),
+    'interface',
+    optional($.lifetime),
+    $.interface_identifier,
+    repeat($.package_import_declaration),
+    optional($.parameter_port_list),
+    optional($.list_of_port_declarations),
+    ';'
+  ),
+
+  program_declaration: $ => choice(
+    seq(
+      $.program_nonansi_header,
+      optional($.timeunits_declaration),
+      repeat($.program_item),
+      'endprogram', optional(seq(':', $.program_identifier))
+    ),
+    seq(
+      $.program_ansi_header,
+      optional($.timeunits_declaration),
+      repeat($.non_port_program_item),
+      'endprogram', optional(seq(':', $.program_identifier))
+    ),
+    seq(
+      repeat($.attribute_instance),
+      'program',
+      $.program_identifier,
+      '(', '.*', ')', ';',
+      optional($.timeunits_declaration),
+      repeat($.program_item),
+      'endprogram', optional(seq(':', $.program_identifier))
+    ),
+    seq('extern', $.program_nonansi_header),
+    seq('extern', $.program_ansi_header)
+  ),
+
+  program_nonansi_header: $ => seq(
+    repeat($.attribute_instance),
+    'program',
+    optional($.lifetime),
+    $.program_identifier,
+    repeat($.package_import_declaration),
+    optional($.parameter_port_list),
+    $.list_of_ports,
+    ';'
+  ),
+
+  program_ansi_header: $ => seq(
+    repeat($.attribute_instance),
+    'program',
+    optional($.lifetime),
+    $.program_identifier,
+    repeat($.package_import_declaration),
+    optional($.parameter_port_list),
+    $.list_of_port_declarations,
+    ';'
+  ),
+
+  checker_declaration: $ => seq(
+    'checker',
+    $.checker_identifier,
+    optional(seq('(', optional($.checker_port_list), ')')),
+    ';',
+    repeat(seq(
+      repeat($.attribute_instance),
+      $.checker_or_generate_item
+    )),
+    'endchecker', optional(seq(':', $.checker_identifier))
+  ),
+
+  class_declaration: $ => seq(
+    optional('virtual'),
+    'class',
+    optional($.lifetime),
+    $.class_identifier,
+    optional($.parameter_port_list),
+    optional(seq(
+      'extends',
+      $.class_type,
+      optional($.list_of_arguments_parent)
+    )),
+    optional(seq(
+      'implements',
+      sep1(',', $.interface_class_type)
+    )),
+    ';',
+    repeat($.class_item),
+    'endclass', optional(seq(':', $.class_identifier))
+  ),
+
+  interface_class_type: $ => seq(
+    $.ps_class_identifier,
+    optional($.parameter_value_assignment)
+  ),
+
+  interface_class_declaration: $ => seq(
+    'interface', 'class',
+    $.class_identifier,
+    optional($.parameter_port_list),
+    optional(seq(
+      'extends',
+      optional(sep1(',', $.interface_class_type)),
+      ';'
+    )),
+    repeat($.interface_class_item),
+    'endclass', optional(seq(':', $.class_identifier))
+  ),
+
+  interface_class_item: $ => choice(
+    $.type_declaration,
+    seq(repeat($.attribute_instance), $.interface_class_method),
+    seq($.any_parameter_declaration, ';'),
+    ';'
+  ),
+
+  interface_class_method: $ => seq('pure', 'virtual', $.method_prototype, ';'),
+
+  package_declaration: $ => seq(
+    repeat($.attribute_instance),
+    'package', optional($.lifetime), $.package_identifier, ';',
+    optional($.timeunits_declaration),
+    repeat(seq($.attribute_instance), $.package_item),
+    'endpackage', optional(seq(':', $.package_identifier))
+  ),
+
+  timeunits_declaration: $ => choice(
+    seq('timeunit', $.time_literal, optional(seq('/', $.time_literal)), ';'),
+    seq('timeprecision', $.time_literal, ';'),
+    // seq('timeunit', $.time_literal, ';', 'timeprecision', $.time_literal, ';'),
+    // seq('timeprecision', $.time_literal, ';', 'timeunit', $.time_literal, ';')
+  ),
 
   /* A.1.3 Module parameters and ports */
 
@@ -368,13 +548,22 @@ const rules = {
     // )
   ),
 
-  /*
-  elaboration_system_task ::=
-  $fatal [ ( finish_number [, list_of_arguments ] )| $error
-   [ ( [ list_of_arguments ] ) ] ;
-  | $warning [ ( [ list_of_arguments ] ) ] ;
-  | $info [ ( [ list_of_arguments ] ) ] ;
-  */
+  /* A.1.4 Module items */
+
+  elaboration_system_task: $ => choice(
+    seq(
+      '$fatal',
+      optional(seq(
+        '(', // $.finish_number, optional(seq(',', $.list_of_arguments)), ')' // FIXME
+      )),
+      ';'
+    ),
+    seq(
+      choice('$error', '$warning', '$info'),
+      optional($.list_of_arguments_parent),
+      ';'
+    ),
+  ),
 
   finish_number: $ => choice('0', '1', '2'),
 
@@ -419,12 +608,13 @@ const rules = {
   ),
 
   _non_port_module_item: $ => choice(
-    //  $.generate_region
+    $._directives,
+    // $.generate_region,
     $.module_or_generate_item,
     //  $.specify_block
     //  ( attribute_instance __ )* specparam_declaration
     //  $.program_declaration
-    // $.module_declaration
+    // $.module_declaration,
     //  $.interface_declaration
     //  $.timeunits_declaration
   ),
@@ -435,33 +625,334 @@ const rules = {
     ';'
   ),
 
-  /*
-  bind_directive
-    = 'bind' __ bind_target_scope ( __ ':' __ bind_target_instance_list )? __
-      bind_instantiation __ ';'
-    / 'bind' __ bind_target_instance __ bind_instantiation __ ';'
+  bind_directive: $ => seq(
+    'bind',
+    choice(
+      seq(
+        $.bind_target_scope,
+        optional(seq(':', $.bind_target_instance_list))
+      ),
+      $.bind_target_instance
+    ),
+    $.bind_instantiation,
+    ';'
+  ),
 
-  bind_target_scope
-    = module_identifier
-    / interface_identifier
+  bind_target_scope: $ => choice(
+    $.module_identifier,
+    $.interface_identifier
+  ),
 
-  bind_target_instance
-    = hierarchical_identifierconstant_bit_select
+  bind_target_instance: $ => seq(
+    $.hierarchical_identifier,
+    optional($.constant_bit_select1)
+  ),
 
-  bind_target_instance_list
-    = bind_target_instance ( __ ',' __ bind_target_instance )*
+  bind_target_instance_list: $ => sep1(',', $.bind_target_instance),
 
-  bind_instantiation
-    = program_instantiation
-    / module_instantiation
-    / interface_instantiation
-    / checker_instantiation
-  */
+  bind_instantiation: $ => choice(
+    $.program_instantiation,
+    $.module_instantiation,
+    $.interface_instantiation,
+    $.checker_instantiation
+  ),
+
+  /* A.1.5 Configuration source text */
+
+  // config_declaration ::=
+  // config config_identifier ;
+  // { local_parameter_declaration ; }
+  // design_statement
+  // { config_rule_statement }
+  // endconfig [ : config_identifier ]
+
+  // design_statement ::= design { [ library_identifier . ] cell_identifier } ;
+
+  // config_rule_statement ::=
+  // default_clause liblist_clause ;
+  //   |
+  //  inst_clause
+  //  liblist_clause ;
+  // |
+  //  inst_clause
+  //  use_clause ;
+  // |
+  //  cell_clause
+  //  liblist_clause ;
+  // |
+  //  cell_clause
+  //  use_clause ;
+  // default_clause ::= default
+  // inst_clause ::= instance inst_name
+  // inst_name ::= topmodule_identifier { . instance_identifier }
+  // cell_clause ::= cell [ library_identifier . ] cell_identifier
+  // liblist_clause ::= liblist {library_identifier}
+  // use_clause ::= use [ library_identifier . ] cell_identifier [ : config ]
+  // | use named_parameter_assignment { , named_parameter_assignment } [ : config ]
+  // | use [ library_identifier . ] cell_identifier named_parameter_assignment
+  // { , named_parameter_assignment } [ : config ]
 
 
-  // A.1.11 Package items
+  /* A.1.6 Interface items */
 
-  _package_item: $ => choice(
+  interface_or_generate_item: $ => choice(
+    seq(repeat($.attribute_instance), $._module_common_item),
+    seq(repeat($.attribute_instance), $.extern_tf_declaration)
+  ),
+
+  extern_tf_declaration: $ => choice(
+    seq('extern', $.method_prototype, ';'),
+    seq('extern', 'forkjoin', $.task_prototype, ';')
+  ),
+
+  interface_item: $ => choice(
+    seq($.port_declaration, ';'),
+    $.non_port_interface_item
+  ),
+
+  non_port_interface_item: $ => choice(
+    $.generate_region,
+    $.interface_or_generate_item,
+    $.program_declaration,
+    $.modport_declaration,
+    $.interface_declaration,
+    $.timeunits_declaration
+  ),
+
+  /* A.1.7 Program items */
+
+  program_item: $ => choice(
+    seq($.port_declaration, ';'),
+    $.non_port_program_item
+  ),
+
+  non_port_program_item: $ => choice(
+    seq(repeat($.attribute_instance), $.continuous_assign),
+    seq(repeat($.attribute_instance), $._module_or_generate_item_declaration),
+    seq(repeat($.attribute_instance), $.initial_construct),
+    seq(repeat($.attribute_instance), $.final_construct),
+    // seq(repeat($.attribute_instance), $.concurrent_assertion_item),
+    $.timeunits_declaration,
+    $.program_generate_item
+  ),
+
+  program_generate_item: $ => choice(
+    $.loop_generate_construct,
+    $.conditional_generate_construct,
+    $.generate_region,
+    $.elaboration_system_task
+  ),
+
+  /* A.1.8 Checker items */
+
+  checker_port_list: $ => sep1(',', $.checker_port_item),
+
+  checker_port_item: $ => seq(
+    repeat($.attribute_instance),
+    optional($.checker_port_direction),
+    optional($.property_formal_type1),
+    $.formal_port_identifier,
+    repeat($._variable_dimension),
+    // optional(seq('=', $.property_actual_arg))
+  ),
+
+  checker_port_direction: $ => choice('input', 'output'),
+
+  checker_or_generate_item: $ => choice(
+    $.checker_or_generate_item_declaration,
+    $.initial_construct,
+    $.always_construct,
+    $.final_construct,
+    // $.assertion_item,
+    $.continuous_assign,
+    $.checker_generate_item
+  ),
+
+  checker_or_generate_item_declaration: $ => choice(
+    seq(optional('rand'), $.data_declaration),
+    $.function_declaration,
+    $.checker_declaration,
+    // $.assertion_item_declaration,
+    // $.covergroup_declaration,
+    // $.genvar_declaration,
+    // $.clocking_declaration,
+    seq('default', 'clocking', $.clocking_identifier, ';'),
+    seq('default', 'disable', 'iff', $.expression_or_dist, ';'),
+    ';'
+  ),
+
+  checker_generate_item: $ => choice(
+    $.loop_generate_construct,
+    $.conditional_generate_construct,
+    $.generate_region,
+    $.elaboration_system_task
+  ),
+
+  /* A.1.9 Class items */
+
+  class_item: $ => choice(
+    seq(repeat($.attribute_instance), $.class_property),
+    seq(repeat($.attribute_instance), $.class_method),
+    seq(repeat($.attribute_instance), $.class_constraint),
+    seq(repeat($.attribute_instance), $.class_declaration),
+    // seq(repeat($.attribute_instance), $.covergroup_declaration),
+    seq($.any_parameter_declaration, ';'),
+    ';'
+  ),
+
+  class_property: $ => choice(
+    // seq(repeat($.property_qualifier, $.data_declaration)),
+    seq(
+      'const',
+      repeat($.class_item_qualifier),
+      $.data_type,
+      $.const_identifier,
+      optional(seq('=', $.constant_expression)),
+      ';'
+    )
+  ),
+
+  class_method: $ => choice(
+    seq(repeat($.method_qualifier), $.task_declaration),
+    seq(repeat($.method_qualifier), $.function_declaration),
+    seq('pure', 'virtual', repeat($.class_item_qualifier), $.method_prototype, ';'),
+    seq('extern', repeat($.method_qualifier), $.method_prototype, ';'),
+    seq(repeat($.method_qualifier), $.class_constructor_declaration),
+    seq('extern', repeat($.method_qualifier), $.class_constructor_prototype)
+  ),
+
+  class_constructor_prototype: $ => seq(
+    'function', 'new', optional('(', optional($.tf_port_list), ')'), ';'
+  ),
+
+  class_constraint: $ => choice(
+    $.constraint_prototype,
+    $.constraint_declaration
+  ),
+
+  class_item_qualifier: $ => choice('static', 'protected', 'local'),
+
+  property_qualifier: $ => choice(
+    $.random_qualifier,
+    $.class_item_qualifier
+  ),
+
+  random_qualifier: $ => choice('rand', 'randc'),
+
+  method_qualifier: $ => choice(
+    seq(optional('pure'), 'virtual'),
+    $.class_item_qualifier
+  ),
+
+  method_prototype: $ => choice(
+    $.task_prototype,
+    // $.function_prototype
+  ),
+
+  class_constructor_declaration: $ => seq(
+    'function',
+    optional($.class_scope),
+    'new',
+    optional(seq('(', optional($.tf_port_list), ')')),
+    ';',
+    repeat($.block_item_declaration),
+    optional(seq(
+      'super', '.', 'new',
+      optional($.list_of_arguments_parent),
+      ';'
+    )),
+    repeat($.function_statement_or_null),
+    'endfunction', optional(seq(':', 'new'))
+  ),
+
+  /* A.1.10 Constraints */
+
+  constraint_declaration: $ => seq(
+      optional('static'),
+      'constraint',
+      $.constraint_identifier,
+      $.constraint_block
+  ),
+
+  constraint_block: $ => seq('{', repeat($.constraint_block_item), '}'),
+
+  constraint_block_item: $ => choice(
+    seq('solve', $.solve_before_list, 'before', $.solve_before_list, ';'),
+    $.constraint_expression
+  ),
+
+  solve_before_list: $ => sep1(',', $.constraint_primary),
+
+  constraint_primary: $ => seq(
+    optional(choice(
+      seq($.implicit_class_handle, '.'),
+      $.class_scope
+    )),
+    $.hierarchical_identifier,
+    optional($.select1)
+  ),
+
+  constraint_expression: $ => choice(
+    seq(optional('soft'), $.expression_or_dist, ';'),
+    seq($.uniqueness_constraint, ';'),
+    seq($.expression, '–>', $.constraint_set),
+    prec.left(seq(
+      'if', '(', $.expression, ')',
+      $.constraint_set,
+      optional(seq(
+        'else', $.constraint_set
+      ))
+    )),
+    seq(
+      'foreach',
+      '(',
+      $.ps_or_hierarchical_array_identifier,
+      '[', optional($.loop_variables1), ']',
+      ')',
+      $.constraint_set
+    ),
+    seq('disable', 'soft', $.constraint_primary, ';'),
+  ),
+
+  uniqueness_constraint: $ => seq(
+    'unique', '{', $.open_range_list, '}'
+  ),
+
+  constraint_set: $ => choice(
+    $.constraint_expression,
+    seq('{', repeat($.constraint_expression), '}')
+  ),
+
+  dist_list: $ => sep1(',', $.dist_item),
+
+  dist_item: $ => seq($.value_range, optional($.dist_weight)),
+
+  dist_weight: $ => seq(choice(':=', ':/'), $.expression),
+
+  constraint_prototype: $ => seq(
+    optional($.constraint_prototype_qualifier),
+    optional('static'),
+    'constraint',
+    $.constraint_identifier,
+    ';'
+  ),
+
+  constraint_prototype_qualifier: $ => choice('extern', 'pure'),
+
+  extern_constraint_declaration: $ => seq(
+    optional('static'),
+    'constraint',
+    $.class_scope,
+    $.constraint_identifier,
+    $.constraint_block
+  ),
+
+  identifier_list: $ => sep1(',', $.identifier),
+
+
+  /* A.1.11 Package items */
+
+  package_item: $ => choice(
     $._package_or_generate_item_declaration
     //  / anonymous_program
     //  / package_export_declaration
@@ -471,17 +962,17 @@ const rules = {
   _package_or_generate_item_declaration: $ => choice(
     $.net_declaration,
     $.data_declaration,
-    //  / task_declaration
-    //  / function_declaration
-    //  / checker_declaration
-    //  / dpi_import_export
-    //  / extern_constraint_declaration
-    //  / class_declaration
-    //  / class_constructor_declaration
+    $.task_declaration,
+    $.function_declaration,
+    $.checker_declaration,
+    $.dpi_import_export,
+    $.extern_constraint_declaration,
+    $.class_declaration,
+    $.class_constructor_declaration,
     seq($.any_parameter_declaration, ';'),
-    //  / covergroup_declaration
-    //  / overload_declaration
-    //  / assertion_item_declaration
+    // $.covergroup_declaration,
+    $.overload_declaration,
+    // $.assertion_item_declaration,
     ';'
   ),
 
@@ -508,6 +999,7 @@ const rules = {
     local_parameter_declaration
     parameter_declaration
   */
+
   any_parameter_declaration: $ => seq(
     choice('parameter', 'localparam'),
     choice(
@@ -576,17 +1068,19 @@ const rules = {
 
   // A.2.1.3 Type declarations
 
-  data_declaration: $ => seq(
-    optional('const'),
-    optional('var'),
-    optional($.lifetime),
-    optional($.data_type_or_implicit1),
-    $.list_of_variable_decl_assignments,
-    ';'
+  data_declaration: $ => choice(
+    seq(
+      optional('const'),
+      optional('var'),
+      optional($.lifetime),
+      optional($.data_type_or_implicit1),
+      $.list_of_variable_decl_assignments,
+      ';'
+    ),
+    // $.type_declaration,
+    $.package_import_declaration,
+    // $.net_type_declaration
   ),
-
-  //  / type_declaration
-  //  / package_import_declaration __ net_type_declaration
 
   package_import_declaration: $ => seq(
     'import',
@@ -614,11 +1108,7 @@ const rules = {
     )
   ),
 
-  /*
-  genvar_declaration
-    = 'genvar' __ list_of_genvar_identifiers __ ';'
-
-  */
+  genvar_declaration: $ => seq('genvar', $.list_of_genvar_identifiers, ';'),
 
   net_declaration: $ => choice(
     seq(
@@ -645,20 +1135,59 @@ const rules = {
     // )
   ),
 
-  /*
+  type_declaration: $ => seq(
+    'typedef',
+    choice(
+      seq(
+        $.data_type,
+        $.type_identifier,
+        repeat($._variable_dimension),
+        ';'
+      ),
+      seq(
+        $.interface_instance_identifier,
+        optional($.constant_bit_select1),
+        '.',
+        $.type_identifier,
+        $.type_identifier,
+        ';'
+      ),
+      seq(
+        optional(choice(
+          'enum', 'struct', 'union', 'class', seq('interface', 'class')
+        )),
+        $.type_identifier,
+        ';'
+      )
+    )
+  ),
 
-  type_declaration ::=
-  typedef data_type type_identifier { variable_dimension } ;
-  | typedef interface_instance_identifier constant_bit_select . type_identifier
-   type_identifier ;
-  | typedef [ enum | struct | union | class | interface class ] type_identifier ;
-
-  net_type_declaration ::=
-  nettype data_type net_type_identifier
-  [ with [ package_scope | class_scope ] tf_identifier ] ;
-  | nettype [ package_scope | class_scope ] net_type_identifier
-   net_type_identifier
-  */
+  net_type_declaration: $ => seq(
+    'nettype',
+    choice(
+      seq(
+        $.data_type,
+        $.net_type_identifier,
+        optional(seq(
+          'with',
+          optional(choice(
+            $.package_scope,
+            $.class_scope
+          )),
+          $.tf_identifier
+        )),
+        ';'
+      ),
+      seq(
+        optional(choice(
+          $.package_scope,
+          $.class_scope
+        )),
+        $.net_type_identifier,
+        $.net_type_identifier
+      )
+    )
+  ),
 
   lifetime: $ => choice('static', 'automatic'),
 
@@ -667,8 +1196,8 @@ const rules = {
 
   /* A.2.2.1 Net and variable types */
 
-  _casting_type: $ => choice(
-    $._simple_type,
+  casting_type: $ => choice(
+    $.simple_type,
     $.constant_primary,
     $._signing,
     'string',
@@ -677,8 +1206,8 @@ const rules = {
 
   data_type: $ => choice(
     seq($.integer_vector_type, optional($._signing), repeat($.packed_dimension)),
-    // seq($.integer_atom_type, optional($._signing)),
-    // $.non_integer_type,
+    seq($.integer_atom_type, optional($._signing)),
+    $.non_integer_type,
     //  / struct_union ( 'packed' signing? )?
     //    '{' struct_union_member struct_union_member* '}'
     //    packed_dimension*
@@ -733,17 +1262,17 @@ const rules = {
     )), optional(seq('=', $.constant_expression))
   ),
 
-  // class_scope: $ => seq($.class_type, '::'),
-  //
-  // class_type: $ => seq(
-  //   $.ps_class_identifier,
-  //   optional($.parameter_value_assignment),
-  //   repeat(seq(
-  //     '::',
-  //     $.class_identifier,
-  //     optional($.parameter_value_assignment)
-  //   ))
-  // ),
+  class_scope: $ => seq($.class_type, '::'),
+
+  class_type: $ => prec.left(seq(
+    $.ps_class_identifier,
+    optional($.parameter_value_assignment),
+    repeat(seq(
+      '::',
+      $.class_identifier,
+      optional($.parameter_value_assignment)
+    ))
+  )),
 
   _integer_type: $ => choice(
     $.integer_vector_type,
@@ -774,7 +1303,7 @@ const rules = {
 
   _signing: $ => choice('signed', 'unsigned'),
 
-  _simple_type: $ => choice(
+  simple_type: $ => choice(
     $._integer_type,
     $.non_integer_type,
     // $.ps_type_identifier
@@ -790,7 +1319,7 @@ const rules = {
       ';'
   */
 
-  _data_type_or_void: $ => choice(
+  data_type_or_void: $ => choice(
     $.data_type,
     'void'
   ),
@@ -859,18 +1388,16 @@ const rules = {
   delay_value: $ => choice(
     $.unsigned_number,
     $.real_number,
-    // $.ps_identifier,
-    // $.time_literal,
+    $.ps_identifier,
+    $.time_literal,
     '1step'
   ),
 
-  /*
-    A.2.3 Declaration lists
-  */
+  /* A.2.3 Declaration lists */
 
   list_of_defparam_assignments: $ => sep1(',', $.defparam_assignment),
 
-  // list_of_genvar_identifiers = genvar_identifier { , genvar_identifier }
+  list_of_genvar_identifiers: $ => sep1(',', $.genvar_identifier),
 
   list_of_interface_identifiers: $ => seq(
     $.interface_identifier,
@@ -1000,15 +1527,13 @@ const rules = {
   ),
 
   packed_dimension: $ => choice(
-    seq(
-      '[',
-      $.constant_range,
-      ']'
-    ),
+    seq('[', $.constant_range, ']'),
     $.unsized_dimension
   ),
 
-  associative_dimension: $ => seq('[', choice($.data_type, '*'), ']'),
+  associative_dimension: $ => seq(
+    '[', choice($.data_type, '*'), ']'
+  ),
 
   _variable_dimension: $ => choice(
     $.unsized_dimension,
@@ -1024,77 +1549,163 @@ const rules = {
   unsized_dimension: $ => seq('[', ']'),
 
   // A.2.6 Function declarations
-  /*
-    function_data_type_or_implicit ::=
-    data_type_or_void
-    | implicit_data_type
-    function_declaration ::= function [ lifetime ] function_body_declaration
-    function_body_declaration ::=
-    function_data_type_or_implicit
-    [ interface_identifier . | class_scope ] function_identifier ;
-    { tf_item_declaration }
-    { function_statement_or_null }
-    endfunction [ : function_identifier ]
-    | function_data_type_or_implicit
-    [ interface_identifier . | class_scope ]
-      function_identifier ( [ tf_port_list ] ) ;
-    { block_item_declaration }
-    { function_statement_or_null }
-    endfunction [ : function_identifier ]
-    function_prototype
-     ::= function data_type_or_void function_identifier [ ( [ tf_port_list ] ) ]
-    dpi_import_export ::=
-    import dpi_spec_string [ dpi_function_import_property ]
-      [ c_identifier = ] dpi_function_proto ;
-    | import dpi_spec_string [ dpi_task_import_property ]
-      [ c_identifier = ] dpi_task_proto ;
-    | export dpi_spec_string [ c_identifier = ] function function_identifier ;
-    | export dpi_spec_string [ c_identifier = ] task task_identifier ;
-    dpi_spec_string ::= 'DPI-C' | 'DPI'
-    dpi_function_import_property ::= context | pure
-    dpi_task_import_property ::= context
-    dpi_function_proto21,22 ::= function_prototype
-    dpi_task_proto22 ::= task_prototype
-  */
 
+  function_data_type_or_implicit1: $ => choice(
+    $.data_type_or_void,
+    $.implicit_data_type1
+  ),
 
+  function_declaration: $ => seq(
+    'function',
+    optional($.lifetime),
+    $.function_body_declaration
+  ),
 
+  function_body_declaration: $ => seq(
+    optional($.function_data_type_or_implicit1),
+    optional(choice(
+      seq($.interface_identifier, '.'),
+      $.class_scope
+    )),
+    $.function_identifier,
+    choice(
+      seq(
+        ';',
+        repeat($.tf_item_declaration)
+      ),
+      seq(
+        '(', optional($.tf_port_list), ')', ';',
+        repeat($.block_item_declaration),
+      )
+    ),
+    repeat($.function_statement_or_null),
+    'endfunction',
+    optional(seq(':', $.function_identifier))
+  ),
+
+  function_prototype: $ => seq(
+    'function',
+    $.data_type_or_void,
+    $.function_identifier,
+    optional(seq(
+      '(', optional($.tf_port_list), ')'
+    ))
+  ),
+
+  dpi_import_export: $ => choice(
+    seq(
+      'import',
+      $.dpi_spec_string,
+      optional($.dpi_function_import_property),
+      optional(seq($.c_identifier, '=')),
+      $.dpi_function_proto,
+      ';'
+    ),
+    seq(
+      'import',
+      $.dpi_spec_string,
+      optional($.dpi_task_import_property),
+      optional(seq($.c_identifier, '=')),
+      $.dpi_task_proto,
+      ';'
+    ),
+    seq(
+      'export',
+      $.dpi_spec_string,
+      optional(seq($.c_identifier, '=')),
+      'function',
+      $.function_identifier,
+      ';'
+    ),
+    seq(
+      'export',
+      $.dpi_spec_string,
+      optional(seq($.c_identifier, '=')),
+      'task',
+      $.task_identifier,
+      ';'
+    )
+  ),
+
+  dpi_spec_string: $ => choice('"DPI-C"', '"DPI"'),
+
+  dpi_function_import_property: $ => choice('context', 'pure'),
+
+  dpi_task_import_property: $ => 'context',
+
+  dpi_function_proto: $ => $.function_prototype,
+
+  dpi_task_proto: $ => $.task_prototype,
 
 
   // A.2.7 Task declarations
 
-  /*
-  task_declaration ::= task [ lifetime ] task_body_declaration
-  task_body_declaration ::=
-  [ interface_identifier . | class_scope ] task_identifier ;
-  { tf_item_declaration }
-  { statement_or_null }
-  endtask [ : task_identifier ]
-  | [ interface_identifier . | class_scope ]
-    task_identifier ( [ tf_port_list ] ) ;
-  { block_item_declaration }
-  { statement_or_null }
-  endtask [ : task_identifier ]
-  tf_item_declaration ::=
-      block_item_declaration
-  | tf_port_declaration
-  tf_port_list ::=
-  tf_port_item { , tf_port_item }
-  tf_port_item23 ::=
-  ( attribute_instance __ )*
-  [ tf_port_direction ] [ var ] data_type_or_implicit
-  [ port_identifier { variable_dimension } [ = expression ] ]
-  tf_port_direction ::= port_direction | const ref
-  tf_port_declaration ::=
-  ( attribute_instance __ )* tf_port_direction [ var ] data_type_or_implicit
-   list_of_tf_variable_identifiers ;
-  task_prototype ::= task task_identifier [ ( [ tf_port_list ] ) ]
-  */
+  task_declaration: $ => seq(
+    'task',
+    optional($.lifetime),
+    $.task_body_declaration
+  ),
 
+  task_body_declaration: $ => seq(
+    optional(choice(
+      seq($.interface_identifier, '.'),
+      $.class_scope
+    )),
+    $.task_identifier,
+    choice(
+      seq(
+        ';',
+        repeat($.tf_item_declaration)
+      ),
+      seq(
+        '(', optional($.tf_port_list), ')', ';',
+        repeat($.block_item_declaration)
+      )
+    ),
+    repeat($.statement_or_null),
+    'endtask',
+    optional(seq(':', $.task_identifier))
+  ),
 
+  tf_item_declaration: $ => choice(
+    $.block_item_declaration,
+    $.tf_port_declaration
+  ),
 
+  tf_port_list: $ => sep1(',', $.tf_port_item1),
 
+  tf_port_item1: $ => seq(
+    repeat($.attribute_instance),
+    optional($.tf_port_direction),
+    optional('var'),
+    // optional($.data_type_or_implicit1),
+    $.data_type_or_implicit1,
+    optional(seq(
+      $.port_identifier,
+      repeat($._variable_dimension),
+      $.expression
+    ))
+  ),
 
+  tf_port_direction: $ => choice(
+    $.port_direction,
+    seq('const', 'ref')
+  ),
+
+  tf_port_declaration: $ => seq(
+    repeat($.attribute_instance),
+    $.tf_port_direction,
+    optional('var'),
+    optional($.data_type_or_implicit1),
+    $.list_of_tf_variable_identifiers,
+    ';'
+  ),
+
+  task_prototype: $ => seq(
+    'task',
+    $.task_identifier,
+    optional(seq('(', optional($.tf_port_list), ')'))
+  ),
 
 
   // A.2.8 Block item declarations
@@ -1125,28 +1736,236 @@ const rules = {
 
   overload_proto_formals: $ => sep1(',', $.data_type),
 
-  // A.2.9 Interface declarations
+  /* A.2.9 Interface declarations */
 
-  // modport_declaration ::= modport modport_item { , modport_item } ;
-  // modport_item ::= modport_identifier ( modport_ports_declaration { , modport_ports_declaration } )
-  // modport_ports_declaration ::=
-  // { attribute_instance } modport_simple_ports_declaration
-  // | { attribute_instance } modport_tf_ports_declaration
-  // | { attribute_instance } modport_clocking_declaration
-  // modport_clocking_declaration ::= clocking clocking_identifier
-  // modport_simple_ports_declaration ::=
-  // port_direction modport_simple_port { , modport_simple_port }
-  // modport_simple_port ::=
-  // port_identifier
-  // | . port_identifier ( [ expression ] )
-  // modport_tf_ports_declaration ::=
-  // import_export modport_tf_port { , modport_tf_port }
-  // modport_tf_port ::=
-  // method_prototype
-  // | tf_identifier
-  // import_export ::= import | export
+  modport_declaration: $ => seq('modport', sep1(',', $.modport_item), ';'),
+
+  modport_item: $ => seq(
+    $.modport_identifier,
+    '(', sep1(',', $.modport_ports_declaration), ')'
+  ),
+
+  modport_ports_declaration: $ => seq(
+    repeat($.attribute_instance),
+    choice(
+      $.modport_simple_ports_declaration,
+      $.modport_tf_ports_declaration,
+      $.modport_clocking_declaration
+    )
+  ),
+
+  modport_clocking_declaration: $ => seq('clocking', $.clocking_identifier),
+
+  modport_simple_ports_declaration: $ => seq(
+    $.port_direction,
+    sep1(',', $.modport_simple_port)
+  ),
+
+  modport_simple_port: $ => choice(
+    $.port_identifier,
+    seq('.', $.port_identifier, '(', optional($.expression), ')')
+  ),
+
+  modport_tf_ports_declaration: $ => seq(
+    $.import_export, sep1(',', $.modport_tf_port)
+  ),
+
+  modport_tf_port: $ => choice(
+    $.method_prototype,
+    $.tf_identifier
+  ),
+
+  import_export: $ => choice('import', 'export'),
 
   // A.2.10 Assertion declarations
+
+  // concurrent_assertion_item ::=
+  // [ block_identifier : ] concurrent_assertion_statement
+  // | checker_instantiation
+  // concurrent_assertion_statement ::=
+  // assert_property_statement
+  // | assume_property_statement
+  // | cover_property_statement
+  // | cover_sequence_statement
+  // | restrict_property_statement
+  // assert_property_statement::=
+  // assert property ( property_spec ) action_block
+  // assume_property_statement::=
+  // assume property ( property_spec ) action_block
+  // cover_property_statement::=
+  // cover property ( property_spec ) statement_or_null
+  // expect_property_statement ::=
+  // expect ( property_spec ) action_block
+  // cover_sequence_statement::=
+  // cover sequence ( [clocking_event ] [ disable iff ( expression_or_dist ) ]
+  // sequence_expr ) statement_or_null
+  // restrict_property_statement::=
+  // restrict property ( property_spec ) ;
+  // property_instance ::=
+  // ps_or_hierarchical_property_identifier [ ( [ property_list_of_arguments ] ) ]
+  // property_list_of_arguments ::=
+  // [property_actual_arg] { , [property_actual_arg] } { , . identifier ( [property_actual_arg]| . identifier ( [property_actual_arg] ) { , . identifier ( [property_actual_arg] ) }
+
+  property_actual_arg: $ => choice(
+    $.property_expr,
+    // $.sequence_actual_arg
+  ),
+
+  // assertion_item_declaration ::=
+  // property_declaration
+  // | sequence_declaration
+  // | let_declaration
+  // property_declaration ::=
+  // property property_identifier [ ( [ property_port_list ] ) ] ;
+  // { assertion_variable_declaration }
+  // property_spec [ ; ]
+  // endproperty [ : property_identifier ]
+  // property_port_list ::=
+  // property_port_item {, property_port_item}
+  // property_port_item ::=
+  // { attribute_instance } [ local [ property_lvar_port_direction ] ] property_formal_type
+  // formal_port_identifier {variable_dimension} [ = property_actual_arg ]
+  // property_lvar_port_direction ::= input
+
+  property_formal_type1: $ => choice(
+    $.sequence_formal_type1,
+    'property'
+  ),
+
+  //   property_spec ::=
+  // [clocking_event ] [ disable iff ( expression_or_dist ) ] property_expr
+
+  property_expr: $ => choice(
+    $.sequence_expr,
+    seq('strong', '(', $.sequence_expr, ')'),
+    seq('weak', '(', $.sequence_expr, ')'),
+    seq('(', $.property_expr, ')'),
+    // seq('not', $.property_expr),
+    prec.left(seq($.property_expr, 'or', $.property_expr)),
+    prec.left(seq($.property_expr, 'and', $.property_expr)),
+    prec.right(seq($.sequence_expr, '|->', $.property_expr)),
+    prec.right(seq($.sequence_expr, '|=>', $.property_expr)),
+    // seq(if ( expression_or_dist ) property_expr [ else property_expr ]),
+    // seq(case ( expression_or_dist ) property_case_item { property_case_item } endcase),
+    // seq(sequence_expr #-# property_expr),
+    // seq(sequence_expr #=# property_expr),
+    // seq(nexttime property_expr),
+    // seq(nexttime [ constant _expression ] property_expr),
+    // seq(s_nexttime property_expr),
+    // seq(s_nexttime [ constant_expression ] property_expr),
+    // seq(always property_expr),
+    // seq(always [ cycle_delay_const_range_expression ] property_expr),
+    // seq(s_always [ constant_range] property_expr),
+    // seq(s_eventually property_expr),
+    // seq(eventually [ constant_range ] property_expr),
+    // seq(s_eventually [ cycle_delay_const_range_expression ] property_expr),
+    // seq(property_expr until property_expr),
+    // seq(property_expr s_until property_expr),
+    // seq(property_expr until_with property_expr),
+    // seq(property_expr s_until_with property_expr),
+    // seq(property_expr implies property_expr),
+    // seq(property_expr iff property_expr),
+    // seq(accept_on ( expression_or_dist ) property_expr),
+    // seq(reject_on ( expression_or_dist ) property_expr),
+    // seq(sync_accept_on ( expression_or_dist ) property_expr),
+    // seq(sync_reject_on ( expression_or_dist ) property_expr),
+    // seq(property_instance),
+    // seq(clocking_event property_expr),
+  ),
+
+  // property_case_item ::=
+  // expression_or_dist { , expression_or_dist } : property_expr ;
+  // | default [ : ] property_expr ;
+  // sequence_declaration ::=
+  // sequence sequence_identifier [ ( [ sequence_port_list ] ) ] ;
+  // { assertion_variable_declaration }
+  // sequence_expr [ ; ]
+  // endsequence [ : sequence_identifier ]
+  // sequence_port_list ::=
+  // sequence_port_item {, sequence_port_item}
+  // sequence_port_item ::=
+  // { attribute_instance } [ local [ sequence_lvar_port_direction ] ] sequence_formal_type
+  // formal_port_identifier {variable_dimension} [ = sequence_actual_arg ]
+  // sequence_lvar_port_direction ::= input | inout | output
+
+  sequence_formal_type1: $ => choice(
+    $.data_type_or_implicit1,
+    'sequence',
+    'untyped'
+  ),
+
+  sequence_expr: $ => choice(
+  // cycle_delay_range sequence_expr { cycle_delay_range sequence_expr }
+  // | sequence_expr cycle_delay_range sequence_expr { cycle_delay_range sequence_expr }
+    seq($.expression_or_dist, optional($.boolean_abbrev)),
+  // | sequence_instance [ sequence_abbrev ]
+  // | ( sequence_expr {, sequence_match_item } ) [ sequence_abbrev ]
+  // | sequence_expr and sequence_expr
+  // | sequence_expr intersect sequence_expr
+  // | sequence_expr or sequence_expr
+  // | first_match ( sequence_expr {, sequence_match_item} )
+  // | expression_or_dist throughout sequence_expr
+  // | sequence_expr within sequence_expr
+  // | clocking_event sequence_expr
+  ),
+
+  // cycle_delay_range ::=
+  // ## constant_primary
+  // | ## [ cycle_delay_const_range_expression ]
+  // | ##[*]
+  // | ##[+]
+  // sequence_method_call ::=
+  // sequence_instance . method_identifier
+  // sequence_match_item ::=
+  // operator_assignment
+  // | inc_or_dec_expression
+  // | subroutine_call
+  // sequence_instance ::=
+  // ps_or_hierarchical_sequence_identifier [ ( [ sequence_list_of_arguments ] ) ]
+  // sequence_list_of_arguments ::=
+  // [sequence_actual_arg] { , [sequence_actual_arg] } { , . identifier ( [sequence_actual_arg]| . identifier ( [sequence_actual_arg] ) { , . identifier ( [sequence_actual_arg] ) }
+  // sequence_actual_arg ::=
+  // event_expression
+  // | sequence_expr
+
+  boolean_abbrev: $ => choice(
+    // $.consecutive_repetition
+    // $.non_consecutive_repetition
+    $.goto_repetition1 // FIXME
+  ),
+
+  // sequence_abbrev ::= consecutive_repetition
+
+  // consecutive_repetition ::=
+  // [* const_or_range_expression ]
+  // | [*]
+  // | [+]
+
+  // non_consecutive_repetition ::= [= const_or_range_expression ]
+
+  goto_repetition1: $ => seq(
+    '->',
+    // $.const_or_range_expression
+  ),
+
+  // const_or_range_expression ::=
+  // constant_expression
+  // | cycle_delay_const_range_expression
+  // cycle_delay_const_range_expression ::=
+  // constant_expression : constant_expression
+  // | constant_expression : $
+
+  expression_or_dist: $ => seq(
+    $.expression,
+    optional(seq(
+      'dist',
+      '{', $.dist_list, '}'
+    ))
+  ),
+
+  // assertion_variable_declaration ::=
+  // var_data_type list_of_variable_decl_assignments ;
+
 
   // A.2.11 Covergroup declarations
 
@@ -1238,12 +2057,143 @@ const rules = {
   // | { attribute_instance } .*
 
   named_port_connection: $ => seq(
-    repeat($.attribute_instance), choice(
+    repeat($.attribute_instance),
+    choice(
       seq('.', $.port_identifier, optional(seq(
         '(', optional($.expression), ')'
       ))),
       '.*'
     )
+  ),
+
+  /* A.4.1.2 Interface instantiation */
+
+  interface_instantiation: $ => seq(
+    $.interface_identifier,
+    optional($.parameter_value_assignment),
+    sep1(',', $.hierarchical_instance),
+  ),
+
+  /* A.4.1.3 Program instantiation */
+
+  program_instantiation: $ => seq(
+    $.program_identifier,
+    optional($.parameter_value_assignment),
+    sep1(',', $.hierarchical_instance)
+  ),
+
+  /* A.4.1.4 Checker instantiation */
+
+  checker_instantiation: $ => seq(
+    $.ps_checker_identifier,
+    $.name_of_instance,
+    '(',
+    // optional($.list_of_checker_port_connections),
+    choice(
+      sep1(',', optional(seq(
+        repeat($.attribute_instance),
+        optional($.property_actual_arg)
+      ))),
+      // sep1(',', $.named_checker_port_connection)
+      sep1(',', choice(
+        seq(
+          repeat($.attribute_instance), '.', $.formal_port_identifier,
+          optional(seq('(', optional($.property_actual_arg), ')'))
+        ),
+        seq(
+          repeat($.attribute_instance), '.*'
+        )
+      ))
+    ),
+    ')',
+    ';'
+  ),
+
+  // list_of_checker_port_connections1: $ => choice(
+  //   sep1(',', optional($.ordered_checker_port_connection1)),
+  //   sep1(',', $.named_checker_port_connection)
+  // ),
+
+  // ordered_checker_port_connection: $ => seq(
+  //   repeat($.attribute_instance),
+  //   optional($.property_actual_arg)
+  // ),
+
+  // named_checker_port_connection: $ => choice(
+  //   seq(
+  //     repeat($.attribute_instance), '.', $.formal_port_identifier,
+  //     optional(seq('(', optional($.property_actual_arg), ')'))
+  //   ),
+  //   seq(
+  //     repeat($.attribute_instance, '.*')
+  //   )
+  // ),
+
+  /* A.4.2 Generated instantiation */
+
+  generate_region: $ => seq(
+    'generate', repeat($.generate_item), 'endgenerate'
+  ),
+
+  loop_generate_construct: $ => seq(
+    'for', '(',
+      $.genvar_initialization, ';', $.genvar_expression, ';', $.genvar_iteration,
+    ')',
+    $.generate_block
+  ),
+
+  genvar_initialization: $ => seq(
+    optional('genvar'),
+    $.genvar_identifier,
+    '=',
+    $.constant_expression
+  ),
+
+  genvar_iteration: $ => choice(
+    seq($.genvar_identifier, $.assignment_operator, $.genvar_expression),
+    seq($.inc_or_dec_operator, $.genvar_identifier),
+    seq($.genvar_identifier, $.inc_or_dec_operator)
+  ),
+
+  conditional_generate_construct: $ => choice(
+    $.if_generate_construct,
+    $.case_generate_construct
+  ),
+
+  if_generate_construct: $ => prec.left(seq(
+    'if', '(', $.constant_expression, ')', $.generate_block,
+    optional(seq(
+      'else', $.generate_block
+    )),
+  )),
+
+  case_generate_construct: $ => seq(
+    'case', '(', $.constant_expression, ')', $.case_generate_item,
+    repeat($.case_generate_item),
+    'endcase'
+  ),
+
+  case_generate_item: $ => choice(
+    seq(sep1(',', $.constant_expression), ':', $.generate_block),
+    seq('default', optional(':'), $.generate_block)
+  ),
+
+  generate_block: $ => choice(
+    $.generate_item,
+    seq(
+      optional(seq($.generate_block_identifier, ':')),
+      'begin',
+      optional(seq(':', $.generate_block_identifier)),
+      repeat($.generate_item),
+      'end',
+      optional(seq(':', $.generate_block_identifier)),
+    )
+  ),
+
+  generate_item: $ => choice(
+    $.module_or_generate_item,
+    $.interface_or_generate_item,
+    $.checker_or_generate_item
   ),
 
   /* 5. Lexical conventions */
@@ -1805,12 +2755,18 @@ const rules = {
 
   case_item_expression: $ => $.expression,
 
-  // randcase_statement =
-  // randcase randcase_item { randcase_item } endcase
-  // randcase_item = expression : statement_or_null
-  // open_range_list = open_value_range { , open_value_range }
-  // open_value_range = value_range25
+  randcase_statement: $ => seq(
+    'randcase',
+    $.randcase_item,
+    repeat($.randcase_item),
+    'endcase'
+  ),
 
+  randcase_item: $ => seq($.expression, ':', $.statement_or_null),
+
+  open_range_list: $ => sep1(',', $.open_value_range),
+
+  open_value_range: $ => $.value_range,
 
   // A.6.7.1 Patterns
 
@@ -1823,28 +2779,44 @@ const rules = {
     seq('\'{', sep1(',', seq($.member_identifier, ':', $.pattern)), '}')
   ),
 
-  // assignment_pattern =
-  // '{ expression { , expression } }
-  // | '{ structure_pattern_key : expression
-  //    { , structure_pattern_key : expression } }
-  // | '{ array_pattern_key : expression { , array_pattern_key : expression } }
-  // | '{ constant_expression { expression { , expression } } }
-  // structure_pattern_key = member_identifier | assignment_pattern_key
-  // array_pattern_key = constant_expression | assignment_pattern_key
-  // assignment_pattern_key = simple_type | default
-
-
-  // assignment_pattern_expression =
-  // [ assignment_pattern_expression_type ] assignment_pattern
-
-  assignment_pattern_expression_type: $ => choice(
-    // ps_type_identifier
-    $.ps_parameter_identifier,
-    // integer_atom_type
-    // type_reference
+  assignment_pattern: $ => seq(
+    '\'{',
+    choice(
+      sep1(',', $.expression),
+      sep1(',', seq($.structure_pattern_key, ':', $.expression)),
+      sep1(',', seq($.array_pattern_key, ':', $.expression)),
+      seq($.constant_expression, '{', sep1(',', $.expression), '}')
+    ),
+    '}'
   ),
 
-  // constant_assignment_pattern_expression = assignment_pattern_expression
+  structure_pattern_key: $ => choice(
+    $.member_identifier,
+    $.assignment_pattern_key
+  ),
+
+  array_pattern_key: $ => choice(
+    $.constant_expression,
+    $.assignment_pattern_key
+  ),
+
+  assignment_pattern_key: $ => choice(
+    $.simple_type,
+    'default'
+  ),
+
+  assignment_pattern_expression: $ => seq(
+    optional($.assignment_pattern_expression_type), $.assignment_pattern
+  ),
+
+  assignment_pattern_expression_type: $ => choice(
+    $.ps_type_identifier,
+    $.ps_parameter_identifier,
+    $.integer_atom_type,
+    $.type_reference,
+  ),
+
+  constant_assignment_pattern_expression: $ => $.assignment_pattern_expression,
 
   assignment_pattern_net_lvalue: $ => seq(
     '\'{', sep1(',', $.net_lvalue), '}'
@@ -1876,9 +2848,11 @@ const rules = {
   // operator_assignment
   // | inc_or_dec_expression
   // | function_subroutine_call
-  // loop_variables
-  //   = [ index_variable_identifier ] { , [ index_variable_identifier ] }
+
+  loop_variables1: $ => sep1(',', $.index_variable_identifier),
+
   // A.6.9 Subroutine call statements
+
   // subroutine_call_statement =
   // subroutine_call ;
   // | void ' ( function_subroutine_call ) ;
@@ -2235,21 +3209,24 @@ const rules = {
   // A.8.1 Concatenations
 
   concatenation: $ => seq(
-    '{', sep1(',', $.expression), '}'
+    '{', psep1(PREC.CONCAT, ',', $.expression), '}'
   ),
 
   constant_concatenation: $ => seq(
-    '{', sep1(',', $.constant_expression), '}'
+    '{', psep1(PREC.CONCAT, ',', $.constant_expression), '}'
   ),
 
   constant_multiple_concatenation: $ => seq(
     '{', $.constant_expression, $.constant_concatenation, '}'
   ),
 
-  // module_path_concatenation
-  //  = { module_path_expression { , module_path_expression } }
-  // module_path_multiple_concatenation
-  //  = { constant_expression module_path_concatenation }
+  module_path_concatenation: $ => seq(
+    '{', sep1(',', $.module_path_expression), '}'
+  ),
+
+  module_path_multiple_concatenation: $ => seq(
+    '{', $.constant_expression, $.module_path_concatenation, '}'
+  ),
 
   multiple_concatenation: $ => seq(
     '{', $.expression, $.concatenation, '}'
@@ -2266,51 +3243,121 @@ const rules = {
   // | expression : expression
   // | expression +: expression
   // | expression -: expression
-  // empty_queue35 = { }
+  empty_unpacked_array_concatenation: $ => seq('{', '}'),
 
-  // A.8.2 Subroutine calls
+  /* A.8.2 Subroutine calls */
 
-  // constant_function_call = function_subroutine_call36
-  // tf_call37 = ps_or_hierarchical_tf_identifier ( attribute_instance __ )*
-  //  [ ( list_of_arguments ) ]
-  // system_tf_call =
-  // system_tf_identifier [ ( list_of_arguments ) ]
-  //
-  //
-  // | system_tf_identifier ( data_type [ , expression ] )
-  // subroutine_call =
-  // tf_call
-  // | system_tf_call
-  // | method_call
-  // | [ std:: ] randomize_call
-  // function_subroutine_call = subroutine_call
-  // list_of_arguments =
-  // [ expression ] { , [ expression ] } { , . identifier ( [ expression ] ) }
-  // | . identifier ( [ expression ] ) { , . identifier ( [ expression ] ) }
-  // method_call = method_call_root . method_call_body
-  // method_call_body =
-  // method_identifier ( attribute_instance __ )* [ ( list_of_arguments ) ]
-  // | built_in_method_call
-  // built_in_method_call =
-  // array_manipulation_call
-  // | randomize_call
-  // array_manipulation_call =
-  // array_method_name ( attribute_instance __ )*
-  // [ ( list_of_arguments ) ]
-  // [ with ( expression ) ]
-  // randomize_call =
-  // randomize ( attribute_instance __ )*
-  // [ ( [ variable_identifier_list | null ] ) ]
-  // [ with [ ( [ identifier_list ] ) ] constraint_block ]38
-  // method_call_root = primary | implicit_class_handle
-  // array_method_name =
-  // method_identifier | unique | and | or | xor
-  //
-  //
+  constant_function_call: $ => $.function_subroutine_call,
 
+  tf_call: $ => seq(
+    $.ps_or_hierarchical_tf_identifier,
+    repeat($.attribute_instance),
+    optional($.list_of_arguments_parent)
+  ),
 
+  system_tf_call: $ => seq(
+    $.system_tf_identifier,
+    choice(
+      optional($.list_of_arguments_parent),
+      seq(
+        '(',
+        $.data_type,
+        optional(seq(',', $.expression)),
+        ')'
+      ),
+      seq(
+        '(',
+        $.expression,
+        // repeat(seq(',', optional($.expression))),
+        optional(seq(',', optional($.clocking_event))),
+        ')'
+      )
+    )
+  ),
 
+  subroutine_call: $ => choice(
+    $.tf_call,
+    $.system_tf_call,
+    $.method_call,
+    seq(optional(seq('std', '::')), $.randomize_call)
+  ),
 
+  function_subroutine_call: $ => $.subroutine_call,
+
+  // list_of_arguments: $ => choice(
+  //   seq(
+  //     sep1(',', optional($.expression)),
+  //     repeat(seq(',', '.', $.identifier, '(', optional($.expression), ')'))
+  //   ),
+  //   sep1(',', repeat(seq(',', '.', $.identifier, '(', optional($.expression), ')')))
+  // ),
+
+  list_of_arguments_parent: $ => seq(
+    '(',
+    choice(
+      seq(
+        // sep1(',', optional($.expression)),
+        repeat(seq(
+          ',', '.', $.identifier, '(', optional($.expression), ')'
+        ))
+      ),
+      sep1(',', repeat(seq(',', '.', $.identifier, '(', optional($.expression), ')')))
+    ),
+    ')'
+  ),
+
+  method_call: $ => seq($.method_call_root, '.', $.method_call_body),
+
+  method_call_body: $ => choice(
+    seq(
+      $.method_identifier,
+      repeat($.attribute_instance),
+      optional($.list_of_arguments_parent)
+    ),
+    $.built_in_method_call
+  ),
+
+  built_in_method_call: $ => choice(
+    $.array_manipulation_call,
+    $.randomize_call
+  ),
+
+  array_manipulation_call: $ => seq(
+    $.array_method_name,
+    repeat($.attribute_instance),
+    optional($.list_of_arguments_parent),
+    optional(seq(
+      'with', '(', $.expression, ')'
+    ))
+  ),
+
+  randomize_call: $ => seq(
+    'randomize',
+    repeat($.attribute_instance),
+    optional(seq(
+      '(',
+      optional(choice(
+        $.variable_identifier_list,
+        'null'
+      )),
+      ')'
+    )),
+    optional(seq(
+      'with',
+      optional(seq(
+        '(',
+        optional($.identifier_list),
+        ')'
+      )),
+      $.constraint_block
+    ))
+  ),
+
+  method_call_root: $ => choice($.primary, $.implicit_class_handle),
+
+  array_method_name: $ => choice(
+    $.method_identifier, 'unique', 'and', 'or', 'xor'
+  ),
 
   // A.8.3 Expressions
 
@@ -2487,24 +3534,24 @@ const rules = {
   /* A.8.4 Primaries */
 
   constant_primary: $ => choice(
-    prec.left(5, $.primary_literal), // PRECEDENCE FIX
+    $.primary_literal,
     seq(
-      prec.left(token(/[a-zA-Z_]\w*/)), // $.ps_parameter_identifier, // FIX
+      $.ps_parameter_identifier,
       optional($.constant_select1)
     ),
-    // seq(
-    //   $.specparam_identifier,
-    //   optional('[', $.constant_range_expression, ']')
-    // ),
-    // $.genvar_identifier,
-    // seq(
-    //   $.formal_port_identifier,
-    //   optional($.constant_select1)
-    // ),
-    // seq(
-    //   optional(choice($.package_scope, $.class_scope)),
-    //   $.enum_identifier
-    // ),
+    seq(
+      $.specparam_identifier,
+      optional(seq('[', $.constant_range_expression, ']'))
+    ),
+    $.genvar_identifier,
+    seq(
+      $.formal_port_identifier,
+      optional($.constant_select1)
+    ),
+    seq(
+      optional(choice($.package_scope, $.class_scope)),
+      $.enum_identifier
+    ),
     seq(
       $.constant_concatenation,
       optional(seq('[', $.constant_range_expression, ']'))
@@ -2513,48 +3560,55 @@ const rules = {
       $.constant_multiple_concatenation,
       optional(seq('[', $.constant_range_expression, ']'))
     ),
-    // $.constant_function_call,
+    $.constant_function_call,
     // $.constant_let_expression,
     seq('(', $.constant_mintypmax_expression, ')'),
-    // $.constant_cast,
+    $.constant_cast,
     // $.constant_assignment_pattern_expression,
-    // $.type_reference
+    $.type_reference,
+    'null'
   ),
 
   module_path_primary: $ => choice(
     $.number,
     $.identifier,
-    // $.module_path_concatenation,
-    // $.module_path_multiple_concatenation,
-    // $.function_subroutine_call,
+    $.module_path_concatenation,
+    $.module_path_multiple_concatenation,
+    $.function_subroutine_call,
     seq('(', $.module_path_mintypmax_expression, ')')
   ),
 
   primary: $ => choice(
     $.primary_literal,
-    // $.identifier,
     seq(
-      // optional(choice($.class_qualifier, $.package_scope)),
+      optional(choice($.class_qualifier, $.package_scope)),
       $.hierarchical_identifier,
       optional($.select1)
     ),
-    // $.empty_queue,
+    $.empty_unpacked_array_concatenation,
     seq($.concatenation, optional('[', $.range_expression, ']')),
     seq($.multiple_concatenation, optional('[', $.range_expression, ']')),
-    // $.function_subroutine_call
-    // $.let_expression
+    // $.function_subroutine_call,
+    // $.let_expression,
     seq('(', $.mintypmax_expression, ')'),
-    // $.cast,
-    // $.assignment_pattern_expression,
+    $.cast,
+    $.assignment_pattern_expression,
     // $.streaming_concatenation,
     // $.sequence_method_call,
     'this',
-    // '$',
+    '$',
     'null'
   ),
 
-  // class_qualifier = 'local::' ? (__ implicit_class_handle __ '.' / __ class_scope) ?
-  //
+  class_qualifier: $ => seq(
+    optional(seq('local', '::')),
+    choice( // TODO optional?
+      seq($.implicit_class_handle, '.'),
+      $.class_scope
+    )
+  ),
+
+
   range_expression: $ => choice(
     $.expression,
     $.part_select_range
@@ -2563,17 +3617,18 @@ const rules = {
 
   primary_literal: $ => choice(
     $.number,
-    // $.time_literal,
+    $.time_literal,
     // $.unbased_unsized_literal,
     // $.string_literal
   ),
 
-  //
-  // time_literal: $ => unsigned_number time_unit /
-  //   fixed_point_number time_unit
-  //
-  // time_unit = 's' / 'ms' / 'us' / 'ns' / 'ps' / 'fs'
-  //
+
+  time_literal: $ => choice(
+    seq($.unsigned_number, $.time_unit),
+    seq($.fixed_point_number, $.time_unit)
+  ),
+
+  time_unit: $ => choice('s', 'ms', 'us', 'ns', 'ps', 'fs'),
 
   string_literal: $ => token.immediate(prec(1, /[^\\"\n]+/)),
 
@@ -2650,11 +3705,11 @@ const rules = {
   //   seq('[', $.constant_part_select_range, ']'),
   // ),
 
-  // constant_cast: $ => seq($.casting_type, '\'', '(', $.constant_expression, ')'),
+  constant_cast: $ => seq($.casting_type, '\'', '(', $.constant_expression, ')'),
 
   // constant_let_expression: $ => $.let_expression,
 
-  // cast: $ => seq($.casting_type, '\'', '(', $.expression, ')'),
+  cast: $ => seq($.casting_type, '\'', '(', $.expression, ')'),
 
   // A.8.5 Expression left-side values
 
@@ -2745,7 +3800,9 @@ const rules = {
   // | unsigned_number [ . unsigned_number ] exp [ sign ] unsigned_number
   real_number: $ => token(/\d+(\.\d+)?/),
 
-  // fixed_point_number ::= unsigned_number . unsigned_number
+  fixed_point_number: $ => seq($.unsigned_number, '.', $.unsigned_number), // FIXME no space between dot and digits
+
+
   // exp ::= e | E
 
   // unsigned_number ::= decimal_digit { _ | decimal_digit }
@@ -2800,7 +3857,7 @@ const rules = {
   block_identifier: $ => alias($.identifier, $._block_identifier),
   array_identifier: $ => alias($.identifier, $._array_identifier),
   bin_identifier: $ => alias($.identifier, $._bin_identifier),
-  // c_identifier49 = [ a-zA-Z_ ] { [ a-zA-Z0-9_ ] }
+  c_identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
   cell_identifier: $ => alias($.identifier, $._cell_identifier),
   checker_identifier: $ => alias($.identifier, $._checker_identifier),
   class_identifier: $ => alias($.identifier, $._class_identifier),
@@ -2874,51 +3931,84 @@ const rules = {
   program_identifier: $ => alias($.identifier, $._program_identifier),
   property_identifier: $ => alias($.identifier, $._property_identifier),
 
-  /*
-  ps_class_identifier = [ package_scope ] class_identifier
-  ps_covergroup_identifier = [ package_scope ] covergroup_identifier
-  ps_checker_identifier = [ package_scope ] checker_identifier
-  ps_identifier = [ package_scope ] identifier
-  ps_or_hierarchical_array_identifier
-    = [ implicit_class_handle . | class_scope | package_scope ]
-    hierarchical_array_identifier
-  */
+  ps_class_identifier: $ => seq(
+    // optional($.package_scope),
+    $.class_identifier
+  ),
+
+  ps_covergroup_identifier: $ => seq(
+    optional($.package_scope),
+    $.covergroup_identifier
+  ),
+
+  ps_checker_identifier: $ => seq(
+    optional($.package_scope),
+    $.checker_identifier
+  ),
+
+  ps_identifier: $ => seq(
+    optional($.package_scope), $.identifier
+  ),
+
+  ps_or_hierarchical_array_identifier: $ => seq(
+    optional(choice(
+      seq($.implicit_class_handle, '.'),
+      $.class_scope,
+      $.package_scope
+    )),
+    $.hierarchical_array_identifier
+  ),
 
   ps_or_hierarchical_net_identifier: $ => choice(
     // seq(optional($.package_scope), $.net_identifier),
     $.hierarchical_net_identifier
   ),
 
-  /*
-  ps_or_hierarchical_property_identifier =
-  [ package_scope ] property_identifier
-  | hierarchical_property_identifier
-  ps_or_hierarchical_sequence_identifier =
-  [ package_scope ] sequence_identifier
-  | hierarchical_sequence_identifier
-  ps_or_hierarchical_tf_identifier =
-  [ package_scope ] tf_identifier
-  | hierarchical_tf_identifier
-  */
-
-  ps_parameter_identifier: $ => choice(
-    // [ package_scope | class_scope ] parameter_identifier
-    // | { generate_block_identifier [ [ constant_expression ] ] . }
-    $.parameter_identifier
+  ps_or_hierarchical_property_identifier: $ => choice(
+    seq(optional($.package_scope), $.property_identifier),
+    $.hierarchical_property_identifier
   ),
 
-  /*
-  43ps_type_identifier = [ local:: | package_scope ] type_identifier
-  sequence_identifier = identifier
-  signal_identifier = identifier
-  */
+  ps_or_hierarchical_sequence_identifier: $ => choice(
+    seq(optional($.package_scope), $.sequence_identifier),
+    $.hierarchical_sequence_identifier
+  ),
 
-  // simple_identifier ::= [ a-zA-Z_ ] { [ a-zA-Z0-9_$ ] }
-  simple_identifier: $ => token(/[a-zA-Z_]\w*/),
+  ps_or_hierarchical_tf_identifier: $ => choice(
+    seq(optional($.package_scope), $.tf_identifier),
+    $.hierarchical_tf_identifier
+  ),
+
+  ps_parameter_identifier: $ => choice(
+    seq(optional(choice($.package_scope, $.class_scope)), $.parameter_identifier),
+    seq(
+      repeat(seq(
+        $.generate_block_identifier,
+        optional(seq('[', $.constant_expression, ']')),
+        '.'
+      )),
+      $.parameter_identifier
+    )
+  ),
+
+  ps_type_identifier: $ => seq(
+    optional(choice(
+      seq('local', '::'),
+      $.package_scope,
+      $.class_scope
+    )),
+    $.type_identifier
+  ),
+
+  sequence_identifier: $ => $.identifier,
+
+  // signal_identifier = identifier
+
+  simple_identifier: $ => /[a-zA-Z_]\w*/,
 
   specparam_identifier: $ => alias($.identifier, $._specparam_identifier),
 
-  // system_tf_identifier = $[ a-zA-Z0-9_$ ]{ [ a-zA-Z0-9_$ ] }
+  system_tf_identifier: $ => /[a-zA-Z0-9_$]+/,
 
   task_identifier: $ => alias($.identifier, $._task_identifier),
   tf_identifier: $ => alias($.identifier, $._tf_identifier),
@@ -2936,6 +4026,51 @@ const rules = {
 
 module.exports = grammar({
   name: 'verilog',
+  // word: $ => $.simple_identifier,
   rules: rules,
-  extras: $ => [/\s/, $.comment]
+  extras: $ => [/\s/, $.comment],
+  conflicts: $ => [
+    [$.primary, $.implicit_class_handle],
+    [$.primary, $.constant_primary],
+    [$.primary, $.hierarchical_tf_identifier],
+    [$.constant_function_call, $.primary],
+    [$.primary, $.param_expression],
+    [$.hierarchical_identifier, $.formal_port_identifier, $.specparam_identifier],
+    [$.hierarchical_identifier, $.enum_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.member_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.generate_block_identifier],
+    [$.hierarchical_identifier, $.generate_block_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.formal_port_identifier, $.generate_block_identifier, $.specparam_identifier],
+    [$.hierarchical_identifier, $.tf_identifier],
+    [$.simple_identifier, $.parameter_identifier],
+    [$.dpi_function_import_property, $.dpi_task_import_property],
+    [$.class_method, $.constraint_prototype_qualifier],
+    [$.checker_or_generate_item_declaration, $._package_or_generate_item_declaration],
+    [$.module_or_generate_item, $.interface_or_generate_item],
+    [$._module_common_item, $.checker_or_generate_item],
+    [$.class_method, $.method_qualifier],
+    [$.class_identifier, $.package_identifier],
+    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier],
+    [$.formal_port_identifier, $.specparam_identifier],
+    [$.formal_port_identifier, $.generate_block_identifier, $.specparam_identifier],
+    [$.integral_number, $.unsigned_number],
+    [$.enum_identifier, $.tf_identifier],
+    [$.method_call_body, $.array_method_name],
+    [$.simple_type, $.constant_primary],
+    [$.constant_primary, $.class_qualifier, $.ps_parameter_identifier, $.ps_type_identifier],
+    [$.method_call_root, $.class_qualifier],
+    [$.structure_pattern_key, $.array_pattern_key],
+    [$.pattern, $.structure_pattern_key],
+    [$.constraint_set, $.empty_unpacked_array_concatenation],
+    [$.module_identifier, $.interface_identifier],
+    [$.module_identifier, $.interface_identifier, $.program_identifier],
+    [$.module_identifier, $.hierarchical_identifier, $.interface_identifier],
+    [$.module_identifier, $.interface_identifier, $.program_identifier, $.checker_identifier],
+    [$.interface_declaration, $.non_port_interface_item],
+    [$.program_declaration, $.non_port_program_item],
+    [$.list_of_ports, $.list_of_port_declarations],
+    [$.expression_or_dist, $.mintypmax_expression],
+  ],
+
 });

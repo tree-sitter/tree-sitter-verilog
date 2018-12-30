@@ -205,7 +205,9 @@ endmodule
               (packed_dimension
                 (constant_range
                   (constant_expression
-                    (constant_expression (constant_primary))
+                    (constant_expression (constant_primary
+                      (ps_parameter_identifier (parameter_identifier))
+                    ))
                     (constant_expression (constant_primary
                       (primary_literal (number (integral_number)))
                     ))

@@ -27,6 +27,7 @@
     "example": "examples"
   },
   "scripts": {
+    "gen": "tree-sitter generate",
     "install": "if [ ! -d ./src ]; then tree-sitter generate; fi && node-gyp configure build",
     "test": "tree-sitter test"
   },

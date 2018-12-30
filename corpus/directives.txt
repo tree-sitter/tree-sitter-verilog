@@ -29,10 +29,6 @@ define
   (text_macro_definition
     (text_macro_name
       (text_macro_identifier (identifier (simple_identifier)))
-      (list_of_formal_arguments
-        (formal_argument (simple_identifier))
-        (formal_argument (simple_identifier))
-      )
     )
     (macro_text)
   )
