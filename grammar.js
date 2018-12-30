@@ -569,18 +569,18 @@ const rules = {
 
   _module_common_item: $ => choice(
     $._module_or_generate_item_declaration,
-    //  $.interface_instantiation,
-    //  $.program_instantiation,
-    //  $.assertion_item,
-    //  $.bind_directive,
+    $.interface_instantiation,
+    $.program_instantiation,
+    // $.assertion_item,
+    $.bind_directive,
     $.continuous_assign,
-    //  $.net_alias,
-    // $.initial_construct,
-    //  $.final_construct,
-    $.always_construct
-    //  $.loop_generate_construct,
-    //  $.conditional_generate_construct,
-    //  $.elaboration_system_task
+    // $.net_alias,
+    $.initial_construct,
+    $.final_construct,
+    $.always_construct,
+    $.loop_generate_construct,
+    $.conditional_generate_construct,
+    $.elaboration_system_task
   ),
 
   _module_item: $ => choice(
@@ -1811,29 +1811,53 @@ const rules = {
     // $.sequence_actual_arg
   ),
 
-  // assertion_item_declaration ::=
-  // property_declaration
-  // | sequence_declaration
-  // | let_declaration
-  // property_declaration ::=
-  // property property_identifier [ ( [ property_port_list ] ) ] ;
-  // { assertion_variable_declaration }
-  // property_spec [ ; ]
-  // endproperty [ : property_identifier ]
-  // property_port_list ::=
-  // property_port_item {, property_port_item}
-  // property_port_item ::=
-  // { attribute_instance } [ local [ property_lvar_port_direction ] ] property_formal_type
-  // formal_port_identifier {variable_dimension} [ = property_actual_arg ]
-  // property_lvar_port_direction ::= input
+  assertion_item_declaration: $ => choice(
+    $.property_declaration,
+    $.sequence_declaration,
+    // $.let_declaration
+  ),
+
+  property_declaration: $ => seq(
+    'property',
+    $.property_identifier,
+    optional(seq(
+      '(', optional($.property_port_list), ')'
+    )),
+    ';',
+    repeat($.assertion_variable_declaration),
+    $.property_spec,
+    optional(';'),
+    'endproperty', optional(seq(':', $.property_identifier))
+  ),
+
+  property_port_list: $ => sep1(',', $.property_port_item),
+
+  property_port_item: $ => seq(
+    repeat($.attribute_instance),
+    optional(seq(
+      'local',
+      optional($.property_lvar_port_direction)
+    )),
+    $.property_formal_type1,
+    $.formal_port_identifier,
+    repeat($._variable_dimension),
+    optional(seq('=', $.property_actual_arg))
+  ),
+
+  property_lvar_port_direction: $ => 'input',
 
   property_formal_type1: $ => choice(
     $.sequence_formal_type1,
     'property'
   ),
 
-  //   property_spec ::=
-  // [clocking_event ] [ disable iff ( expression_or_dist ) ] property_expr
+  property_spec: $ => seq(
+    optional($.clocking_event),
+    optional(seq(
+      'disable', 'iff', '(', $.expression_or_dist, ')'
+    )),
+    $.property_expr
+  ),
 
   property_expr: $ => choice(
     $.sequence_expr,
@@ -1873,20 +1897,45 @@ const rules = {
     // seq(clocking_event property_expr),
   ),
 
-  // property_case_item ::=
-  // expression_or_dist { , expression_or_dist } : property_expr ;
-  // | default [ : ] property_expr ;
-  // sequence_declaration ::=
-  // sequence sequence_identifier [ ( [ sequence_port_list ] ) ] ;
-  // { assertion_variable_declaration }
-  // sequence_expr [ ; ]
-  // endsequence [ : sequence_identifier ]
-  // sequence_port_list ::=
-  // sequence_port_item {, sequence_port_item}
-  // sequence_port_item ::=
-  // { attribute_instance } [ local [ sequence_lvar_port_direction ] ] sequence_formal_type
-  // formal_port_identifier {variable_dimension} [ = sequence_actual_arg ]
-  // sequence_lvar_port_direction ::= input | inout | output
+  property_case_item: $ => choice(
+    seq(
+      sep1(',', $.expression_or_dist), ':', $.property_expr, ';'
+    ),
+    seq(
+      'default', optional(':'), $.property_expr, ';'
+    )
+  ),
+
+  sequence_declaration: $ => seq(
+    'sequence',
+    $.sequence_identifier,
+    optional(seq(
+      '(', optional($.sequence_port_list), ')'
+    )),
+    ';',
+    repeat($.assertion_variable_declaration),
+    $.sequence_expr,
+    optional(';'),
+    'endsequence', optional(seq(':', $.sequence_identifier))
+  ),
+
+  sequence_port_list: $ => sep1(',', $.sequence_port_item),
+
+  sequence_port_item: $ => seq(
+    repeat($.attribute_instance),
+    optional(seq(
+      'local',
+      optional($.sequence_lvar_port_direction)
+    )),
+    optional($.sequence_formal_type1),
+    $.formal_port_identifier,
+    repeat($._variable_dimension),
+    optional(seq(
+      '=', $.sequence_actual_arg
+    ))
+  ),
+
+  sequence_lvar_port_direction: $ => choice('input', 'inout', 'output'),
 
   sequence_formal_type1: $ => choice(
     $.data_type_or_implicit1,
@@ -1924,9 +1973,11 @@ const rules = {
   // ps_or_hierarchical_sequence_identifier [ ( [ sequence_list_of_arguments ] ) ]
   // sequence_list_of_arguments ::=
   // [sequence_actual_arg] { , [sequence_actual_arg] } { , . identifier ( [sequence_actual_arg]| . identifier ( [sequence_actual_arg] ) { , . identifier ( [sequence_actual_arg] ) }
-  // sequence_actual_arg ::=
-  // event_expression
-  // | sequence_expr
+
+  sequence_actual_arg: $ => choice(
+    $.event_expression,
+    $.sequence_expr
+  ),
 
   boolean_abbrev: $ => choice(
     // $.consecutive_repetition
@@ -1963,9 +2014,11 @@ const rules = {
     ))
   ),
 
-  // assertion_variable_declaration ::=
-  // var_data_type list_of_variable_decl_assignments ;
-
+  assertion_variable_declaration: $ => seq(
+    $._var_data_type,
+    $.list_of_variable_decl_assignments,
+    ';'
+  ),
 
   // A.2.11 Covergroup declarations
 
@@ -4071,6 +4124,8 @@ module.exports = grammar({
     [$.program_declaration, $.non_port_program_item],
     [$.list_of_ports, $.list_of_port_declarations],
     [$.expression_or_dist, $.mintypmax_expression],
+    [$.interface_identifier, $.program_identifier],
+    [$._module_common_item, $.checker_generate_item]
   ],
 
 });
