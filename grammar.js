@@ -19,11 +19,11 @@ const PREC = {
 };
 
 function optseq() {
-  return optional(seq.apply(null, arguments))
+  return optional(prec.left(seq.apply(null, arguments)))
 }
 
 function repseq() {
-  return repeat(seq.apply(null, arguments))
+  return repeat(prec.left(seq.apply(null, arguments)))
 }
 
 function commaSep(rule) {
@@ -1961,23 +1961,23 @@ const rules = {
   ),
 
   sequence_expr: $ => choice(
-  // cycle_delay_range sequence_expr { cycle_delay_range sequence_expr }
-  // | sequence_expr cycle_delay_range sequence_expr { cycle_delay_range sequence_expr }
+    prec.left(sep1(',', $.cycle_delay_range, $.sequence_expr)), // FIXME precedence?
+    // prec.left(seq($.sequence_expr, repeat1(seq($.cycle_delay_range, $.sequence_expr)))), // FIXME precedence?
     seq($.expression_or_dist, optional($.boolean_abbrev)),
-  // | sequence_instance [ sequence_abbrev ]
-  // | ( sequence_expr {, sequence_match_item } ) [ sequence_abbrev ]
-  // | sequence_expr and sequence_expr
-  // | sequence_expr intersect sequence_expr
-  // | sequence_expr or sequence_expr
-  // | first_match ( sequence_expr {, sequence_match_item} )
-  // | expression_or_dist throughout sequence_expr
-  // | sequence_expr within sequence_expr
-  // | clocking_event sequence_expr
+    seq($.sequence_instance, optional($.sequence_abbrev)),
+    prec.left(seq('(', $.sequence_expr, repseq(',', $.sequence_match_item), ')', optional($.sequence_abbrev))),
+    prec.left(seq($.sequence_expr, 'and', $.sequence_expr)),
+    prec.left(seq($.sequence_expr, 'intersect', $.sequence_expr)),
+    prec.left(seq($.sequence_expr, 'or', $.sequence_expr)),
+    seq('first_match', '(', $.sequence_expr, repseq(',', $.sequence_match_item), ')'),
+    prec.right(seq($.expression_or_dist, 'throughout', $.sequence_expr)),
+    prec.left(seq($.sequence_expr, 'within', $.sequence_expr)),
+    prec.left(seq($.clocking_event, $.sequence_expr)) // FIXME precedence?
   ),
 
   cycle_delay_range: $ => choice(
-    seq('##', $.constant_primary),
-    seq('##', '[', $.cycle_delay_const_range_expression, ']'),
+    prec.left(seq('##', $.constant_primary)),
+    prec.left(seq('##', '[', $.cycle_delay_const_range_expression, ']')),
     '##[*]',
     '##[+]'
   ),
@@ -3069,11 +3069,11 @@ const rules = {
   // clocking_drive =
   // clockvar_expression <= [ cycle_delay ] expression
 
-  cycle_delay: $ => seq('##', choice(
+  cycle_delay: $ => prec.left(seq('##', choice(
     $.integral_number,
     $.identifier,
     seq('(', $.expression, ')')
-  )),
+  ))),
 
   clockvar: $ => $.hierarchical_identifier,
 
@@ -3580,31 +3580,25 @@ const rules = {
 
   constant_function_call: $ => $.function_subroutine_call,
 
-  tf_call: $ => seq(
+  tf_call: $ => prec.left(seq(
     $.ps_or_hierarchical_tf_identifier,
     repeat($.attribute_instance),
     optional($.list_of_arguments_parent)
-  ),
+  )),
 
-  system_tf_call: $ => seq(
+  system_tf_call: $ => prec.left(seq(
     $.system_tf_identifier,
     choice(
       optional($.list_of_arguments_parent),
-      seq(
-        '(',
-        $.data_type,
-        optseq(',', $.expression),
-        ')'
-      ),
-      seq(
-        '(',
-        $.expression,
-        // repeat(seq(',', optional($.expression))),
+      seq('(', $.data_type, optseq(',', $.expression), ')'),
+      prec.left(seq(
+        '(', $.expression,
+        repseq(',', optional($.expression)),
         optseq(',', optional($.clocking_event)),
         ')'
-      )
+      ))
     )
-  ),
+  )),
 
   subroutine_call: $ => choice(
     $.tf_call,
@@ -4368,6 +4362,9 @@ module.exports = grammar({
     [$.primary, $.param_expression],
     [$.primary, $.constant_primary],
     [$.parameter_identifier, $.simple_identifier],
+    [$.primary, $.hierarchical_sequence_identifier],
+    [$.primary, $.hierarchical_property_identifier, $.hierarchical_sequence_identifier],
+    [$.primary, $.hierarchical_property_identifier, $.hierarchical_sequence_identifier, $.tf_identifier],
     [$.module_identifier, $.hierarchical_identifier, $.interface_identifier],
     [$.module_identifier, $.interface_identifier],
     [$.module_identifier, $.interface_identifier, $.program_identifier],
@@ -4495,8 +4492,25 @@ module.exports = grammar({
     [$.hierarchical_identifier, $.property_identifier, $.tf_identifier],
     [$.hierarchical_identifier, $.property_identifier],
     [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.sequence_identifier, $.specparam_identifier, $.tf_identifier],
     [$.property_spec, $.property_expr],
     [$.property_identifier, $.tf_identifier],
-    [$.enum_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.tf_identifier]
+    [$.enum_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.tf_identifier],
+    [$.property_expr, $.sequence_expr],
+    [$.hierarchical_property_identifier, $.hierarchical_sequence_identifier, $.hierarchical_tf_identifier],
+    [$.primary, $.hierarchical_property_identifier, $.hierarchical_sequence_identifier, $.hierarchical_tf_identifier],
+    [$.hierarchical_sequence_identifier, $.hierarchical_tf_identifier],
+    [$.hierarchical_identifier, $.property_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.property_identifier, $.sequence_identifier],
+    [$.hierarchical_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.sequence_identifier],
+    [$.property_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.primary, $.hierarchical_sequence_identifier, $.hierarchical_tf_identifier],
+    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.sequence_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.enum_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.sequence_identifier, $.tf_identifier],
+    [$.assignment_pattern_expression_type, $.constant_primary],
+    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier, $.type_identifier],
+    [$.enum_identifier, $.hierarchical_identifier, $.parameter_identifier, $.sequence_identifier, $.tf_identifier],
   ]
 });
