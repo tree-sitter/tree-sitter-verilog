@@ -4,13 +4,13 @@
   "description": "Verilog grammar for tree-sitter",
   "license": "MIT",
   "author": "Aliaksei Chapyzhenka",
-  "homepage": "https://github.com/drom/tree-sitter-verilog#readme",
+  "homepage": "https://github.com/tree-sitter/tree-sitter-verilog#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drom/tree-sitter-verilog.git"
+    "url": "git+https://github.com/tree-sitter/tree-sitter-verilog.git"
   },
   "bugs": {
-    "url": "https://github.com/drom/tree-sitter-verilog/issues"
+    "url": "https://github.com/tree-sitter/tree-sitter-verilog/issues"
   },
   "main": "index.js",
   "files": [
