@@ -1,4 +1,7 @@
 const PREC = {
+  // The matches operator shall have higher precedence than the && and || operators
+  MATCHES: 10,
+
   PARENT: 17,     // () [] :: .                                   Left Highest
   UNARY: 16,      // + - ! ~ & ~& | ~| ^ ~^ ^~ ++ -- (unary)
   POW: 15,        // **                                           Left
@@ -575,7 +578,7 @@ const rules = {
     repeat($.attribute_instance),
     choice(
       $.parameter_override,
-      // $.gate_instantiation,
+      $.gate_instantiation,
       // $.udp_instantiation,
       $.module_instantiation,
       $._module_common_item
@@ -774,7 +777,7 @@ const rules = {
     $.genvar_declaration,
     // $.clocking_declaration,
     seq('default', 'clocking', $.clocking_identifier, ';'),
-    seq('default', 'disable', 'iff', $.expression_or_dist, ';'),
+    prec.right(seq('default', 'disable', 'iff', $.expression_or_dist, ';')),
     ';'
   ),
 
@@ -892,17 +895,13 @@ const rules = {
   constraint_expression: $ => choice(
     seq(optional('soft'), $.expression_or_dist, ';'),
     seq($.uniqueness_constraint, ';'),
-    seq($.expression, '–>', $.constraint_set),
+    prec.right(PREC.IMPLICATION, seq($.expression, '–>', $.constraint_set)),
     prec.left(seq(
-      'if', '(', $.expression, ')',
-      $.constraint_set,
-      optseq(
-        'else', $.constraint_set
-      )
+      'if', '(', $.expression, ')', $.constraint_set,
+      optseq('else', $.constraint_set)
     )),
     seq(
-      'foreach',
-      '(',
+      'foreach', '(',
       $.ps_or_hierarchical_array_identifier,
       '[', optional($.loop_variables1), ']',
       ')',
@@ -1779,9 +1778,9 @@ const rules = {
   cover_sequence_statement: $ => seq(
     'cover', 'sequence', '(',
     optional($.clocking_event),
-    optseq(
+    optional(prec.right(seq(
       'disable', 'iff', '(', $.expression_or_dist, ')'
-    ),
+    ))),
     $.sequence_expr,
     ')',
     $.statement_or_null
@@ -1857,9 +1856,9 @@ const rules = {
 
   property_spec: $ => seq(
     optional($.clocking_event),
-    optional(
-      prec.right(seq('disable', 'iff', '(', $.expression_or_dist, ')'))
-    ),
+    optional(prec.right(seq(
+      'disable', 'iff', '(', $.expression_or_dist, ')'
+    ))),
     $.property_expr
   ),
 
@@ -2035,10 +2034,7 @@ const rules = {
 
   expression_or_dist: $ => seq(
     $.expression,
-    optseq(
-      'dist',
-      '{', $.dist_list, '}'
-    )
+    optional(prec.left(PREC.RELATIONAL, seq('dist', '{', $.dist_list, '}')))
   ),
 
   assertion_variable_declaration: $ => seq(
@@ -2053,35 +2049,133 @@ const rules = {
 
   // A.3.1 Primitive instantiation and instances
 
+  gate_instantiation: $ => seq(
+    choice(
+      seq(
+        $.cmos_switchtype,
+        optional($.delay3),
+        sep1(',', $.cmos_switch_instance),
+      ),
+      seq(
+        $.enable_gatetype,
+        optional($.drive_strength), optional($.delay3),
+        sep1(',', $.enable_gate_instance),
+      ),
+      seq(
+        $.mos_switchtype,
+        optional($.delay3),
+        sep1(',', $.mos_switch_instance),
+      ),
+      seq(
+        $.n_input_gatetype,
+        optional($.drive_strength), optional($.delay2),
+        sep1(',', $.n_input_gate_instance),
+      ),
+      seq(
+        $.n_output_gatetype,
+        optional($.drive_strength), optional($.delay2),
+        sep1(',', $.n_output_gate_instance),
+      ),
+      seq(
+        $.pass_en_switchtype,
+        optional($.delay2),
+        sep1(',', $.pass_enable_switch_instance),
+      ),
+      seq(
+        $.pass_switchtype,
+        sep1(',', $.pass_switch_instance),
+      ),
+      seq(
+        'pulldown',
+        optional($.pulldown_strength),
+        sep1(',', $.pull_gate_instance),
+      ),
+      seq(
+        'pullup',
+        optional($.pullup_strength),
+        sep1(',', $.pull_gate_instance),
+      ),
+    ),
+    ';'
+  ),
+
+  cmos_switch_instance: $ => seq(
+    optional($.name_of_instance),
+    '(',
+    $.output_terminal, ',',
+    $.input_terminal, ',',
+    $.ncontrol_terminal, ',',
+    $.pcontrol_terminal,
+    ')'
+  ),
+
+  enable_gate_instance: $ => seq(
+    optional($.name_of_instance),
+    '(', $.output_terminal, ',', $.input_terminal, ',', $.enable_terminal, ')'
+  ),
+
+  mos_switch_instance: $ => seq(
+    optional($.name_of_instance),
+    '(', $.output_terminal, ',', $.input_terminal, ',', $.enable_terminal, ')'
+  ),
+
+  n_input_gate_instance: $ => seq(
+    optional($.name_of_instance),
+    '(', $.output_terminal, ',', sep1(',', $.input_terminal), ')'
+  ),
+
+  n_output_gate_instance: $ => seq(
+    optional($.name_of_instance),
+    '(', sep1(',', $.output_terminal), ',', $.input_terminal, ')'
+  ),
+
+  pass_switch_instance: $ => seq(
+    optional($.name_of_instance),
+    '(', $.inout_terminal, ',', $.inout_terminal, ')'
+  ),
+
+  pass_enable_switch_instance: $ => seq(
+    optional($.name_of_instance),
+    '(', $.inout_terminal, ',', $.inout_terminal, ',', $.enable_terminal, ')'
+  ),
+
+  pull_gate_instance: $ => seq(
+    optional($.name_of_instance),
+    '(', $.output_terminal, ')'
+  ),
+
   // A.3.2 Primitive strengths
 
-  // pulldown_strength: $ =>
-  // ( strength0 , strength1 )
-  // | ( strength1 , strength0 )
-  // | ( strength0 )
-  // pullup_strength: $ =>
-  // ( strength0 , strength1 )
-  // | ( strength1 , strength0 )
-  // | ( strength1 )
+  pulldown_strength: $ => choice(
+    seq('(', $.strength0, ',', $.strength1, ')'),
+    seq('(', $.strength1, ',', $.strength0, ')'),
+    seq('(', $.strength0, ')')
+  ),
+
+  pullup_strength: $ =>choice(
+    seq(',', $.strength0, ',', $.strength1, ')'),
+    seq(',', $.strength1, ',', $.strength0, ')'),
+    seq(',', $.strength1, ')'),
+  ),
 
   // A.3.3 Primitive terminals
 
-  // enable_terminal: $ => expression
-  // inout_terminal: $ => net_lvalue
-  // input_terminal: $ => expression
-  // ncontrol_terminal: $ => expression
-  // output_terminal: $ => net_lvalue
-  // pcontrol_terminal: $ => expression
+  enable_terminal: $ => $.expression,
+  inout_terminal: $ => $.net_lvalue,
+  input_terminal: $ => $.expression,
+  ncontrol_terminal: $ => $.expression,
+  output_terminal: $ => $.net_lvalue,
+  pcontrol_terminal: $ => $.expression,
 
   // A.3.4 Primitive gate and switch types
 
-  // cmos_switchtype: $ => cmos | rcmos
-  // enable_gatetype: $ => bufif0 | bufif1 | notif0 | notif1
-  // mos_switchtype: $ => nmos | pmos | rnmos | rpmos
-  // n_input_gatetype: $ => and | nand | or | nor | xor | xnor
-  // n_output_gatetype: $ => buf | not
-  // pass_en_switchtype: $ => tranif0 | tranif1 | rtranif1 | rtranif0
-  // pass_switchtype: $ => tran | rtran
+  cmos_switchtype: $ => choice('cmos', 'rcmos'),
+  enable_gatetype: $ => choice('bufif0', 'bufif1', 'notif0', 'notif1'),
+  mos_switchtype: $ => choice('nmos', 'pmos', 'rnmos', 'rpmos'),
+  n_input_gatetype: $ => choice('and', 'nand', 'or', 'nor', 'xor', 'xnor'),
+  n_output_gatetype: $ => choice('buf', 'not'),
+  pass_en_switchtype: $ => choice('tranif0', 'tranif1', 'rtranif1', 'rtranif0'),
+  pass_switchtype: $ => choice('tran', 'rtran'),
 
   // A.4 Instantiations
 
@@ -2811,10 +2905,14 @@ const rules = {
   case_statement: $ => seq(
     optional($.unique_priority),
     choice(
-      seq($.case_keyword, '(', $.case_expression, ')', repeat1($.case_item), 'endcase'),
-      // seq($.case_keyword, '(', $.case_expression, ')', 'matches', repeat1($.case_pattern_item), 'endcase'),
-      // seq('case', '(', $.case_expression, ')', 'inside', repeat1($.case_inside_item), 'endcase')
-    )
+      prec.left(seq($.case_keyword, '(', $.case_expression, ')', repeat1($.case_item))),
+
+      // The matches operator shall have higher precedence than the && and || operators
+      prec.left(PREC.MATCHES, seq($.case_keyword, '(', $.case_expression, ')', 'matches', repeat1($.case_pattern_item))),
+
+      prec.left(PREC.RELATIONAL, seq('case', '(', $.case_expression, ')', 'inside', repeat1($.case_inside_item)))
+    ),
+    'endcase'
   ),
 
   case_keyword: $ => choice('case', 'casez', 'casex'),
@@ -2826,20 +2924,20 @@ const rules = {
     seq('default', optional(':'), $.statement_or_null)
   ),
 
-  // case_pattern_item =
-  // pattern [ &&& expression ] : statement_or_null
-  // | default [ : ] statement_or_null
-  // case_inside_item =
-  // open_range_list : statement_or_null
-  // | default [ : ] statement_or_null
+  case_pattern_item: $ => choice(
+    seq($.pattern, optseq('&&&', $.expression), ':', $.statement_or_null),
+    seq('default', optional(':'), $.statement_or_null)
+  ),
+
+  case_inside_item: $ => choice(
+    seq($.open_range_list, ':', $.statement_or_null),
+    seq('default', optional(':'), $.statement_or_null)
+  ),
 
   case_item_expression: $ => $.expression,
 
   randcase_statement: $ => seq(
-    'randcase',
-    $.randcase_item,
-    repeat($.randcase_item),
-    'endcase'
+    'randcase', $.randcase_item, repeat($.randcase_item), 'endcase'
   ),
 
   randcase_item: $ => seq($.expression, ':', $.statement_or_null),
@@ -3803,9 +3901,9 @@ const rules = {
     optional($.expression)
   )),
 
-  inside_expression: $ => seq(
+  inside_expression: $ => prec.left(PREC.RELATIONAL, seq(
     $.expression, 'inside', '{', $.open_range_list, '}'
-  ),
+  )),
 
   value_range: $ => choice(
     $.expression,
@@ -4512,5 +4610,7 @@ module.exports = grammar({
     [$.assignment_pattern_expression_type, $.constant_primary],
     [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier, $.type_identifier],
     [$.enum_identifier, $.hierarchical_identifier, $.parameter_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.primary, $.hierarchical_net_identifier],
+    [$.primary, $.hierarchical_net_identifier, $.hierarchical_tf_identifier],
   ]
 });
