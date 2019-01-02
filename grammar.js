@@ -1857,8 +1857,8 @@ const rules = {
 
   property_spec: $ => seq(
     optional($.clocking_event),
-    optseq(
-      'disable', 'iff', '(', $.expression_or_dist, ')'
+    optional(
+      prec.right(seq('disable', 'iff', '(', $.expression_or_dist, ')'))
     ),
     $.property_expr
   ),
@@ -1868,37 +1868,50 @@ const rules = {
     seq('strong', '(', $.sequence_expr, ')'),
     seq('weak', '(', $.sequence_expr, ')'),
     seq('(', $.property_expr, ')'),
-    // seq('not', $.property_expr),
+
+    // FIXME no assosiativity rules per spec
+    prec.left(seq('not', $.property_expr)),
+
     prec.left(seq($.property_expr, 'or', $.property_expr)),
     prec.left(seq($.property_expr, 'and', $.property_expr)),
+
     prec.right(seq($.sequence_expr, '|->', $.property_expr)),
     prec.right(seq($.sequence_expr, '|=>', $.property_expr)),
-    // seq(if ( expression_or_dist ) property_expr [ else property_expr ]),
-    // seq(case ( expression_or_dist ) property_case_item { property_case_item } endcase),
-    // seq(sequence_expr #-# property_expr),
-    // seq(sequence_expr #=# property_expr),
-    // seq(nexttime property_expr),
-    // seq(nexttime [ constant _expression ] property_expr),
-    // seq(s_nexttime property_expr),
-    // seq(s_nexttime [ constant_expression ] property_expr),
-    // seq(always property_expr),
-    // seq(always [ cycle_delay_const_range_expression ] property_expr),
-    // seq(s_always [ constant_range] property_expr),
-    // seq(s_eventually property_expr),
-    // seq(eventually [ constant_range ] property_expr),
-    // seq(s_eventually [ cycle_delay_const_range_expression ] property_expr),
-    // seq(property_expr until property_expr),
-    // seq(property_expr s_until property_expr),
-    // seq(property_expr until_with property_expr),
-    // seq(property_expr s_until_with property_expr),
-    // seq(property_expr implies property_expr),
-    // seq(property_expr iff property_expr),
-    // seq(accept_on ( expression_or_dist ) property_expr),
-    // seq(reject_on ( expression_or_dist ) property_expr),
-    // seq(sync_accept_on ( expression_or_dist ) property_expr),
-    // seq(sync_reject_on ( expression_or_dist ) property_expr),
-    // seq(property_instance),
-    // seq(clocking_event property_expr),
+
+    // FIXME no assosiativity rules per spec
+    prec.left(seq('if', '(', $.expression_or_dist, ')', $.property_expr, optseq('else', $.property_expr))), // FIXME spec bug ( ) are not red
+
+    seq('case', '(', $.expression_or_dist, ')', repeat1($.property_case_item), 'endcase'),  // FIXME spec bug ( ) are not red
+    prec.right(seq($.sequence_expr, '#-#', $.property_expr)),
+    prec.right(seq($.sequence_expr, '#=#', $.property_expr)),
+
+    // FIXME no assosiativity rules per spec
+    prec.left(seq('nexttime', $.property_expr)),
+    prec.left(seq('nexttime', '[', $.constant_expression, ']', $.property_expr)), // FIXME spec bug constant _expression with the space
+    prec.left(seq('s_nexttime', $.property_expr)),
+    prec.left(seq('s_nexttime', '[', $.constant_expression, ']', $.property_expr)),
+    prec.left(seq('always', $.property_expr)),
+    prec.left(seq('always', '[', $.cycle_delay_const_range_expression, ']', $.property_expr)),
+    prec.left(seq('s_always', '[', $.constant_range, ']', $.property_expr)),
+    prec.left(seq('s_eventually', $.property_expr)),
+    prec.left(seq('eventually', '[', $.constant_range, ']', $.property_expr)),
+    prec.left(seq('s_eventually', '[', $.cycle_delay_const_range_expression, ']', $.property_expr)),
+
+    prec.right(seq($.property_expr, 'until', $.property_expr)),
+    prec.right(seq($.property_expr, 's_until', $.property_expr)),
+    prec.right(seq($.property_expr, 'until_with', $.property_expr)),
+    prec.right(seq($.property_expr, 's_until_with', $.property_expr)),
+    prec.right(seq($.property_expr, 'implies', $.property_expr)),
+    prec.right(seq($.property_expr, 'iff', $.property_expr)),
+
+    // FIXME no assosiativity rules per spec
+    prec.left(seq('accept_on', '(', $.expression_or_dist, ')', $.property_expr)),
+    prec.left(seq('reject_on', '(', $.expression_or_dist, ')', $.property_expr)),
+    prec.left(seq('sync_accept_on', '(', $.expression_or_dist, ')', $.property_expr)),
+    prec.left(seq('sync_reject_on', '(', $.expression_or_dist, ')', $.property_expr)),
+
+    $.property_instance,
+    prec.left(seq($.clocking_event, $.property_expr)) // FIXME no assosiativity rules per spec
   ),
 
   property_case_item: $ => choice(
@@ -1962,21 +1975,30 @@ const rules = {
   // | clocking_event sequence_expr
   ),
 
-  // cycle_delay_range: $ =>
-  // ## constant_primary
-  // | ## [ cycle_delay_const_range_expression ]
-  // | ##[*]
-  // | ##[+]
-  // sequence_method_call: $ =>
-  // sequence_instance . method_identifier
-  // sequence_match_item: $ =>
-  // operator_assignment
-  // | inc_or_dec_expression
-  // | subroutine_call
-  // sequence_instance: $ =>
-  // ps_or_hierarchical_sequence_identifier [ ( [ sequence_list_of_arguments ] ) ]
-  // sequence_list_of_arguments: $ =>
-  // [sequence_actual_arg] { , [sequence_actual_arg] } { , . identifier ( [sequence_actual_arg]| . identifier ( [sequence_actual_arg] ) { , . identifier ( [sequence_actual_arg] ) }
+  cycle_delay_range: $ => choice(
+    seq('##', $.constant_primary),
+    seq('##', '[', $.cycle_delay_const_range_expression, ']'),
+    '##[*]',
+    '##[+]'
+  ),
+
+  sequence_method_call: $ => seq($.sequence_instance, '.', $.method_identifier),
+
+  sequence_match_item: $ => choice(
+    $.operator_assignment,
+    $.inc_or_dec_expression,
+    $.subroutine_call,
+  ),
+
+  sequence_instance: $ => seq(
+    $.ps_or_hierarchical_sequence_identifier,
+    optseq('(', optional($.sequence_list_of_arguments), ')')
+  ),
+
+  sequence_list_of_arguments: $ => choice(
+    // [sequence_actual_arg] { , [sequence_actual_arg] } { , . identifier ( [sequence_actual_arg]
+    sep1(',', seq('.', $.identifier, '(', optional($.sequence_actual_arg), ')'))
+  ),
 
   sequence_actual_arg: $ => choice(
     $.event_expression,
@@ -1984,31 +2006,32 @@ const rules = {
   ),
 
   boolean_abbrev: $ => choice(
-    // $.consecutive_repetition
-    // $.non_consecutive_repetition
-    $.goto_repetition1 // FIXME
+    $.consecutive_repetition,
+    $.non_consecutive_repetition,
+    $.goto_repetition
   ),
 
-  // sequence_abbrev: $ => consecutive_repetition
+  sequence_abbrev: $ => $.consecutive_repetition,
 
-  // consecutive_repetition: $ =>
-  // [* const_or_range_expression ]
-  // | [*]
-  // | [+]
-
-  // non_consecutive_repetition: $ => [= const_or_range_expression ]
-
-  goto_repetition1: $ => seq(
-    '->',
-    // $.const_or_range_expression
+  consecutive_repetition: $ => choice(
+    seq('[*', $.const_or_range_expression, ']'),
+    '[*]',
+    '[+]'
   ),
 
-  // const_or_range_expression: $ =>
-  // constant_expression
-  // | cycle_delay_const_range_expression
-  // cycle_delay_const_range_expression: $ =>
-  // constant_expression : constant_expression
-  // | constant_expression : $
+  non_consecutive_repetition: $ => seq('[=', $.const_or_range_expression, ']'),
+
+  goto_repetition: $ => seq('[->', $.const_or_range_expression, ']'),
+
+  const_or_range_expression: $ => choice(
+    $.constant_expression,
+    $.cycle_delay_const_range_expression
+  ),
+
+  cycle_delay_const_range_expression: $ => choice(
+    seq($.constant_expression, ':', $.constant_expression),
+    seq($.constant_expression, ':', '$')
+  ),
 
   expression_or_dist: $ => seq(
     $.expression,
@@ -4338,7 +4361,9 @@ module.exports = grammar({
   extras: $ => [/\s/, $.comment],
   conflicts: $ => [
     [$.primary, $.implicit_class_handle],
+    [$.primary, $.hierarchical_property_identifier],
     [$.primary, $.hierarchical_tf_identifier],
+    [$.primary, $.hierarchical_property_identifier, $.hierarchical_tf_identifier],
     [$.primary, $.constant_function_call],
     [$.primary, $.param_expression],
     [$.primary, $.constant_primary],
@@ -4465,6 +4490,13 @@ module.exports = grammar({
     [$.variable_decl_assignment, $.dynamic_array_variable_identifier],
     [$.input_port_identifier, $.inout_port_identifier],
     [$.output_port_identifier, $.inout_port_identifier],
-    [$.class_identifier, $.covergroup_identifier, $.interface_identifier, $.net_type_identifier, $.type_identifier]
+    [$.class_identifier, $.covergroup_identifier, $.interface_identifier, $.net_type_identifier, $.type_identifier],
+    [$.hierarchical_property_identifier, $.hierarchical_tf_identifier],
+    [$.hierarchical_identifier, $.property_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.property_identifier],
+    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.property_spec, $.property_expr],
+    [$.property_identifier, $.tf_identifier],
+    [$.enum_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.tf_identifier]
   ]
 });
