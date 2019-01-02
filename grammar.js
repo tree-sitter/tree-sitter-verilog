@@ -18,6 +18,14 @@ const PREC = {
   CONCAT: -5,     // {} {{}}                            Concatenation   Lowest
 };
 
+function optseq() {
+  return optional(seq.apply(null, arguments))
+}
+
+function repseq() {
+  return repeat(seq.apply(null, arguments))
+}
+
 function commaSep(rule) {
   return optional(sep1(',', rule))
 }
@@ -87,14 +95,14 @@ const rules = {
 
   text_macro_name: $ => seq(
     $.text_macro_identifier,
-    optional(seq('(', $.list_of_formal_arguments, ')'))
+    optseq('(', $.list_of_formal_arguments, ')')
   ),
 
   list_of_formal_arguments: $ => sep1(',', $.formal_argument),
 
   formal_argument: $ => seq(
     $.simple_identifier,
-    optional(seq('=', $.default_text))
+    optseq('=', $.default_text)
   ),
 
   text_macro_identifier: $ => $.identifier,
@@ -111,7 +119,7 @@ const rules = {
   text_macro_usage: $ => seq(
     '`',
     $.text_macro_identifier,
-    optional(seq('(', $.list_of_actual_arguments, ')'))
+    optseq('(', $.list_of_actual_arguments, ')')
   ),
 
   /* 22-4 undef */
@@ -149,6 +157,25 @@ const rules = {
 
   /* A.1.1 Library source text */
 
+  // library_text: $ => repeat($.library_description),
+
+  // library_description: $ => choice(
+  //   $.library_declaration,
+  //   $.include_statement,
+  //   $.config_declaration,
+  //   ';'
+  // ),
+  //
+  // library_declaration: $ => seq(
+  //   'library',
+  //   $.library_identifier,
+  //   sep1(',', $.file_path_spec),
+  //   optseq('-incdir', sep1(',', $.file_path_spec)),
+  //   ';'
+  // ),
+  //
+  // include_statement: $ => seq('include', $.file_path_spec, ';'),
+
   /* A.1.2 SystemVerilog source text */
 
   _description: $ => choice(
@@ -160,18 +187,18 @@ const rules = {
     $.package_declaration,
     seq(repeat($.attribute_instance), $.package_item),
     seq(repeat($.attribute_instance), $.bind_directive),
-    // $.config_declaration,
+    $.config_declaration,
   ),
 
-  // module_nonansi_header ::=
+  // module_nonansi_header: $ =>
   //   { attribute_instance } module_keyword [ lifetime ] module_identifier
   //     { package_import_declaration } [ parameter_port_list ] list_of_ports ';'
   //
-  // module_ansi_header ::=
+  // module_ansi_header: $ =>
   //   { attribute_instance } module_keyword [ lifetime ] module_identifier
   //     { package_import_declaration } [ parameter_port_list ] [ list_of_port_declarations ] ';'
   //
-  // module_declaration ::=
+  // module_declaration: $ =>
   //   module_nonansi_header [ timeunits_declaration ] { module_item }
   //     'endmodule' [ ':' module_identifier ]
   // | module_ansi_header [ timeunits_declaration ] { non_port_module_item }
@@ -187,8 +214,8 @@ const rules = {
     // optional($.lifetime),
     // $.identifier, // module_identifier
 
-    // package_import_declaration*
-    // optional($.parameter_port_list),
+    repeat($.package_import_declaration),
+    optional($.parameter_port_list),
     $.list_of_ports,
     ';'
   ),
@@ -199,19 +226,13 @@ const rules = {
     // optional($.lifetime),
     // $.identifier, // module_identifier
 
-    //    package_import_declaration*
-
+    repeat($.package_import_declaration),
     // A.10 Footnotes (normative)
     // 1) A package_import_declaration in a module_ansi_header,
     //    interface_ansi_header, or program_ansi_header shall be followed
     //    by a parameter_port_list or list_of_port_declarations, or both.
-    choice(
-      seq(
-        $.parameter_port_list,
-        $.list_of_port_declarations
-      ),
-      $.list_of_port_declarations1,
-    ),
+    optional($.parameter_port_list),
+    optional($.list_of_port_declarations),
     ';'
   ),
 
@@ -219,8 +240,7 @@ const rules = {
     repeat($.attribute_instance),
     $.module_keyword,
     optional($.lifetime),
-    $.module_identifier,
-    // optional($.parameter_port_list)
+    $.module_identifier
   ),
 
   module_declaration: $ => choice(
@@ -228,25 +248,22 @@ const rules = {
       $.module_header,
       choice(
         seq(
-          '(', '.*', ')', ';',
-          // timeunits_declaration?
-          // repeat($._module_item),
-        ),
-        seq(
           $.module_nonansi_header,
+          optional($.timeunits_declaration),
           repeat($._module_item),
         ),
         seq(
           $.module_ansi_header,
-          // timeunits_declaration?
+          optional($.timeunits_declaration),
           repeat($._non_port_module_item),
         ),
         seq(
-          ';',
+          '(', '.*', ')', ';',
+          optional($.timeunits_declaration),
           repeat($._module_item),
         )
       ),
-      'endmodule', optional(seq(':', $.module_identifier))
+      'endmodule', optseq(':', $.module_identifier)
     ),
     seq('extern', $.module_header, choice(
       $.module_nonansi_header,
@@ -261,13 +278,13 @@ const rules = {
       $.interface_nonansi_header,
       optional($.timeunits_declaration),
       repeat($.interface_item),
-      'endinterface', optional(seq(':', $.interface_identifier))
+      'endinterface', optseq(':', $.interface_identifier)
     ),
     seq(
       $.interface_ansi_header,
       optional($.timeunits_declaration),
       repeat($.non_port_interface_item),
-      'endinterface', optional(seq(':', $.interface_identifier))
+      'endinterface', optseq(':', $.interface_identifier)
     ),
     seq(
       repeat($.attribute_instance),
@@ -276,7 +293,7 @@ const rules = {
       '(', '.*', ')', ';',
       optional($.timeunits_declaration),
       repeat($.interface_item),
-      'endinterface', optional(seq(':', $.interface_identifier))
+      'endinterface', optseq(':', $.interface_identifier)
     ),
     seq('extern', $.interface_nonansi_header),
     seq('extern', $.interface_ansi_header)
@@ -309,13 +326,13 @@ const rules = {
       $.program_nonansi_header,
       optional($.timeunits_declaration),
       repeat($.program_item),
-      'endprogram', optional(seq(':', $.program_identifier))
+      'endprogram', optseq(':', $.program_identifier)
     ),
     seq(
       $.program_ansi_header,
       optional($.timeunits_declaration),
       repeat($.non_port_program_item),
-      'endprogram', optional(seq(':', $.program_identifier))
+      'endprogram', optseq(':', $.program_identifier)
     ),
     seq(
       repeat($.attribute_instance),
@@ -324,7 +341,7 @@ const rules = {
       '(', '.*', ')', ';',
       optional($.timeunits_declaration),
       repeat($.program_item),
-      'endprogram', optional(seq(':', $.program_identifier))
+      'endprogram', optseq(':', $.program_identifier)
     ),
     seq('extern', $.program_nonansi_header),
     seq('extern', $.program_ansi_header)
@@ -355,13 +372,13 @@ const rules = {
   checker_declaration: $ => seq(
     'checker',
     $.checker_identifier,
-    optional(seq('(', optional($.checker_port_list), ')')),
+    optseq('(', optional($.checker_port_list), ')'),
     ';',
     repeat(seq(
       repeat($.attribute_instance),
       $.checker_or_generate_item
     )),
-    'endchecker', optional(seq(':', $.checker_identifier))
+    'endchecker', optseq(':', $.checker_identifier)
   ),
 
   class_declaration: $ => seq(
@@ -370,18 +387,15 @@ const rules = {
     optional($.lifetime),
     $.class_identifier,
     optional($.parameter_port_list),
-    optional(seq(
-      'extends',
-      $.class_type,
-      optional($.list_of_arguments_parent)
-    )),
-    optional(seq(
-      'implements',
-      sep1(',', $.interface_class_type)
-    )),
+    optseq(
+      'extends', $.class_type, optional($.list_of_arguments_parent)
+    ),
+    optseq(
+      'implements', sep1(',', $.interface_class_type)
+    ),
     ';',
     repeat($.class_item),
-    'endclass', optional(seq(':', $.class_identifier))
+    'endclass', optseq(':', $.class_identifier)
   ),
 
   interface_class_type: $ => seq(
@@ -393,13 +407,11 @@ const rules = {
     'interface', 'class',
     $.class_identifier,
     optional($.parameter_port_list),
-    optional(seq(
-      'extends',
-      optional(sep1(',', $.interface_class_type)),
-      ';'
-    )),
+    optseq(
+      'extends', optional(sep1(',', $.interface_class_type)), ';'
+    ),
     repeat($.interface_class_item),
-    'endclass', optional(seq(':', $.class_identifier))
+    'endclass', optseq(':', $.class_identifier)
   ),
 
   interface_class_item: $ => choice(
@@ -416,11 +428,11 @@ const rules = {
     'package', optional($.lifetime), $.package_identifier, ';',
     optional($.timeunits_declaration),
     repeat(seq($.attribute_instance), $.package_item),
-    'endpackage', optional(seq(':', $.package_identifier))
+    'endpackage', optseq(':', $.package_identifier)
   ),
 
   timeunits_declaration: $ => choice(
-    seq('timeunit', $.time_literal, optional(seq('/', $.time_literal)), ';'),
+    seq('timeunit', $.time_literal, optseq('/', $.time_literal), ';'),
     seq('timeprecision', $.time_literal, ';'),
     // seq('timeunit', $.time_literal, ';', 'timeprecision', $.time_literal, ';'),
     // seq('timeprecision', $.time_literal, ';', 'timeunit', $.time_literal, ';')
@@ -447,29 +459,10 @@ const rules = {
 
   list_of_port_declarations: $ => seq(
     '(',
-    optional(seq(
+    optional(sep1(',', seq(
       repeat($.attribute_instance),
       $.ansi_port_declaration
-    )),
-    repeat(seq(
-      ',',
-      repeat($.attribute_instance),
-      $.ansi_port_declaration
-    )),
-    ')'
-  ),
-
-  list_of_port_declarations1: $ => seq(
-    '(',
-    seq(
-      repeat($.attribute_instance),
-      $.ansi_port_declaration
-    ),
-    repeat(seq(
-      ',',
-      repeat($.attribute_instance),
-      $.ansi_port_declaration
-    )),
+    ))),
     ')'
   ),
 
@@ -480,7 +473,7 @@ const rules = {
       $.input_declaration,
       $.output_declaration,
       $.ref_declaration,
-      // $.interface_port_declaration,
+      $.interface_port_declaration,
     )
   ),
 
@@ -491,7 +484,7 @@ const rules = {
 
   _port_expression: $ => choice(
     $.port_reference,
-    // seq('{', sep1(',', $.port_reference), '}')
+    seq('{', sep1(',', $.port_reference), '}')
   ),
 
   port_reference: $ => seq(
@@ -499,16 +492,11 @@ const rules = {
     optional($.constant_select1)
   ),
 
-  port_direction: $ => choice(
-    'input',
-    'output',
-    'inout',
-    'ref'
-  ),
+  port_direction: $ => choice('input', 'output', 'inout', 'ref'),
 
   net_port_header: $ => seq(
-    $.port_direction,
-    optional($.net_port_type)
+    optional($.port_direction),
+    $.net_port_type1
   ),
 
   variable_port_header: $ => seq(
@@ -521,31 +509,26 @@ const rules = {
       $.interface_identifier,
       'interface'
     ),
-    optional(seq('.', $.modport_identifier))
+    optseq('.', $.modport_identifier)
   ),
 
   ansi_port_declaration: $ => choice(
     seq(
-      // optional(choice($.net_port_header, $.interface_port_header)),
-      $.net_port_header, // reordered : made net_port_header mandatory
+      optional(choice($.net_port_header, $.interface_port_header)),
       $.port_identifier,
       repeat($.unpacked_dimension),
-      optional(seq('=', $.constant_expression))
+      optseq('=', $.constant_expression)
     ),
-    // seq(
-    //   optional($.variable_port_header),
-    //   $.port_identifier,
-    //   repeat($._variable_dimension),
-    //   optional('=', $.constant_expression)
-    // ),
-    // seq(
-    //   optional($.port_direction),
-    //   '.',
-    //   $.port_identifier,
-    //   '(',
-    //   optional($.expression),
-    //   ')'
-    // )
+    seq(
+      optional($.variable_port_header),
+      $.port_identifier,
+      repeat($._variable_dimension),
+      optional('=', $.constant_expression)
+    ),
+    seq(
+      optional($.port_direction), '.', $.port_identifier,
+      '(', optional($.expression),')'
+    )
   ),
 
   /* A.1.4 Module items */
@@ -553,9 +536,9 @@ const rules = {
   elaboration_system_task: $ => choice(
     seq(
       '$fatal',
-      optional(seq(
-        '(', // $.finish_number, optional(seq(',', $.list_of_arguments)), ')' // FIXME
-      )),
+      optseq(
+        '(', // $.finish_number, optseq(',', $.list_of_arguments), ')' // FIXME
+      ),
       ';'
     ),
     seq(
@@ -574,7 +557,7 @@ const rules = {
     // $.assertion_item,
     $.bind_directive,
     $.continuous_assign,
-    // $.net_alias,
+    $.net_alias,
     $.initial_construct,
     $.final_construct,
     $.always_construct,
@@ -600,8 +583,8 @@ const rules = {
   ),
 
   _module_or_generate_item_declaration: $ => choice(
-    $._package_or_generate_item_declaration
-    //  $.genvar_declaration
+    $._package_or_generate_item_declaration,
+    $.genvar_declaration,
     //  $.clocking_declaration
     //  seq('default' __ 'clocking' __ clocking_identifier __ ';')
     //  seq('default' __ 'disable' __ 'iff' __ expression_or_dist __ ';')
@@ -609,14 +592,14 @@ const rules = {
 
   _non_port_module_item: $ => choice(
     $._directives,
-    // $.generate_region,
+    $.generate_region,
     $.module_or_generate_item,
-    //  $.specify_block
-    //  ( attribute_instance __ )* specparam_declaration
-    //  $.program_declaration
-    // $.module_declaration,
-    //  $.interface_declaration
-    //  $.timeunits_declaration
+    // $.specify_block,
+    seq(repeat($.attribute_instance), $.specparam_declaration),
+    $.program_declaration,
+    $.module_declaration,
+    $.interface_declaration,
+    $.timeunits_declaration,
   ),
 
   parameter_override: $ => seq(
@@ -630,7 +613,7 @@ const rules = {
     choice(
       seq(
         $.bind_target_scope,
-        optional(seq(':', $.bind_target_instance_list))
+        optseq(':', $.bind_target_instance_list)
       ),
       $.bind_target_instance
     ),
@@ -659,39 +642,53 @@ const rules = {
 
   /* A.1.5 Configuration source text */
 
-  // config_declaration ::=
-  // config config_identifier ;
-  // { local_parameter_declaration ; }
-  // design_statement
-  // { config_rule_statement }
-  // endconfig [ : config_identifier ]
+  config_declaration: $ => seq(
+    'config', $.config_identifier, ';',
+    repseq($.local_parameter_declaration, ';'),
+    $.design_statement,
+    repeat($.config_rule_statement),
+    'endconfig', optseq(':', $.config_identifier)
+  ),
 
-  // design_statement ::= design { [ library_identifier . ] cell_identifier } ;
+  design_statement: $ => seq(
+    'design',
+    repseq(
+      optseq($.library_identifier, '.'),
+      $.cell_identifier
+    ),
+    ';'
+  ),
 
-  // config_rule_statement ::=
-  // default_clause liblist_clause ;
-  //   |
-  //  inst_clause
-  //  liblist_clause ;
-  // |
-  //  inst_clause
-  //  use_clause ;
-  // |
-  //  cell_clause
-  //  liblist_clause ;
-  // |
-  //  cell_clause
-  //  use_clause ;
-  // default_clause ::= default
-  // inst_clause ::= instance inst_name
-  // inst_name ::= topmodule_identifier { . instance_identifier }
-  // cell_clause ::= cell [ library_identifier . ] cell_identifier
-  // liblist_clause ::= liblist {library_identifier}
-  // use_clause ::= use [ library_identifier . ] cell_identifier [ : config ]
-  // | use named_parameter_assignment { , named_parameter_assignment } [ : config ]
-  // | use [ library_identifier . ] cell_identifier named_parameter_assignment
-  // { , named_parameter_assignment } [ : config ]
+  config_rule_statement: $ => choice(
+    seq($.default_clause, $.liblist_clause, ';'),
+    seq($.inst_clause, $.liblist_clause, ';'),
+    seq($.inst_clause, $.use_clause, ';'),
+    seq($.cell_clause, $.liblist_clause, ';'),
+    seq($.cell_clause, $.use_clause, ';')
+  ),
 
+  default_clause: $ => 'default',
+
+  inst_clause: $ => seq('instance', $.inst_name),
+
+  inst_name: $ => seq($.topmodule_identifier, repseq('.', $.instance_identifier)),
+
+  cell_clause: $ => seq('cell', optseq($.library_identifier, '.'), $.cell_identifier),
+
+  liblist_clause: $ => seq('liblist', repeat($.library_identifier)),
+
+  use_clause: $ => seq(
+    'use',
+    choice(
+      sep1(',', $.named_parameter_assignment),
+      seq(
+        optseq($.library_identifier, '.'),
+        $.cell_identifier,
+        optional(sep1(',', $.named_parameter_assignment))
+      )
+    ),
+    optseq(':', 'config')
+  ),
 
   /* A.1.6 Interface items */
 
@@ -731,7 +728,7 @@ const rules = {
     seq(repeat($.attribute_instance), $._module_or_generate_item_declaration),
     seq(repeat($.attribute_instance), $.initial_construct),
     seq(repeat($.attribute_instance), $.final_construct),
-    // seq(repeat($.attribute_instance), $.concurrent_assertion_item),
+    seq(repeat($.attribute_instance), $.concurrent_assertion_item),
     $.timeunits_declaration,
     $.program_generate_item
   ),
@@ -753,7 +750,7 @@ const rules = {
     optional($.property_formal_type1),
     $.formal_port_identifier,
     repeat($._variable_dimension),
-    // optional(seq('=', $.property_actual_arg))
+    optseq('=', $.property_actual_arg)
   ),
 
   checker_port_direction: $ => choice('input', 'output'),
@@ -763,7 +760,7 @@ const rules = {
     $.initial_construct,
     $.always_construct,
     $.final_construct,
-    // $.assertion_item,
+    $.assertion_item,
     $.continuous_assign,
     $.checker_generate_item
   ),
@@ -772,9 +769,9 @@ const rules = {
     seq(optional('rand'), $.data_declaration),
     $.function_declaration,
     $.checker_declaration,
-    // $.assertion_item_declaration,
+    $.assertion_item_declaration,
     // $.covergroup_declaration,
-    // $.genvar_declaration,
+    $.genvar_declaration,
     // $.clocking_declaration,
     seq('default', 'clocking', $.clocking_identifier, ';'),
     seq('default', 'disable', 'iff', $.expression_or_dist, ';'),
@@ -807,7 +804,7 @@ const rules = {
       repeat($.class_item_qualifier),
       $.data_type,
       $.const_identifier,
-      optional(seq('=', $.constant_expression)),
+      optseq('=', $.constant_expression),
       ';'
     )
   ),
@@ -853,16 +850,16 @@ const rules = {
     'function',
     optional($.class_scope),
     'new',
-    optional(seq('(', optional($.tf_port_list), ')')),
+    optseq('(', optional($.tf_port_list), ')'),
     ';',
     repeat($.block_item_declaration),
-    optional(seq(
+    optseq(
       'super', '.', 'new',
       optional($.list_of_arguments_parent),
       ';'
-    )),
+    ),
     repeat($.function_statement_or_null),
-    'endfunction', optional(seq(':', 'new'))
+    'endfunction', optseq(':', 'new')
   ),
 
   /* A.1.10 Constraints */
@@ -899,9 +896,9 @@ const rules = {
     prec.left(seq(
       'if', '(', $.expression, ')',
       $.constraint_set,
-      optional(seq(
+      optseq(
         'else', $.constraint_set
-      ))
+      )
     )),
     seq(
       'foreach',
@@ -953,10 +950,10 @@ const rules = {
   /* A.1.11 Package items */
 
   package_item: $ => choice(
-    $._package_or_generate_item_declaration
-    //  / anonymous_program
-    //  / package_export_declaration
-    //  / timeunits_declaration
+    $._package_or_generate_item_declaration,
+    $.anonymous_program,
+    $.package_export_declaration,
+    $.timeunits_declaration
   ),
 
   _package_or_generate_item_declaration: $ => choice(
@@ -972,22 +969,22 @@ const rules = {
     seq($.any_parameter_declaration, ';'),
     // $.covergroup_declaration,
     $.overload_declaration,
-    // $.assertion_item_declaration,
+    $.assertion_item_declaration,
     ';'
   ),
 
-  /*
-  anonymous_program
-    = 'program' __ ';' ( __ anonymous_program_item )* __ 'endprogram'
+  anonymous_program: $ => seq(
+    'program', ';', repeat($.anonymous_program_item), 'endprogram'
+  ),
 
-  anonymous_program_item
-    = task_declaration
-    / function_declaration
-    / class_declaration
-    / covergroup_declaration
-    / class_constructor_declaration
-    / ';'
-  */
+  anonymous_program_item: $ => choice(
+    $.task_declaration,
+    $.function_declaration,
+    $.class_declaration,
+    // $.covergroup_declaration,
+    $.class_constructor_declaration,
+    ';'
+  ),
 
   /* A.2 Declarations */
 
@@ -995,13 +992,8 @@ const rules = {
 
   /* A.2.1.1 Module parameter declarations */
 
-  /* combined:
-    local_parameter_declaration
-    parameter_declaration
-  */
-
-  any_parameter_declaration: $ => seq(
-    choice('parameter', 'localparam'),
+  local_parameter_declaration: $ => seq(
+    'localparam',
     choice(
       seq(
         optional($.data_type_or_implicit1),
@@ -1009,6 +1001,22 @@ const rules = {
       ),
       seq('type', $.list_of_type_assignments)
     )
+  ),
+
+  parameter_declaration: $ => seq(
+    'parameter',
+    choice(
+      seq(
+        optional($.data_type_or_implicit1),
+        $.list_of_param_assignments
+      ),
+      seq('type', $.list_of_type_assignments)
+    )
+  ),
+
+  any_parameter_declaration: $ => choice(
+    $.local_parameter_declaration,
+    $.parameter_declaration
   ),
 
   specparam_declaration: $ => seq(
@@ -1021,49 +1029,33 @@ const rules = {
   /* A.2.1.2 Port declarations */
 
   inout_declaration: $ => seq(
-    'inout',
-    optional($.net_port_type),
-    $.list_of_port_identifiers
+    'inout', optional($.net_port_type1), $.list_of_port_identifiers
   ),
 
   input_declaration: $ => seq(
-    'input', choice(
-      seq(
-        optional($.net_port_type),
-        // $.list_of_port_identifiers
-      ),
-      seq(
-        optional($.variable_port_type),
-        // $.list_of_variable_identifiers
-      )
-    ),
-    $.list_of_port_identifiers
+    'input',
+    choice(
+      seq(optional($.net_port_type1), $.list_of_port_identifiers),
+      seq(optional($.variable_port_type), $.list_of_variable_identifiers)
+    )
   ),
 
   output_declaration: $ => seq(
-    'output', choice(
-      seq(
-        optional($.net_port_type),
-        // $.list_of_port_identifiers
-      ),
-      seq(
-        optional($.variable_port_type),
-        // $.list_of_variable_identifiers
-      ),
-    ),
-    $.list_of_port_identifiers
+    'output',
+    choice(
+      seq(optional($.net_port_type1), $.list_of_port_identifiers),
+      seq(optional($.variable_port_type), $.list_of_variable_port_identifiers),
+    )
   ),
 
   interface_port_declaration: $ => seq(
     $.interface_identifier,
-    optional(seq('.', $.modport_identifier)),
+    optseq('.', $.modport_identifier),
     $.list_of_interface_identifiers
   ),
 
   ref_declaration: $ => seq(
-    'ref',
-    $.variable_port_type,
-    $.list_of_variable_identifiers
+    'ref', $.variable_port_type, $.list_of_variable_identifiers
   ),
 
   // A.2.1.3 Type declarations
@@ -1077,38 +1069,26 @@ const rules = {
       $.list_of_variable_decl_assignments,
       ';'
     ),
-    // $.type_declaration,
+    $.type_declaration,
     $.package_import_declaration,
-    // $.net_type_declaration
+    $.net_type_declaration
   ),
 
   package_import_declaration: $ => seq(
-    'import',
-    sep1(',', $.package_import_item),
-    ';'
+    'import', sep1(',', $.package_import_item), ';'
   ),
 
   package_import_item: $ => seq(
-    $.package_identifier,
-    '::',
-    choice(
-      $.identifier,
-      '*'
-    )
+    $.package_identifier, '::', choice($.identifier, '*')
   ),
 
   package_export_declaration: $ => seq(
-    'export',
-    choice(
-      seq(
-        '*::*',
-        ';'
-      ),
-      seq(sep1(',', $.package_import_item), ';')
-    )
+    'export', choice('*::*', sep1(',', $.package_import_item)), ';'
   ),
 
-  genvar_declaration: $ => seq('genvar', $.list_of_genvar_identifiers, ';'),
+  genvar_declaration: $ => seq(
+    'genvar', $.list_of_genvar_identifiers, ';'
+  ),
 
   net_declaration: $ => choice(
     seq(
@@ -1120,46 +1100,37 @@ const rules = {
       $.list_of_net_decl_assignments,
       ';'
     ),
-    // seq(
-    //   $.net_type_identifier,
-    //   optional($.delay_control),
-    //   $.list_of_net_decl_assignments,
-    //   ';'
-    // ),
-    // seq(
-    //   'interconnect',
-    //   $.implicit_data_type,
-    //   optional(seq('#', $.delay_value)),
-    //   sep1(',' , seq($.net_identifier, repeat($.unpacked_dimension))),
-    //   ';'
-    // )
+    seq(
+      $.net_type_identifier,
+      optional($.delay_control),
+      $.list_of_net_decl_assignments,
+      ';'
+    ),
+    seq(
+      'interconnect',
+      optional($.implicit_data_type1),
+      optseq('#', $.delay_value),
+      sep1(',' , seq($.net_identifier, repeat($.unpacked_dimension))),
+      ';'
+    )
   ),
 
   type_declaration: $ => seq(
     'typedef',
     choice(
+      seq($.data_type, $.type_identifier, repeat($._variable_dimension)),
       seq(
-        $.data_type,
-        $.type_identifier,
-        repeat($._variable_dimension),
-        ';'
-      ),
-      seq(
-        $.interface_instance_identifier,
-        optional($.constant_bit_select1),
-        '.',
-        $.type_identifier,
-        $.type_identifier,
-        ';'
+        $.interface_instance_identifier, optional($.constant_bit_select1),
+        '.', $.type_identifier, $.type_identifier,
       ),
       seq(
         optional(choice(
           'enum', 'struct', 'union', 'class', seq('interface', 'class')
         )),
         $.type_identifier,
-        ';'
       )
-    )
+    ),
+    ';'
   ),
 
   net_type_declaration: $ => seq(
@@ -1168,25 +1139,19 @@ const rules = {
       seq(
         $.data_type,
         $.net_type_identifier,
-        optional(seq(
+        optseq(
           'with',
-          optional(choice(
-            $.package_scope,
-            $.class_scope
-          )),
+          optional(choice($.package_scope, $.class_scope)),
           $.tf_identifier
-        )),
-        ';'
+        )
       ),
       seq(
-        optional(choice(
-          $.package_scope,
-          $.class_scope
-        )),
+        optional(choice($.package_scope, $.class_scope)),
         $.net_type_identifier,
         $.net_type_identifier
       )
-    )
+    ),
+    ';'
   ),
 
   lifetime: $ => choice('static', 'automatic'),
@@ -1208,23 +1173,34 @@ const rules = {
     seq($.integer_vector_type, optional($._signing), repeat($.packed_dimension)),
     seq($.integer_atom_type, optional($._signing)),
     $.non_integer_type,
-    //  / struct_union ( 'packed' signing? )?
-    //    '{' struct_union_member struct_union_member* '}'
-    //    packed_dimension*
-    /*/ 'enum' enum_base_type?*/
-    /*'{' enum_name_declaration ( ',' enum_name_declaration )* '}'*/
-    /*packed_dimension**/
+    seq(
+      $._struct_union,
+      optseq('packed', optional($._signing)),
+      '{', repeat1($.struct_union_member), '}',
+      repeat($.packed_dimension)
+    ),
+    seq(
+      'enum', optional($._enum_base_type),
+      '{', sep1(',', $.enum_name_declaration), '}',
+      repeat($.packed_dimension)
+    ),
     'string',
     'chandle',
-    /*/ 'virtual' 'interface'? interface_identifier parameter_value_assignment?*/
-    /*( '.' modport_identifier )?*/
-    /*/ ( class_scope / package_scope )?*/
-    /*type_identifier*/
-    /*packed_dimension**/
-    /*/ class_type*/
+    prec.left(seq(
+      'virtual', optional('interface'),
+      $.interface_identifier,
+      optional($.parameter_value_assignment),
+      optseq('.', $.modport_identifier)
+    )),
+    seq(
+      optional(choice($.class_scope, $.package_scope)),
+      $.type_identifier,
+      repeat($.packed_dimension)
+    ),
+    $.class_type,
     'event',
-    /*/ ps_covergroup_identifier*/
-    // $.type_reference
+    $.ps_covergroup_identifier,
+    $.type_reference
   ),
 
   data_type_or_implicit1: $ => choice(
@@ -1239,27 +1215,22 @@ const rules = {
 
   _enum_base_type: $ => choice(
     seq(
-      $.integer_atom_type,
-      optional($._signing)
+      $.integer_atom_type, optional($._signing)
     ),
     seq(
-      $.integer_vector_type,
-      optional($._signing),
-      /* packed_dimension* */
+      $.integer_vector_type, optional($._signing), optional($.packed_dimension)
     ),
-    // seq(
-    //   /*/ type_identifier*/
-    //   /*packed_dimension**/
-    // )
+    seq(
+      $.type_identifier, optional($.packed_dimension)
+    )
   ),
 
   enum_name_declaration: $ => seq(
-    $.enum_identifier, optional(seq(
-      '[',
-      $.integral_number,
-      optional(seq(':', $.integral_number)),
-      ']'
-    )), optional(seq('=', $.constant_expression))
+    $.enum_identifier,
+    optseq(
+      '[', $.integral_number, optseq(':', $.integral_number),']'
+    ),
+    optseq('=', $.constant_expression)
   ),
 
   class_scope: $ => seq($.class_type, '::'),
@@ -1287,19 +1258,18 @@ const rules = {
 
   net_type: $ => choice('supply0', 'supply1', 'tri', 'triand', 'trior', 'trireg', 'tri0', 'tri1', 'uwire', 'wire', 'wand', 'wor'),
 
-  net_port_type: $ => choice(
-    seq($.net_type, optional($.data_type_or_implicit1)),
+  net_port_type1: $ => choice(
     seq(optional($.net_type), $.data_type_or_implicit1),
-    // $.net_type_identifier,
-    // seq('interconnect', $.implicit_data_type)
+    $.net_type_identifier,
+    seq('interconnect', optional($.implicit_data_type1))
   ),
 
   variable_port_type: $ => alias($._var_data_type, $._variable_port_type),
 
-  _var_data_type: $ => choice(
-    prec.left(-5, $.data_type),
+  _var_data_type: $ => prec.left(choice(
+    $.data_type,
     seq('var', optional($.data_type_or_implicit1))
-  ),
+  )),
 
   _signing: $ => choice('signed', 'unsigned'),
 
@@ -1310,14 +1280,13 @@ const rules = {
     $.ps_parameter_identifier
   ),
 
-  /*
-  struct_union_member
-    = attribute_instance*
-      random_qualifier?
-      data_type_or_void
-      list_of_variable_decl_assignments
-      ';'
-  */
+  struct_union_member: $ => seq(
+    repeat($.attribute_instance),
+    optional($.random_qualifier),
+    $.data_type_or_void,
+    $.list_of_variable_decl_assignments,
+    ';'
+  ),
 
   data_type_or_void: $ => choice(
     $.data_type,
@@ -1363,26 +1332,18 @@ const rules = {
 
   delay3: $ => seq('#', choice(
     $.delay_value,
-    // seq(
-    //   '(',
-    //   $.mintypmax_expression,
-    //   optional(seq(
-    //     $.mintypmax_expression,
-    //     optional($.mintypmax_expression)
-    //   )),
-    //   ')'
-    // )
+    seq(
+      '(', $.mintypmax_expression,
+      optseq($.mintypmax_expression,
+        optional($.mintypmax_expression)
+      ),
+      ')'
+    )
   )),
 
   delay2: $ => seq('#', choice(
     $.delay_value,
-    seq(
-      '(',
-      $.mintypmax_expression, optional(
-        $.mintypmax_expression
-      ),
-      ')'
-    )
+    seq('(', $.mintypmax_expression, optional($.mintypmax_expression), ')')
   )),
 
   delay_value: $ => choice(
@@ -1425,7 +1386,7 @@ const rules = {
   list_of_tf_variable_identifiers: $ => sep1(',', seq(
     $.port_identifier,
     repeat($._variable_dimension),
-    optional(seq('=', $.expression))
+    optseq('=', $.expression)
   )),
 
   list_of_type_assignments: $ => sep1(',', $.type_assignment),
@@ -1440,44 +1401,51 @@ const rules = {
   list_of_variable_port_identifiers: $ => sep1(',', seq(
     $.port_identifier,
     repeat($._variable_dimension),
-    optional(seq('=', $.constant_expression))
+    optseq('=', $.constant_expression)
   )),
 
   /* A.2.4 Declaration assignments */
 
   defparam_assignment: $ => seq(
-    $.hierarchical_parameter_identifier,
-    '=',
-    $.constant_mintypmax_expression
+    $.hierarchical_parameter_identifier, '=', $.constant_mintypmax_expression
   ),
 
   net_decl_assignment: $ => seq(
-    $.net_identifier,
-    repeat($.unpacked_dimension),
-    optional(seq('=', $.expression))
+    $.net_identifier, repeat($.unpacked_dimension), optseq('=', $.expression)
   ),
 
   param_assignment: $ => seq(
     $.parameter_identifier,
     repeat($.unpacked_dimension),
-    optional(seq('=', $.constant_param_expression))
+    optseq('=', $.constant_param_expression)
   ),
 
   specparam_assignment: $ => choice(
     seq($.specparam_identifier, '=', $.constant_mintypmax_expression),
-    // $.pulse_control_specparam
+    $.pulse_control_specparam
   ),
 
   type_assignment: $ => seq(
     $.type_identifier,
-    optional(seq('=', $.data_type))
+    optseq('=', $.data_type)
   ),
 
-  // pulse_control_specparam
-  //   = PATHPULSE$ = ( reject_limit_value [ , error_limit_value ] )
-  // | PATHPULSE$specify_input_terminal_descriptor
-  // $specify_output_terminal_descriptor
-  // = ( reject_limit_value [ , error_limit_value ] )
+  pulse_control_specparam: $ => choice(
+    seq(
+      'PATHPULSE$=',
+      '(',
+      $.reject_limit_value,
+      optseq(',', $.error_limit_value),
+      ')'
+    ),
+    seq(
+      'PATHPULSE$',
+      $.specify_input_terminal_descriptor,
+      '$',
+      $.specify_output_terminal_descriptor,
+      '=', '(', $.reject_limit_value, optseq(',', $.error_limit_value), ')'
+    )
+  ),
 
   error_limit_value: $ => $.limit_value,
 
@@ -1489,32 +1457,29 @@ const rules = {
     seq(
       $.variable_identifier,
       repeat($._variable_dimension),
-      optional(seq('=', $.expression))
+      optseq('=', $.expression)
     ),
-    // seq(
-    //   $.dynamic_array_variable_identifier,
-    //   $.unsized_dimension,
-    //   repeat($._variable_dimension),
-    //   optional(seq('=', $.dynamic_array_new))
-    // ),
-    // seq(
-    //   $.class_variable_identifier
-    //   optional(seq('=', $.class_new))
-    // )
+    seq(
+      $.dynamic_array_variable_identifier,
+      $.unsized_dimension,
+      repeat($._variable_dimension),
+      optseq('=', $.dynamic_array_new)
+    ),
+    seq(
+      $.class_variable_identifier,
+      optseq('=', $.class_new)
+    )
   ),
 
-  // class_new: $ => choice(
-  //   seq(
-  //     $.class_scope,
-  //     'new',
-  //     optional(seq('(', $.list_of_arguments, ')'))
-  //   ),
-  //   seq('new', $.expression)
-  // ),
+  class_new: $ => choice(
+    seq(
+      optional($.class_scope), 'new', optseq('(', $.list_of_arguments, ')')
+    ),
+    seq('new', $.expression)
+  ),
 
   dynamic_array_new: $ => seq(
-    'new', '[', $.expression, ']',
-    optional(seq('(', $.expression, ')'))
+    'new', '[', $.expression, ']', optseq('(', $.expression, ')')
   ),
 
   // A.2.5 Declaration ranges
@@ -1543,7 +1508,7 @@ const rules = {
   ),
 
   queue_dimension: $ => seq(
-    '[', '$', optional(seq(':', $.constant_expression)), ']'
+    '[', '$', optseq(':', $.constant_expression), ']'
   ),
 
   unsized_dimension: $ => seq('[', ']'),
@@ -1580,16 +1545,16 @@ const rules = {
     ),
     repeat($.function_statement_or_null),
     'endfunction',
-    optional(seq(':', $.function_identifier))
+    optseq(':', $.function_identifier)
   ),
 
   function_prototype: $ => seq(
     'function',
     $.data_type_or_void,
     $.function_identifier,
-    optional(seq(
+    optseq(
       '(', optional($.tf_port_list), ')'
-    ))
+    )
   ),
 
   dpi_import_export: $ => choice(
@@ -1597,7 +1562,7 @@ const rules = {
       'import',
       $.dpi_spec_string,
       optional($.dpi_function_import_property),
-      optional(seq($.c_identifier, '=')),
+      optseq($.c_identifier, '='),
       $.dpi_function_proto,
       ';'
     ),
@@ -1605,14 +1570,14 @@ const rules = {
       'import',
       $.dpi_spec_string,
       optional($.dpi_task_import_property),
-      optional(seq($.c_identifier, '=')),
+      optseq($.c_identifier, '='),
       $.dpi_task_proto,
       ';'
     ),
     seq(
       'export',
       $.dpi_spec_string,
-      optional(seq($.c_identifier, '=')),
+      optseq($.c_identifier, '='),
       'function',
       $.function_identifier,
       ';'
@@ -1620,7 +1585,7 @@ const rules = {
     seq(
       'export',
       $.dpi_spec_string,
-      optional(seq($.c_identifier, '=')),
+      optseq($.c_identifier, '='),
       'task',
       $.task_identifier,
       ';'
@@ -1664,7 +1629,7 @@ const rules = {
     ),
     repeat($.statement_or_null),
     'endtask',
-    optional(seq(':', $.task_identifier))
+    optseq(':', $.task_identifier)
   ),
 
   tf_item_declaration: $ => choice(
@@ -1680,11 +1645,11 @@ const rules = {
     optional('var'),
     // optional($.data_type_or_implicit1),
     $.data_type_or_implicit1,
-    optional(seq(
+    optseq(
       $.port_identifier,
       repeat($._variable_dimension),
       $.expression
-    ))
+    )
   ),
 
   tf_port_direction: $ => choice(
@@ -1704,7 +1669,7 @@ const rules = {
   task_prototype: $ => seq(
     'task',
     $.task_identifier,
-    optional(seq('(', optional($.tf_port_list), ')'))
+    optseq('(', optional($.tf_port_list), ')')
   ),
 
 
@@ -1779,32 +1744,71 @@ const rules = {
 
   // A.2.10 Assertion declarations
 
-  // concurrent_assertion_item ::=
-  // [ block_identifier : ] concurrent_assertion_statement
-  // | checker_instantiation
-  // concurrent_assertion_statement ::=
-  // assert_property_statement
-  // | assume_property_statement
-  // | cover_property_statement
-  // | cover_sequence_statement
-  // | restrict_property_statement
-  // assert_property_statement::=
-  // assert property ( property_spec ) action_block
-  // assume_property_statement::=
-  // assume property ( property_spec ) action_block
-  // cover_property_statement::=
-  // cover property ( property_spec ) statement_or_null
-  // expect_property_statement ::=
-  // expect ( property_spec ) action_block
-  // cover_sequence_statement::=
-  // cover sequence ( [clocking_event ] [ disable iff ( expression_or_dist ) ]
-  // sequence_expr ) statement_or_null
-  // restrict_property_statement::=
-  // restrict property ( property_spec ) ;
-  // property_instance ::=
-  // ps_or_hierarchical_property_identifier [ ( [ property_list_of_arguments ] ) ]
-  // property_list_of_arguments ::=
-  // [property_actual_arg] { , [property_actual_arg] } { , . identifier ( [property_actual_arg]| . identifier ( [property_actual_arg] ) { , . identifier ( [property_actual_arg] ) }
+  concurrent_assertion_item: $ => choice(
+    seq(
+      optseq($.block_identifier, ':'),
+      $.concurrent_assertion_statement
+    ),
+    $.checker_instantiation
+  ),
+
+  concurrent_assertion_statement: $ => choice(
+    $.assert_property_statement,
+    $.assume_property_statement,
+    $.cover_property_statement,
+    $.cover_sequence_statement,
+    $.restrict_property_statement
+  ),
+
+  assert_property_statement: $ => seq(
+    'assert', 'property', '(', $.property_spec, ')', $.action_block
+  ),
+
+  assume_property_statement: $ => seq(
+    'assume', 'property', '(', $.property_spec, ')', $.action_block
+  ),
+
+  cover_property_statement: $ => seq(
+    'cover', 'property', '(', $.property_spec, ')', $.statement_or_null
+  ),
+
+  expect_property_statement: $ => seq(
+    'expect', '(', $.property_spec, ')', $.action_block
+  ),
+
+  cover_sequence_statement: $ => seq(
+    'cover', 'sequence', '(',
+    optional($.clocking_event),
+    optseq(
+      'disable', 'iff', '(', $.expression_or_dist, ')'
+    ),
+    $.sequence_expr,
+    ')',
+    $.statement_or_null
+  ),
+
+  restrict_property_statement: $ => seq(
+    'restrict', 'property', '(', $.property_spec, ')', ';'
+  ),
+
+  property_instance: $ => seq(
+    $.ps_or_hierarchical_property_identifier,
+    optseq(
+      '(', optional($.property_list_of_arguments), ')'
+    )
+  ),
+
+  property_list_of_arguments: $ => choice(
+    seq(
+      sep1(',', optional($.property_actual_arg)),
+      repeat1(seq( // TODO remove 1
+        ',', '.', $.identifier, '(', optional($.property_actual_arg), ')'
+      ))
+    ),
+    sep1(',', seq(
+      '.', $.identifier, '(', optional($.property_actual_arg), ')'
+    ))
+  ),
 
   property_actual_arg: $ => choice(
     $.property_expr,
@@ -1820,28 +1824,28 @@ const rules = {
   property_declaration: $ => seq(
     'property',
     $.property_identifier,
-    optional(seq(
+    optseq(
       '(', optional($.property_port_list), ')'
-    )),
+    ),
     ';',
     repeat($.assertion_variable_declaration),
     $.property_spec,
     optional(';'),
-    'endproperty', optional(seq(':', $.property_identifier))
+    'endproperty', optseq(':', $.property_identifier)
   ),
 
   property_port_list: $ => sep1(',', $.property_port_item),
 
   property_port_item: $ => seq(
     repeat($.attribute_instance),
-    optional(seq(
+    optseq(
       'local',
       optional($.property_lvar_port_direction)
-    )),
+    ),
     $.property_formal_type1,
     $.formal_port_identifier,
     repeat($._variable_dimension),
-    optional(seq('=', $.property_actual_arg))
+    optseq('=', $.property_actual_arg)
   ),
 
   property_lvar_port_direction: $ => 'input',
@@ -1853,9 +1857,9 @@ const rules = {
 
   property_spec: $ => seq(
     optional($.clocking_event),
-    optional(seq(
+    optseq(
       'disable', 'iff', '(', $.expression_or_dist, ')'
-    )),
+    ),
     $.property_expr
   ),
 
@@ -1909,30 +1913,30 @@ const rules = {
   sequence_declaration: $ => seq(
     'sequence',
     $.sequence_identifier,
-    optional(seq(
+    optseq(
       '(', optional($.sequence_port_list), ')'
-    )),
+    ),
     ';',
     repeat($.assertion_variable_declaration),
     $.sequence_expr,
     optional(';'),
-    'endsequence', optional(seq(':', $.sequence_identifier))
+    'endsequence', optseq(':', $.sequence_identifier)
   ),
 
   sequence_port_list: $ => sep1(',', $.sequence_port_item),
 
   sequence_port_item: $ => seq(
     repeat($.attribute_instance),
-    optional(seq(
+    optseq(
       'local',
       optional($.sequence_lvar_port_direction)
-    )),
+    ),
     optional($.sequence_formal_type1),
     $.formal_port_identifier,
     repeat($._variable_dimension),
-    optional(seq(
+    optseq(
       '=', $.sequence_actual_arg
-    ))
+    )
   ),
 
   sequence_lvar_port_direction: $ => choice('input', 'inout', 'output'),
@@ -1958,20 +1962,20 @@ const rules = {
   // | clocking_event sequence_expr
   ),
 
-  // cycle_delay_range ::=
+  // cycle_delay_range: $ =>
   // ## constant_primary
   // | ## [ cycle_delay_const_range_expression ]
   // | ##[*]
   // | ##[+]
-  // sequence_method_call ::=
+  // sequence_method_call: $ =>
   // sequence_instance . method_identifier
-  // sequence_match_item ::=
+  // sequence_match_item: $ =>
   // operator_assignment
   // | inc_or_dec_expression
   // | subroutine_call
-  // sequence_instance ::=
+  // sequence_instance: $ =>
   // ps_or_hierarchical_sequence_identifier [ ( [ sequence_list_of_arguments ] ) ]
-  // sequence_list_of_arguments ::=
+  // sequence_list_of_arguments: $ =>
   // [sequence_actual_arg] { , [sequence_actual_arg] } { , . identifier ( [sequence_actual_arg]| . identifier ( [sequence_actual_arg] ) { , . identifier ( [sequence_actual_arg] ) }
 
   sequence_actual_arg: $ => choice(
@@ -1985,33 +1989,33 @@ const rules = {
     $.goto_repetition1 // FIXME
   ),
 
-  // sequence_abbrev ::= consecutive_repetition
+  // sequence_abbrev: $ => consecutive_repetition
 
-  // consecutive_repetition ::=
+  // consecutive_repetition: $ =>
   // [* const_or_range_expression ]
   // | [*]
   // | [+]
 
-  // non_consecutive_repetition ::= [= const_or_range_expression ]
+  // non_consecutive_repetition: $ => [= const_or_range_expression ]
 
   goto_repetition1: $ => seq(
     '->',
     // $.const_or_range_expression
   ),
 
-  // const_or_range_expression ::=
+  // const_or_range_expression: $ =>
   // constant_expression
   // | cycle_delay_const_range_expression
-  // cycle_delay_const_range_expression ::=
+  // cycle_delay_const_range_expression: $ =>
   // constant_expression : constant_expression
   // | constant_expression : $
 
   expression_or_dist: $ => seq(
     $.expression,
-    optional(seq(
+    optseq(
       'dist',
       '{', $.dist_list, '}'
-    ))
+    )
   ),
 
   assertion_variable_declaration: $ => seq(
@@ -2028,33 +2032,33 @@ const rules = {
 
   // A.3.2 Primitive strengths
 
-  // pulldown_strength ::=
+  // pulldown_strength: $ =>
   // ( strength0 , strength1 )
   // | ( strength1 , strength0 )
   // | ( strength0 )
-  // pullup_strength ::=
+  // pullup_strength: $ =>
   // ( strength0 , strength1 )
   // | ( strength1 , strength0 )
   // | ( strength1 )
 
   // A.3.3 Primitive terminals
 
-  // enable_terminal ::= expression
-  // inout_terminal ::= net_lvalue
-  // input_terminal ::= expression
-  // ncontrol_terminal ::= expression
-  // output_terminal ::= net_lvalue
-  // pcontrol_terminal ::= expression
+  // enable_terminal: $ => expression
+  // inout_terminal: $ => net_lvalue
+  // input_terminal: $ => expression
+  // ncontrol_terminal: $ => expression
+  // output_terminal: $ => net_lvalue
+  // pcontrol_terminal: $ => expression
 
   // A.3.4 Primitive gate and switch types
 
-  // cmos_switchtype ::= cmos | rcmos
-  // enable_gatetype ::= bufif0 | bufif1 | notif0 | notif1
-  // mos_switchtype ::= nmos | pmos | rnmos | rpmos
-  // n_input_gatetype ::= and | nand | or | nor | xor | xnor
-  // n_output_gatetype ::= buf | not
-  // pass_en_switchtype ::= tranif0 | tranif1 | rtranif1 | rtranif0
-  // pass_switchtype ::= tran | rtran
+  // cmos_switchtype: $ => cmos | rcmos
+  // enable_gatetype: $ => bufif0 | bufif1 | notif0 | notif1
+  // mos_switchtype: $ => nmos | pmos | rnmos | rpmos
+  // n_input_gatetype: $ => and | nand | or | nor | xor | xnor
+  // n_output_gatetype: $ => buf | not
+  // pass_en_switchtype: $ => tranif0 | tranif1 | rtranif1 | rtranif0
+  // pass_switchtype: $ => tran | rtran
 
   // A.4 Instantiations
 
@@ -2105,16 +2109,16 @@ const rules = {
   ),
 
   // from spec:
-  // named_port_connection ::=
+  // named_port_connection: $ =>
   //   { attribute_instance } . port_identifier [ ( [ expression ] ) ]
   // | { attribute_instance } .*
 
   named_port_connection: $ => seq(
     repeat($.attribute_instance),
     choice(
-      seq('.', $.port_identifier, optional(seq(
+      seq('.', $.port_identifier, optseq(
         '(', optional($.expression), ')'
-      ))),
+      )),
       '.*'
     )
   ),
@@ -2143,15 +2147,15 @@ const rules = {
     '(',
     // optional($.list_of_checker_port_connections),
     choice(
-      sep1(',', optional(seq(
+      sep1(',', optseq(
         repeat($.attribute_instance),
         optional($.property_actual_arg)
-      ))),
+      )),
       // sep1(',', $.named_checker_port_connection)
       sep1(',', choice(
         seq(
           repeat($.attribute_instance), '.', $.formal_port_identifier,
-          optional(seq('(', optional($.property_actual_arg), ')'))
+          optseq('(', optional($.property_actual_arg), ')')
         ),
         seq(
           repeat($.attribute_instance), '.*'
@@ -2175,7 +2179,7 @@ const rules = {
   // named_checker_port_connection: $ => choice(
   //   seq(
   //     repeat($.attribute_instance), '.', $.formal_port_identifier,
-  //     optional(seq('(', optional($.property_actual_arg), ')'))
+  //     optseq('(', optional($.property_actual_arg), ')')
   //   ),
   //   seq(
   //     repeat($.attribute_instance, '.*')
@@ -2215,9 +2219,7 @@ const rules = {
 
   if_generate_construct: $ => prec.left(seq(
     'if', '(', $.constant_expression, ')', $.generate_block,
-    optional(seq(
-      'else', $.generate_block
-    )),
+    optseq('else', $.generate_block),
   )),
 
   case_generate_construct: $ => seq(
@@ -2234,12 +2236,12 @@ const rules = {
   generate_block: $ => choice(
     $.generate_item,
     seq(
-      optional(seq($.generate_block_identifier, ':')),
+      optseq($.generate_block_identifier, ':'),
       'begin',
-      optional(seq(':', $.generate_block_identifier)),
+      optseq(':', $.generate_block_identifier),
       repeat($.generate_item),
       'end',
-      optional(seq(':', $.generate_block_identifier)),
+      optseq(':', $.generate_block_identifier),
     )
   ),
 
@@ -2523,8 +2525,11 @@ const rules = {
 
   list_of_net_assignments: $ => sep1(',', $.net_assignment),
 
-  // list_of_variable_assignments = variable_assignment { , variable_assignment }
-  // net_alias = alias net_lvalue = net_lvalue { = net_lvalue } ;
+  list_of_variable_assignments: $ => sep1(',', $.variable_assignment),
+
+  net_alias: $ => seq(
+    'alias', $.net_lvalue, '=', sep1(',', seq('=', $.net_lvalue)), ';'
+  ),
 
   net_assignment: $ => seq($.net_lvalue, '=', $.expression),
 
@@ -2620,10 +2625,10 @@ const rules = {
   ),
 
   par_block: $ => seq(
-    'fork', optional(seq(':', $.block_identifier)),
+    'fork', optseq(':', $.block_identifier),
     repeat($.block_item_declaration),
     repeat($.statement_or_null),
-    $.join_keyword, optional(seq(':', $.block_identifier))
+    $.join_keyword, optseq(':', $.block_identifier)
   ),
 
   join_keyword: $ => choice('join', 'join_any', 'join_none'),
@@ -2642,26 +2647,26 @@ const rules = {
   ),
 
   statement_item: $ => choice(
-    // seq($.blocking_assignment, ';'),
-    // seq($.nonblocking_assignment, ';'),
-    // seq($.procedural_continuous_assignment, ';'),
+    seq($.blocking_assignment, ';'),
+    seq($.nonblocking_assignment, ';'),
+    seq($.procedural_continuous_assignment, ';'),
     $.case_statement,
     $.conditional_statement,
-    // seq($.inc_or_dec_expression, ';'),
-    // $.subroutine_call_statement,
-    // $.disable_statement,
-    // $.event_trigger,
-    // $.loop_statement,
-    // $.jump_statement,
-    // $.par_block,
+    seq($.inc_or_dec_expression, ';'),
+    $.subroutine_call_statement,
+    $.disable_statement,
+    $.event_trigger,
+    $.loop_statement,
+    $.jump_statement,
+    $.par_block,
     $.seq_block,
     $.procedural_timing_control_statement,
-    // $.wait_statement,
-    // $.procedural_assertion_statement,
-    // $.clocking_drive ';',
+    $.wait_statement,
+    $.procedural_assertion_statement,
+    // seq($.clocking_drive, ';'),
     // $.randsequence_statement,
-    // $.randcase_statement,
-    // $.expect_property_statement,
+    $.randcase_statement,
+    $.expect_property_statement,
   ),
 
   function_statement: $ => $.statement,
@@ -2706,11 +2711,11 @@ const rules = {
     // seq(
     //   optional($.edge_identifier),
     //   $.expression,
-    //   optional(seq('iff', $.expression))
+    //   optseq('iff', $.expression)
     // ),
     // seq(
     //   $.sequence_instance,
-    //   optional(seq('iff', $.expression))
+    //   optseq('iff', $.expression)
     // ),
     // seq('(', $.event_expression, ')')
   ),
@@ -2720,11 +2725,11 @@ const rules = {
   //   seq(
   //     optional($.edge_identifier),
   //     $.expression,
-  //     optional(seq('iff', $.expression))
+  //     optseq('iff', $.expression)
   //   ),
   //   // seq(
   //   //   $.sequence_instance,
-  //   //   optional(seq('iff', $.expression))
+  //   //   optseq('iff', $.expression)
   //   // ),
   //   seq('(', $.event_expression, ')')
   // ),
@@ -2735,27 +2740,28 @@ const rules = {
     $.cycle_delay
   ),
 
-  // jump_statement =
-  // return [ expression ] ;
-  // | break ;
-  // | continue ;
-  // wait_statement =
-  // wait ( expression ) statement_or_null
-  // | wait fork ;
-  // | wait_order ( hierarchical_identifier { , hierarchical_identifier } )
-  //    action_block
-  // event_trigger =
-  // -> hierarchical_event_identifier ;
-  // |->> [ delay_or_event_control ] hierarchical_event_identifier ;
-  // disable_statement =
-  // disable hierarchical_task_identifier ;
-  // | disable hierarchical_block_identifier ;
-  // | disable fork ;
-  //
-  //
-  //
-  //
-  //
+  jump_statement: $ => choice(
+    seq('return', optional($.expression), ';'),
+    seq('break', ';'),
+    seq('continue', ';'),
+  ),
+
+  wait_statement: $ => choice(
+    seq('wait', '(', $.expression, ')', $.statement_or_null),
+    seq('wait', 'fork', ';'),
+    seq('wait_order', '(', sep1(',', $.hierarchical_identifier), ')', $.action_block),
+  ),
+
+  event_trigger: $ => choice(
+    seq('->', $.hierarchical_event_identifier, ';'),
+    seq('|->>', optional($.delay_or_event_control), $.hierarchical_event_identifier, ';')
+  ),
+
+  disable_statement: $ => choice(
+    seq('disable', $.hierarchical_task_identifier, ';'),
+    seq('disable', $.hierarchical_block_identifier, ';'),
+    seq('disable', 'fork', ';')
+  ),
 
   // A.6.6 Conditional statements
 
@@ -2763,14 +2769,12 @@ const rules = {
     optional($.unique_priority),
     'if', '(', $.cond_predicate, ')', $.statement_or_null,
     // repeat(seq('else', 'if', '(', $.cond_predicate, ')', $.statement_or_null)),
-    optional(seq('else', $.statement_or_null))
+    optseq('else', $.statement_or_null)
   )),
 
   unique_priority: $ => choice('unique', 'unique0', 'priority'),
 
-  cond_predicate: $ =>
-    $.expression_or_cond_pattern,
-    // sep1('&&&', $.expression_or_cond_pattern),
+  cond_predicate: $ => psep1(PREC.PARENT, '&&&', $.expression_or_cond_pattern), // FIXME precedence
 
   expression_or_cond_pattern: $ => choice(
     $.expression,
@@ -2881,74 +2885,130 @@ const rules = {
 
   // A.6.8 Looping statements
 
-  // loop_statement =
-  // forever statement_or_null
-  // | repeat ( expression ) statement_or_null
-  // | while ( expression ) statement_or_null
-  // | for ( [ for_initialization ] ; [ expression ] ; [ for_step ] )
-  // statement_or_null
-  // | do statement_or_null while ( expression ) ;
-  // | foreach ( ps_or_hierarchical_array_identifier [ loop_variables ] )
-  //    statement
-  // for_initialization =
-  // list_of_variable_assignments
-  // | for_variable_declaration { , for_variable_declaration }
-  // for_variable_declaration =
-  // [ var ] data_type variable_identifier = expression
-  //   { , variable_identifier = expression }14
-  // for_step = for_step_assignment { , for_step_assignment }
-  // for_step_assignment =
-  // operator_assignment
-  // | inc_or_dec_expression
-  // | function_subroutine_call
+  loop_statement: $ => choice(
+    seq('forever', $.statement_or_null),
+    seq('repeat', '(', $.expression, ')', $.statement_or_null),
+    seq('while', '(', $.expression, ')', $.statement_or_null),
+    seq(
+      'for', '(',
+      optional($.for_initialization), ';',
+      optional($.expression), ';',
+      optional($.for_step),
+      ')',
+      $.statement_or_null
+    ),
+    seq('do', $.statement_or_null, 'while', '(', $.expression, ')', ';'),
+    seq(
+      'foreach', '(',
+      $.ps_or_hierarchical_array_identifier,
+      '[',
+      optional($.loop_variables1),
+      ']',
+      ')',
+      $.statement
+    )
+  ),
 
-  loop_variables1: $ => sep1(',', $.index_variable_identifier),
+  for_initialization: $ => choice(
+    $.list_of_variable_assignments,
+    sep1(',', $.for_variable_declaration)
+  ),
+
+  for_variable_declaration: $ => seq(
+    optional('var'), $.data_type,
+    sep1(',', seq(
+      $.variable_identifier, '=', $.expression
+    ))
+  ),
+
+  for_step: $ => sep1(',', $.for_step_assignment),
+
+  for_step_assignment: $ => choice(
+    $.operator_assignment,
+    $.inc_or_dec_expression,
+    $.function_subroutine_call
+  ),
+
+  loop_variables1: $ => seq(
+    $.index_variable_identifier,
+    repeat(seq(
+      ',', optional($.index_variable_identifier)
+    ))
+  ),
 
   // A.6.9 Subroutine call statements
 
-  // subroutine_call_statement =
-  // subroutine_call ;
-  // | void ' ( function_subroutine_call ) ;
-
-  // A.6.9 Subroutine call statements
+  subroutine_call_statement: $ => choice(
+    seq($.subroutine_call, ';'),
+    seq('void\'', '(', $.function_subroutine_call, ')', ';')
+  ),
 
   // A.6.10 Assertion statements
 
-  // assertion_item =
-  // concurrent_assertion_item
-  // | deferred_immediate_assertion_item
-  // deferred_immediate_assertion_item
-  //  = [ block_identifier : ] deferred_immediate_assertion_statement
-  // procedural_assertion_statement =
-  // concurrent_assertion_statement
-  // | immediate_assertion_statement
-  // | checker_instantiation
-  // immediate_assertion_statement =
-  // simple_immediate_assertion_statement
-  // | deferred_immediate_assertion_statement
-  // simple_immediate_assertion_statement =
-  // simple_immediate_assert_statement
-  // | simple_immediate_assume_statement
-  // | simple_immediate_cover_statement
-  // simple_immediate_assert_statement =
-  // assert ( expression ) action_block
-  // simple_immediate_assume_statement =
-  // assume ( expression ) action_block
-  // simple_immediate_cover_statement =
-  // cover ( expression ) statement_or_null
-  // deferred_immediate_assertion_statement =
-  // deferred_immediate_assert_statement
-  // | deferred_immediate_assume_statement
-  // | deferred_immediate_cover_statement
-  // deferred_immediate_assert_statement =
-  // assert #0 ( expression ) action_block
-  // | assert final ( expression ) action_block
-  // deferred_immediate_assume_statement =
-  // assume #0 ( expression ) action_block
-  // | assume final ( expression ) action_block
-  // deferred_immediate_cover_statement =
-  // cover #0 ( expression ) statement_or_null
-  // | cover final ( expression ) statement_or_null
+  assertion_item: $ => choice(
+    $.concurrent_assertion_item,
+    $.deferred_immediate_assertion_item
+  ),
+
+  deferred_immediate_assertion_item: $ => seq(
+    optseq(
+      $.block_identifier, ':'
+    ),
+    $.deferred_immediate_assertion_statement
+  ),
+
+  procedural_assertion_statement: $ => choice(
+    $.concurrent_assertion_statement,
+    $.immediate_assertion_statement,
+    $.checker_instantiation
+  ),
+
+  immediate_assertion_statement: $ => choice(
+    $.simple_immediate_assertion_statement,
+    $.deferred_immediate_assertion_statement
+  ),
+
+  simple_immediate_assertion_statement: $ => choice(
+    $.simple_immediate_assert_statement,
+    $.simple_immediate_assume_statement,
+    $.simple_immediate_cover_statement
+  ),
+
+  simple_immediate_assert_statement: $ => seq(
+    'assert', '(', $.expression, ')', $.action_block
+  ),
+
+  simple_immediate_assume_statement: $ => seq(
+    'assume', '(', $.expression, ')', $.action_block
+  ),
+
+  simple_immediate_cover_statement: $ => seq(
+    'cover', '(', $.expression, ')', $.statement_or_null
+  ),
+
+  deferred_immediate_assertion_statement: $ => choice(
+    $.deferred_immediate_assert_statement,
+    $.deferred_immediate_assume_statement,
+    $.deferred_immediate_cover_statement
+  ),
+
+  deferred_immediate_assert_statement: $ => seq(
+    'assert',
+    choice('#0', 'final'),
+    '(', $.expression, ')', $.action_block
+  ),
+
+  deferred_immediate_assume_statement: $ => seq(
+    'assume',
+    choice('#0', 'final'),
+    '(', $.expression, ')', $.action_block
+  ),
+
+  deferred_immediate_cover_statement: $ => seq(
+    'cover',
+    choice('#0', 'final'),
+    '(', $.expression, ')', $.statement_or_null
+  ),
 
   // A.6.11 Clocking block
 
@@ -3052,211 +3112,406 @@ const rules = {
 
   // A.7.2 Specify path declarations
 
-  // path_declaration =
-  // simple_path_declaration ;
-  // | edge_sensitive_path_declaration ;
-  // | state_dependent_path_declaration ;
-  // simple_path_declaration =
-  // parallel_path_description = path_delay_value
-  // | full_path_description = path_delay_value
-  // parallel_path_description =
-  // ( specify_input_terminal_descriptor [ polarity_operator ]
-  //    => specify_output_terminal_descriptor )
-  // full_path_description =
-  // ( list_of_path_inputs [ polarity_operator ] *> list_of_path_outputs )
-  // list_of_path_inputs =
-  // specify_input_terminal_descriptor { , specify_input_terminal_descriptor }
-  // list_of_path_outputs =
-  // specify_output_terminal_descriptor { , specify_output_terminal_descriptor }
-  // A.7.3 Specify block terminals
-  // specify_input_terminal_descriptor =
-  // input_identifier [ [ constant_range_expression ] ]
-  // specify_output_terminal_descriptor =
-  // output_identifier [ [ constant_range_expression ] ]
-  // input_identifier
-  //   = input_port_identifier | inout_port_identifier
-  //  | interface_identifier.port_identifier
-  // output_identifier = output_port_identifier | inout_port_identifier | interface_identifier.port_identifier
+  path_declaration: $ => seq(
+    choice(
+      $.simple_path_declaration,
+      // $.edge_sensitive_path_declaration,
+      // $.state_dependent_path_declaration,
+    ),
+    ';'
+  ),
+
+  simple_path_declaration: $ => seq(
+    choice($.parallel_path_description, $.full_path_description),
+    seq('=', $.path_delay_value)
+  ),
+
+  parallel_path_description: $ => seq(
+    '(',
+    $.specify_input_terminal_descriptor,
+    // optional($.polarity_operator),
+    '=>',
+    $.specify_output_terminal_descriptor,
+    ')'
+  ),
+
+  full_path_description: $ => seq(
+    '(',
+    $.list_of_path_inputs,
+    // optional($.polarity_operator),
+    '*>',
+    $.list_of_path_outputs,
+    ')'
+  ),
+
+  list_of_path_inputs: $ => sep1(',', $.specify_input_terminal_descriptor),
+
+  list_of_path_outputs: $ => sep1(',', $.specify_output_terminal_descriptor),
 
   // A.7.3 Specify block terminals
 
-  // A.7.4 Specify path delays
+  specify_input_terminal_descriptor: $ => seq(
+    $.input_identifier, optseq('[', $.constant_range_expression, ']')
+  ),
 
-  // path_delay_value =
-  // list_of_path_delay_expressions
-  // | ( list_of_path_delay_expressions )
-  // list_of_path_delay_expressions =
-  // t_path_delay_expression
-  // | trise_path_delay_expression , tfall_path_delay_expression
-  // | trise_path_delay_expression , tfall_path_delay_expression
-  //   , tz_path_delay_expression
-  // | t01_path_delay_expression , t10_path_delay_expression
-  //   , t0z_path_delay_expression ,
-  // tz1_path_delay_expression , t1z_path_delay_expression
-  //   , tz0_path_delay_expression
-  // | t01_path_delay_expression , t10_path_delay_expression
-  //   , t0z_path_delay_expression ,
-  // tz1_path_delay_expression , t1z_path_delay_expression
-  //   , tz0_path_delay_expression ,
-  // t0x_path_delay_expression , tx1_path_delay_expression
-  //   , t1x_path_delay_expression ,
-  // tx0_path_delay_expression , txz_path_delay_expression
-  //   , tzx_path_delay_expression
-  // t_path_delay_expression = path_delay_expression
-  // trise_path_delay_expression = path_delay_expression
-  // tfall_path_delay_expression = path_delay_expression
-  // tz_path_delay_expression = path_delay_expression
-  // t01_path_delay_expression = path_delay_expression
-  // t10_path_delay_expression = path_delay_expression
-  // t0z_path_delay_expression = path_delay_expression
-  // tz1_path_delay_expression = path_delay_expression
-  // t1z_path_delay_expression = path_delay_expression
-  // tz0_path_delay_expression = path_delay_expression
-  // t0x_path_delay_expression = path_delay_expression
-  // tx1_path_delay_expression = path_delay_expression
-  // t1x_path_delay_expression = path_delay_expression
-  // tx0_path_delay_expression = path_delay_expression
-  // txz_path_delay_expression = path_delay_expression
-  // tzx_path_delay_expression = path_delay_expression
-  // path_delay_expression = constant_mintypmax_expression
-  // edge_sensitive_path_declaration =
-  // parallel_edge_sensitive_path_description = path_delay_value
-  // | full_edge_sensitive_path_description = path_delay_value
-  // parallel_edge_sensitive_path_description =
-  // ( [ edge_identifier ] specify_input_terminal_descriptor
-  //  [ polarity_operator ] =>
-  // ( specify_output_terminal_descriptor [ polarity_operator ]
-  //   : data_source_expression ) )
-  // full_edge_sensitive_path_description =
-  // ( [ edge_identifier ] list_of_path_inputs [ polarity_operator ] *>
-  // ( list_of_path_outputs [ polarity_operator ] : data_source_expression ) )
-  // data_source_expression = expression
+  specify_output_terminal_descriptor: $ => seq(
+    $.output_identifier, optseq('[', $.constant_range_expression, ']')
+  ),
+
+  input_identifier: $ => choice(
+    $.input_port_identifier,
+    $.inout_port_identifier,
+    seq($.interface_identifier, '.', $.port_identifier) // FIXME glue dot?
+  ),
+
+  output_identifier: $ => choice(
+    $.output_port_identifier,
+    $.inout_port_identifier,
+    seq($.interface_identifier, '.', $.port_identifier)
+  ),
+
+  /* A.7.4 Specify path delays */
+
+  path_delay_value: $ => choice(
+    $.list_of_path_delay_expressions,
+    seq('(', $.list_of_path_delay_expressions, ')')
+  ),
+
+  list_of_path_delay_expressions: $ => choice(
+    $.t_path_delay_expression,
+    seq($.trise_path_delay_expression, ',', $.tfall_path_delay_expression),
+    seq(
+      $.trise_path_delay_expression, ',', $.tfall_path_delay_expression, ',',
+      $.tz_path_delay_expression
+    ),
+    seq(
+      $.t01_path_delay_expression, ',', $.t10_path_delay_expression, ',',
+      $.t0z_path_delay_expression, ',', $.tz1_path_delay_expression, ',',
+      $.t1z_path_delay_expression, ',', $.tz0_path_delay_expression
+    ),
+    seq(
+      $.t01_path_delay_expression, ',', $.t10_path_delay_expression, ',',
+      $.t0z_path_delay_expression, ',', $.tz1_path_delay_expression, ',',
+      $.t1z_path_delay_expression, ',', $.tz0_path_delay_expression, ',',
+      $.t0x_path_delay_expression, ',', $.tx1_path_delay_expression, ',',
+      $.t1x_path_delay_expression, ',', $.tx0_path_delay_expression, ',',
+      $.txz_path_delay_expression, ',', $.tzx_path_delay_expression
+    )
+  ),
+
+  t_path_delay_expression: $ => $.path_delay_expression,
+  trise_path_delay_expression: $ => $.path_delay_expression,
+  tfall_path_delay_expression: $ => $.path_delay_expression,
+  tz_path_delay_expression: $ => $.path_delay_expression,
+  t01_path_delay_expression: $ => $.path_delay_expression,
+  t10_path_delay_expression: $ => $.path_delay_expression,
+  t0z_path_delay_expression: $ => $.path_delay_expression,
+  tz1_path_delay_expression: $ => $.path_delay_expression,
+  t1z_path_delay_expression: $ => $.path_delay_expression,
+  tz0_path_delay_expression: $ => $.path_delay_expression,
+  t0x_path_delay_expression: $ => $.path_delay_expression,
+  tx1_path_delay_expression: $ => $.path_delay_expression,
+  t1x_path_delay_expression: $ => $.path_delay_expression,
+  tx0_path_delay_expression: $ => $.path_delay_expression,
+  txz_path_delay_expression: $ => $.path_delay_expression,
+  tzx_path_delay_expression: $ => $.path_delay_expression,
+
+  path_delay_expression: $ => $.constant_mintypmax_expression,
+
+  edge_sensitive_path_declaration: $ => seq(
+    choice(
+      $.parallel_edge_sensitive_path_description,
+      $.full_edge_sensitive_path_description,
+    ),
+    '=', $.path_delay_value
+  ),
+
+  parallel_edge_sensitive_path_description: $ => seq(
+    '(',
+    optional($.edge_identifier),
+    $.specify_input_terminal_descriptor,
+    optional($.polarity_operator),
+    '=>',
+    '(',
+    $.specify_output_terminal_descriptor,
+    optional($.polarity_operator),
+    ':',
+    $.data_source_expression,
+    ')',
+    ')'
+  ),
+
+  full_edge_sensitive_path_description: $ => seq(
+    '(',
+    optional($.edge_identifier),
+    $.list_of_path_inputs,
+    optional($.polarity_operator),
+    '*>',
+    '(',
+    $.list_of_path_outputs,
+    optional($.polarity_operator),
+    ':',
+    $.data_source_expression,
+    ')',
+    ')'
+  ),
+
+  data_source_expression: $ => $.expression,
 
   edge_identifier: $ => choice('posedge', 'negedge', 'edge'),
 
-  // state_dependent_path_declaration =
-  // if ( module_path_expression ) simple_path_declaration
-  // | if ( module_path_expression ) edge_sensitive_path_declaration
-  // | ifnone simple_path_declaration
-  // polarity_operator = + | -
+  state_dependent_path_declaration: $ => choice(
+    seq('if', '(', $.module_path_expression, ')', $.simple_path_declaration),
+    seq('if', '(', $.module_path_expression, ')', $.edge_sensitive_path_declaration),
+    seq('ifnone', $.simple_path_declaration)
+  ),
 
-  // A.7.5 System timing checks
+  polarity_operator: $ => choice('+', '-'),
 
-  // A.7.5.1 System timing check commands
+  /* A.7.5 System timing checks */
 
-  // system_timing_check|||||||||||=
-  // $setup_timing_check
-  // $hold_timing_check
-  // $setuphold_timing_check
-  // $recovery_timing_check
-  // $removal_timing_check
-  // $recrem_timing_check
-  // $skew_timing_check
-  // $timeskew_timing_check
-  // $fullskew_timing_check
-  // $period_timing_check
-  // $width_timing_check
-  // $nochange_timing_check
-  // $setup_timing_check =
-  // $setup ( data_event , reference_event , timing_check_limit
-  //  [ , [ notifier ] ] ) ;
-  // $hold_timing_check =
-  // $hold ( reference_event , data_event , timing_check_limit
-  //  [ , [ notifier ] ] ) ;
-  // $setuphold_timing_check =
-  // $setuphold ( reference_event , data_event
-  //   , timing_check_limit , timing_check_limit
-  // [ , [ notifier ] [ , [ timestamp_condition ] [ , [ timecheck_condition ]
-  // [ , [ delayed_reference ] [ , [ delayed_data ] ] ] ] ] ] ) ;
-  // $recovery_timing_check =
-  // $recovery ( reference_event , data_event , timing_check_limit
-  //  [ , [ notifier ] ] ) ;
-  // $removal_timing_check =
-  // $removal ( reference_event , data_event , timing_check_limit
-  //  [ , [ notifier ] ] ) ;
-  // $recrem_timing_check =
-  // $recrem ( reference_event , data_event ,
-  //  timing_check_limit , timing_check_limit
-  // [ , [ notifier ] [ , [ timestamp_condition ] [ , [ timecheck_condition ]
-  // [ , [ delayed_reference ] [ , [ delayed_data ] ] ] ] ] ] ) ;
-  // $skew_timing_check =
-  // $skew ( reference_event , data_event , timing_check_limit
-  //  [ , [ notifier ] ] ) ;
-  // $timeskew_timing_check =
-  // $timeskew ( reference_event , data_event , timing_check_limit
-  // [ , [ notifier ] [ , [ event_based_flag ]
-  //  [ , [ remain_active_flag ] ] ] ] ) ;
-  // $fullskew_timing_check =
-  // $fullskew ( reference_event , data_event
-  //  , timing_check_limit , timing_check_limit
-  // [ , [ notifier ] [ , [ event_based_flag ]
-  //  [ , [ remain_active_flag ] ] ] ] ) ;
-  // $period_timing_check =
-  // $period ( controlled_reference_event , timing_check_limit
-  //  [ , [ notifier ] ] ) ;
-  // $width_timing_check =
-  // $width ( controlled_reference_event , timing_check_limit
-  //  , threshold [ , [ notifier ] ] ) ;
-  // $nochange_timing_check =
-  // $nochange ( reference_event , data_event
-  //  , start_edge_offset , end_edge_offset [ , [ notifier ] ] );
+  /* A.7.5.1 System timing check commands */
+
+  system_timing_check: $ => choice(
+    $.$setup_timing_check,
+    $.$hold_timing_check,
+    $.$setuphold_timing_check,
+    $.$recovery_timing_check,
+    $.$removal_timing_check,
+    $.$recrem_timing_check,
+    $.$skew_timing_check,
+    $.$timeskew_timing_check,
+    $.$fullskew_timing_check,
+    $.$period_timing_check,
+    $.$width_timing_check,
+    $.$nochange_timing_check,
+  ),
+
+  $setup_timing_check: $ => seq(
+    '$setup', '(',
+    $.data_event, ',', $.reference_event, ',', $.timing_check_limit,
+    optseq(',', optional($.notifier)),
+    ')', ';'
+  ),
+
+  $hold_timing_check: $ => seq(
+    '$hold', '(',
+    $.reference_event, ',', $.data_event, ',', $.timing_check_limit,
+    optseq(',', optional($.notifier)),
+    ')', ';'
+  ),
+
+  $setuphold_timing_check: $ => seq(
+    '$setuphold', '(',
+    $.reference_event, ',', $.data_event, ',', $.timing_check_limit, ',', $.timing_check_limit,
+    optseq(
+      ',',
+      optional($.notifier),
+      optseq(
+        ',',
+        optional($.timestamp_condition),
+        optseq(
+          ',',
+          optional($.timecheck_condition),
+          optseq(
+            ',',
+            optional($.delayed_reference),
+            optseq(
+              ',',
+              optional($.delayed_data)
+            )
+          )
+        )
+      )
+    ),
+    ')', ';'
+  ),
+
+  $recovery_timing_check: $ => seq(
+    '$recovery', '(',
+    $.reference_event, ',', $.data_event, ',', $.timing_check_limit,
+    optseq(',', optional($.notifier)),
+    ')', ';'
+  ),
+
+  $removal_timing_check: $ => seq(
+    '$removal', '(',
+    $.reference_event, ',', $.data_event, ',', $.timing_check_limit,
+    optseq(',', optional($.notifier)),
+    ')', ';'
+  ),
+
+  $recrem_timing_check: $ => seq(
+    '$recrem', '(',
+    $.reference_event, ',', $.data_event, ',', $.timing_check_limit, ',', $.timing_check_limit,
+    optseq(
+      ',',
+      optional($.notifier),
+      optseq(',',
+        optional($.timestamp_condition),
+        optseq(',', optional($.timecheck_condition)),
+        optseq(
+          ',',
+          optional($.delayed_reference),
+          optseq(',', optional($.delayed_data))
+        )
+      )
+    ),
+    ')', ';'
+  ),
+
+  $skew_timing_check: $ => seq(
+    '$skew', '(',
+    $.reference_event, ',', $.data_event, ',', $.timing_check_limit,
+    optseq(',', optional($.notifier)),
+    ')', ';'
+  ),
+
+  $timeskew_timing_check: $ => seq(
+    '$timeskew', '(',
+    $.reference_event, ',', $.data_event, ',', $.timing_check_limit,
+    optseq(',',
+      optional($.notifier),
+      optseq(',',
+        optional($.event_based_flag),
+        optseq(',', optional($.remain_active_flag))
+      )
+    ),
+    ')', ';'
+  ),
+
+  $fullskew_timing_check: $ => seq(
+    '$fullskew', '(',
+    $.reference_event, ',', $.data_event, ',', $.timing_check_limit, ',', $.timing_check_limit,
+    optseq(',',
+      optional($.notifier),
+      optseq(',',
+        optional($.event_based_flag),
+        optseq(',', optional($.remain_active_flag))
+      )
+    ),
+    ')', ';'
+  ),
+
+  $period_timing_check: $ => seq(
+    '$period', '(', $.controlled_reference_event, ',', $.timing_check_limit,
+    optseq(',', optional($.notifier)),
+    ')', ';'
+  ),
+
+  $width_timing_check: $ => seq(
+    '$width', '(',
+    $.controlled_reference_event, ',', $.timing_check_limit, ',', $.threshold,
+    optseq(',', optional($.notifier)),
+    ')', ';'
+  ),
+
+  $nochange_timing_check: $ => seq(
+    '$nochange', '(',
+    $.reference_event, ',', $.data_event, ',', $.start_edge_offset, ',', $.end_edge_offset,
+    optseq(',', optional($.notifier)),
+    ')', ';'
+  ),
 
   // A.7.5.2 System timing check command arguments
 
-  // timecheck_condition = mintypmax_expression
-  // controlled_reference_event = controlled_timing_check_event
-  // data_event = timing_check_event
-  // delayed_data =
-  // terminal_identifier
-  // | terminal_identifier [ constant_mintypmax_expression ]
-  // delayed_reference =
-  // terminal_identifier
-  // | terminal_identifier [ constant_mintypmax_expression ]
-  // end_edge_offset = mintypmax_expression
-  // event_based_flag = constant_expression
-  // notifier = variable_identifier
-  // reference_event = timing_check_event
-  // remain_active_flag = constant_mintypmax_expression
-  // timestamp_condition = mintypmax_expression
-  // start_edge_offset = mintypmax_expression
-  // threshold = constant_expression
-  // timing_check_limit = expression
+  timecheck_condition: $ => $.mintypmax_expression,
+
+  controlled_reference_event: $ => $.controlled_timing_check_event,
+
+  data_event: $ => $.timing_check_event,
+
+  delayed_data: $ => seq(
+    $.terminal_identifier, optional($.constant_mintypmax_expression)
+  ),
+
+  delayed_reference: $ => seq(
+    $.terminal_identifier, optional($.constant_mintypmax_expression)
+  ),
+
+  end_edge_offset: $ => $.mintypmax_expression,
+
+  event_based_flag: $ => $.constant_expression,
+
+  notifier: $ => $.variable_identifier,
+
+  reference_event: $ => $.timing_check_event,
+
+  remain_active_flag: $ => $.constant_mintypmax_expression,
+
+  timestamp_condition: $ => $.mintypmax_expression,
+
+  start_edge_offset: $ => $.mintypmax_expression,
+
+  threshold: $ => $.constant_expression,
+
+  timing_check_limit: $ => $.expression,
 
   // A.7.5.3 System timing check event definitions
 
-  // timing_check_event =
-  // [timing_check_event_control] specify_terminal_descriptor
-  //    [ &&& timing_check_condition ]
-  // controlled_timing_check_event =
-  // timing_check_event_control specify_terminal_descriptor
-  //  [ &&& timing_check_condition ]
-  // timing_check_event_control =
-  // posedge
-  // | negedge
-  // | edge
-  // | edge_control_specifier
-  // specify_terminal_descriptor =
-  // specify_input_terminal_descriptor
-  // | specify_output_terminal_descriptor
-  // edge_control_specifier = edge [ edge_descriptor { , edge_descriptor } ]
-  // edge_descriptor33 = 01 | 10 | z_or_x zero_or_one | zero_or_one z_or_x
-  // zero_or_one = 0 | 1
-  // z_or_x = x | X | z | Z
-  // timing_check_condition =
-  // scalar_timing_check_condition
-  // | ( scalar_timing_check_condition )
-  // scalar_timing_check_condition =
-  // expression
-  // | ~ expression
-  // | expression == scalar_constant
-  // | expression === scalar_constant
-  // | expression != scalar_constant
-  // | expression !== scalar_constant
-  // scalar_constant = 1'b0 | 1'b1 | 1'B0 | 1'B1 | 'b0 | 'b1 | 'B0 | 'B1 | 1 | 0
-  //
-  //
-  //
-  //
+  timing_check_event: $ => seq(
+    optional($.timing_check_event_control),
+    $.specify_terminal_descriptor,
+    optseq('&&&', $.timing_check_condition)
+  ),
+
+  controlled_timing_check_event: $ => seq(
+    $.timing_check_event_control,
+    $.specify_terminal_descriptor,
+    optseq('&&&', $.timing_check_condition)
+  ),
+
+  timing_check_event_control: $ => choice(
+    'posedge', 'negedge', 'edge', $.edge_control_specifier
+  ),
+
+  specify_terminal_descriptor: $ => choice(
+    $.specify_input_terminal_descriptor,
+    $.specify_output_terminal_descriptor
+  ),
+
+  edge_control_specifier: $ => seq(
+    'edge', '[', sep1(',', $.edge_descriptor), ']'
+  ),
+
+  edge_descriptor: $ => choice(
+    '01',
+    '10',
+    seq($.z_or_x, $.zero_or_one),
+    seq($.zero_or_one, $.z_or_x)
+  ),
+
+  zero_or_one: $ => choice('0', '1'),
+
+  z_or_x: $ => choice('x', 'X', 'z', 'Z'),
+
+  timing_check_condition: $ => choice(
+    $.scalar_timing_check_condition,
+    seq('(', $.scalar_timing_check_condition, ')')
+  ),
+
+  scalar_timing_check_condition: $ => choice(
+    $.expression,
+    seq('~', $.expression),
+    seq($.expression, '==', $.scalar_constant),
+    seq($.expression, '===', $.scalar_constant),
+    seq($.expression, '!=', $.scalar_constant),
+    seq($.expression, '!==', $.scalar_constant)
+  ),
+
+  scalar_constant: $ => choice(
+    '1\'b0',
+    '1\'b1',
+    '1\'B0',
+    '1\'B1',
+    '\'b0',
+    '\'b1',
+    '\'B0',
+    '\'B1',
+    '1',
+    '0'
+  ),
+
   // A.8 Expressions
 
   // A.8.1 Concatenations
@@ -3315,14 +3570,14 @@ const rules = {
       seq(
         '(',
         $.data_type,
-        optional(seq(',', $.expression)),
+        optseq(',', $.expression),
         ')'
       ),
       seq(
         '(',
         $.expression,
         // repeat(seq(',', optional($.expression))),
-        optional(seq(',', optional($.clocking_event))),
+        optseq(',', optional($.clocking_event)),
         ')'
       )
     )
@@ -3332,18 +3587,18 @@ const rules = {
     $.tf_call,
     $.system_tf_call,
     $.method_call,
-    seq(optional(seq('std', '::')), $.randomize_call)
+    seq(optseq('std', '::'), $.randomize_call)
   ),
 
   function_subroutine_call: $ => $.subroutine_call,
 
-  // list_of_arguments: $ => choice(
-  //   seq(
-  //     sep1(',', optional($.expression)),
-  //     repeat(seq(',', '.', $.identifier, '(', optional($.expression), ')'))
-  //   ),
-  //   sep1(',', repeat(seq(',', '.', $.identifier, '(', optional($.expression), ')')))
-  // ),
+  list_of_arguments: $ => choice(
+    // seq(
+    //   sep1(',', optional($.expression)),
+    //   repseq(',', '.', $.identifier, '(', optional($.expression), ')')
+    // ),
+    sep1(',', seq('.', $.identifier, '(', optional($.expression), ')'))
+  ),
 
   list_of_arguments_parent: $ => seq(
     '(',
@@ -3379,32 +3634,32 @@ const rules = {
     $.array_method_name,
     repeat($.attribute_instance),
     optional($.list_of_arguments_parent),
-    optional(seq(
+    optseq(
       'with', '(', $.expression, ')'
-    ))
+    )
   ),
 
-  randomize_call: $ => seq(
+  randomize_call: $ => prec.left(seq(
     'randomize',
     repeat($.attribute_instance),
-    optional(seq(
+    optseq(
       '(',
       optional(choice(
         $.variable_identifier_list,
         'null'
-      )),
+      ),
       ')'
     )),
-    optional(seq(
+    optseq(
       'with',
-      optional(seq(
+      optseq(
         '(',
         optional($.identifier_list),
         ')'
-      )),
+      ),
       $.constraint_block
-    ))
-  ),
+    )
+  )),
 
   method_call_root: $ => choice($.primary, $.implicit_class_handle),
 
@@ -3460,7 +3715,7 @@ const rules = {
 
   constant_mintypmax_expression: $ => seq(
     $.constant_expression,
-    optional(seq(':', $.constant_expression, ':', $.constant_expression))
+    optseq(':', $.constant_expression, ':', $.constant_expression)
   ),
 
   constant_param_expression: $ => choice(
@@ -3505,7 +3760,7 @@ const rules = {
     )),
 
     prec.left(PREC.UNARY, $.inc_or_dec_expression),
-    // seq('(', $.operator_assignment, ')'),
+    seq('(', $.operator_assignment, ')'),
 
     exprOp($, PREC.ADD, choice('+', '-')),
     exprOp($, PREC.MUL, choice('*', '/', '%')),
@@ -3521,19 +3776,19 @@ const rules = {
     exprOp($, PREC.IMPLICATION, choice('->', '<->')),
 
     $.conditional_expression,
-    // $.inside_expression,
-    // $.tagged_union_expression,
+    $.inside_expression,
+    $.tagged_union_expression,
   ),
 
-  tagged_union_expression: $ => seq(
+  tagged_union_expression: $ => prec.left(seq(
     'tagged',
     $.member_identifier,
     optional($.expression)
-  ),
+  )),
 
-  // inside_expression: $ => seq(
-  //   $.expression, 'inside', '{', $.open_range_list, '}'
-  // ),
+  inside_expression: $ => seq(
+    $.expression, 'inside', '{', $.open_range_list, '}'
+  ),
 
   value_range: $ => choice(
     $.expression,
@@ -3542,7 +3797,7 @@ const rules = {
 
   mintypmax_expression: $ => seq(
     $.expression,
-    optional(seq(':', $.expression, ':', $.expression))
+    optseq(':', $.expression, ':', $.expression)
   ),
 
   module_path_conditional_expression: $ => seq(
@@ -3567,10 +3822,10 @@ const rules = {
 
   module_path_mintypmax_expression: $ => seq(
     $.module_path_expression,
-    optional(seq(
+    optseq(
       ':', $.module_path_expression,
       ':', $.module_path_expression
-    ))
+    )
   ),
 
   part_select_range: $ => choice(
@@ -3594,7 +3849,7 @@ const rules = {
     ),
     seq(
       $.specparam_identifier,
-      optional(seq('[', $.constant_range_expression, ']'))
+      optseq('[', $.constant_range_expression, ']')
     ),
     $.genvar_identifier,
     seq(
@@ -3607,11 +3862,11 @@ const rules = {
     ),
     seq(
       $.constant_concatenation,
-      optional(seq('[', $.constant_range_expression, ']'))
+      optseq('[', $.constant_range_expression, ']')
     ),
     seq(
       $.constant_multiple_concatenation,
-      optional(seq('[', $.constant_range_expression, ']'))
+      optseq('[', $.constant_range_expression, ']')
     ),
     $.constant_function_call,
     // $.constant_let_expression,
@@ -3654,7 +3909,7 @@ const rules = {
   ),
 
   class_qualifier: $ => seq(
-    optional(seq('local', '::')),
+    optseq('local', '::'),
     choice( // TODO optional?
       seq($.implicit_class_handle, '.'),
       $.class_scope
@@ -3686,7 +3941,7 @@ const rules = {
   string_literal: $ => token.immediate(prec(1, /[^\\"\n]+/)),
 
   implicit_class_handle: $ => choice(
-    prec.left(seq('this', optional(seq('.', 'super')))),
+    prec.left(seq('this', optseq('.', 'super'))),
     'super'
   ),
 
@@ -3695,11 +3950,11 @@ const rules = {
   //     repeat(seq('.', $.member_identifier, optional($.bit_select1))),
   //     '.', $.member_identifier,
   //     optional($.bit_select1),
-  //     optional(seq('[', $.part_select_range, ']'))
+  //     optseq('[', $.part_select_range, ']')
   //   ),
   //   seq(
   //     $.bit_select1,
-  //     optional(seq('[', $.part_select_range, ']'))
+  //     optseq('[', $.part_select_range, ']')
   //   ),
   //   seq('[', $.part_select_range, ']')
   // ),
@@ -3749,11 +4004,11 @@ const rules = {
   //   //   repeat(seq('.', $.member_identifier, optional($.constant_bit_select1))),
   //   //   '.', $.member_identifier,
   //   //   optional($.constant_bit_select1),
-  //   //   optional(seq('[', $.constant_part_select_range, ']'))
+  //   //   optseq('[', $.constant_part_select_range, ']')
   //   // ),
   //   seq(
   //     $.constant_bit_select1,
-  //     optional(seq('[', $.constant_part_select_range, ']'))
+  //     optseq('[', $.constant_part_select_range, ']')
   //   ),
   //   seq('[', $.constant_part_select_range, ']'),
   // ),
@@ -3830,25 +4085,25 @@ const rules = {
 
   integral_number: $ => token(/\d+/),
 
-  // integral_number ::=
+  // integral_number: $ =>
   // decimal_number
   // | octal_number
   // | binary_number
   // | hex_number
 
-  // decimal_number ::=
+  // decimal_number: $ =>
   // unsigned_number
   // | [ size ] decimal_base unsigned_number
   // | [ size ] decimal_base x_digit { _ }
   // | [ size ] decimal_base z_digit { _ }
-  // binary_number ::= [ size ] binary_base binary_value
-  // octal_number ::= [ size ] octal_base octal_value
-  // hex_number ::= [ size ] hex_base hex_value
-  // sign ::= + | -
-  // size ::= non_zero_unsigned_number
-  // non_zero_unsigned_number ::= non_zero_decimal_digit { _ | decimal_digit}
+  // binary_number: $ => [ size ] binary_base binary_value
+  // octal_number: $ => [ size ] octal_base octal_value
+  // hex_number: $ => [ size ] hex_base hex_value
+  // sign: $ => + | -
+  // size: $ => non_zero_unsigned_number
+  // non_zero_unsigned_number: $ => non_zero_decimal_digit { _ | decimal_digit}
 
-  // real_number ::=
+  // real_number: $ =>
   // fixed_point_number
   // | unsigned_number [ . unsigned_number ] exp [ sign ] unsigned_number
   real_number: $ => token(/\d+(\.\d+)?/),
@@ -3856,26 +4111,26 @@ const rules = {
   fixed_point_number: $ => seq($.unsigned_number, '.', $.unsigned_number), // FIXME no space between dot and digits
 
 
-  // exp ::= e | E
+  // exp: $ => e | E
 
-  // unsigned_number ::= decimal_digit { _ | decimal_digit }
+  // unsigned_number: $ => decimal_digit { _ | decimal_digit }
   unsigned_number: $ => token(/\d+/),
 
-  // binary_value ::= binary_digit { _ | binary_digit }
-  // octal_value ::= octal_digit { _ | octal_digit }
-  // hex_value ::= hex_digit { _ | hex_digit }
-  // decimal_base ::= '[ s|S]d | '[s|S]D
-  // binary_base ::= '[s|S]b | '[s|S]B
-  // octal_base ::= '[s|S]o | ' [s|S]O
-  // hex_base ::= '[s|S]h | '[s|S]H
-  // non_zero_decimal_digit ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-  // decimal_digit ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-  // binary_digit ::= x_digit | z_digit | 0 | 1
-  // octal_digit ::= x_digit | z_digit | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
-  // hex_digit ::= x_digit | z_digit | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f | A | B | C | D | E | F
-  // x_digit ::= x | X
-  // z_digit ::= z | Z | ?
-  // unbased_unsized_literal ::= '0 | '1 | 'z_or_x
+  // binary_value: $ => binary_digit { _ | binary_digit }
+  // octal_value: $ => octal_digit { _ | octal_digit }
+  // hex_value: $ => hex_digit { _ | hex_digit }
+  // decimal_base: $ => '[ s|S]d | '[s|S]D
+  // binary_base: $ => '[s|S]b | '[s|S]B
+  // octal_base: $ => '[s|S]o | ' [s|S]O
+  // hex_base: $ => '[s|S]h | '[s|S]H
+  // non_zero_decimal_digit: $ => 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+  // decimal_digit: $ => 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+  // binary_digit: $ => x_digit | z_digit | 0 | 1
+  // octal_digit: $ => x_digit | z_digit | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
+  // hex_digit: $ => x_digit | z_digit | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f | A | B | C | D | E | F
+  // x_digit: $ => x | X
+  // z_digit: $ => z | Z | ?
+  // unbased_unsized_literal: $ => '0 | '1 | 'z_or_x
 
   /* A.9 General */
 
@@ -3889,10 +4144,10 @@ const rules = {
 
   /* A.9.2 Comments */
 
-  // comment ::= one_line_comment | block_comment
-  // one_line_comment ::= // comment_text \n
-  // block_comment ::= /* comment_text */
-  // comment_text ::= { Any_ASCII_character }
+  // comment: $ => one_line_comment | block_comment
+  // one_line_comment: $ => // comment_text \n
+  // block_comment: $ => /* comment_text */
+  // comment_text: $ => { Any_ASCII_character }
 
   // http://stackoverflow.com/questions/13014947/regex-to-match-a-c-style-multiline-comment/36328890#36328890
   // from: https://github.com/tree-sitter/tree-sitter-c/blob/master/grammar.js
@@ -3914,7 +4169,7 @@ const rules = {
   cell_identifier: $ => alias($.identifier, $._cell_identifier),
   checker_identifier: $ => alias($.identifier, $._checker_identifier),
   class_identifier: $ => alias($.identifier, $._class_identifier),
-  // class_variable_identifier = variable_identifier
+  class_variable_identifier: $ => $.variable_identifier,
   clocking_identifier: $ => alias($.identifier, $._clocking_identifier),
   config_identifier: $ => alias($.identifier, $._config_identifier),
   const_identifier: $ => alias($.identifier, $._const_identifier),
@@ -3937,7 +4192,7 @@ const rules = {
   hierarchical_event_identifier: $ => $.hierarchical_identifier,
 
   hierarchical_identifier: $ => seq(
-    // optional(seq('$root', '.')),
+    // optseq('$root', '.'),
     // repeat1(seq($.identifier, $.constant_bit_select, '.')), // reordered : repeat -> repeat1
     // $.identifier
     $.identifier //, repeat(seq('.', $.identifier))
@@ -3977,8 +4232,7 @@ const rules = {
     seq('$unit', '::')
   ),
 
-  parameter_identifier: $ => token(/[a-zA-Z_]\w*/),
-
+  parameter_identifier: $ => alias($.identifier, $._parameter_identifier),
   port_identifier: $ => alias($.identifier, $._port_identifier),
   production_identifier: $ => alias($.identifier, $._production_identifier),
   program_identifier: $ => alias($.identifier, $._program_identifier),
@@ -4037,7 +4291,7 @@ const rules = {
     seq(
       repeat(seq(
         $.generate_block_identifier,
-        optional(seq('[', $.constant_expression, ']')),
+        optseq('[', $.constant_expression, ']'),
         '.'
       )),
       $.parameter_identifier
@@ -4073,59 +4327,144 @@ const rules = {
 
   /* A.9.4 White space */
 
-  // white_space ::= space | tab | newline | eof};
+  // white_space: $ => space | tab | newline | eof};
 
 };
 
 module.exports = grammar({
   name: 'verilog',
-  // word: $ => $.simple_identifier,
+  word: $ => $.simple_identifier,
   rules: rules,
   extras: $ => [/\s/, $.comment],
   conflicts: $ => [
     [$.primary, $.implicit_class_handle],
-    [$.primary, $.constant_primary],
     [$.primary, $.hierarchical_tf_identifier],
-    [$.constant_function_call, $.primary],
+    [$.primary, $.constant_function_call],
     [$.primary, $.param_expression],
-    [$.hierarchical_identifier, $.formal_port_identifier, $.specparam_identifier],
+    [$.primary, $.constant_primary],
+    [$.parameter_identifier, $.simple_identifier],
+    [$.module_identifier, $.hierarchical_identifier, $.interface_identifier],
+    [$.module_identifier, $.interface_identifier],
+    [$.module_identifier, $.interface_identifier, $.program_identifier],
+    [$.module_identifier, $.interface_identifier, $.program_identifier, $.checker_identifier],
+    [$.hierarchical_identifier, $.specparam_identifier, $.formal_port_identifier],
     [$.hierarchical_identifier, $.enum_identifier, $.tf_identifier],
-    [$.hierarchical_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier],
-    [$.hierarchical_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.member_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.enum_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier, $.formal_port_identifier],
+    [$.hierarchical_identifier, $.enum_identifier, $.genvar_identifier, $.member_identifier, $.specparam_identifier, $.tf_identifier, $.formal_port_identifier],
     [$.hierarchical_identifier, $.generate_block_identifier],
     [$.hierarchical_identifier, $.generate_block_identifier, $.tf_identifier],
-    [$.hierarchical_identifier, $.formal_port_identifier, $.generate_block_identifier, $.specparam_identifier],
+    [$.hierarchical_identifier, $.generate_block_identifier, $.specparam_identifier, $.formal_port_identifier],
+    [$.hierarchical_identifier, $.generate_block_identifier, $.specparam_identifier, $.variable_identifier, $.formal_port_identifier],
+    [$.hierarchical_identifier, $.variable_identifier, $.tf_identifier],
     [$.hierarchical_identifier, $.tf_identifier],
-    [$.simple_identifier, $.parameter_identifier],
+    [$.hierarchical_identifier, $.block_identifier, $.tf_identifier],
+    [$.interface_identifier, $.program_identifier],
+    [$.block_identifier, $.class_identifier],
+    [$.block_identifier, $.type_identifier],
+    [$.block_identifier, $.checker_identifier],
+    [$.block_identifier, $.generate_block_identifier],
+    [$.program_identifier, $.interface_identifier, $.checker_identifier],
+    [$.class_identifier, $.package_identifier],
+    [$.enum_identifier, $.genvar_identifier, $.specparam_identifier, $.formal_port_identifier],
+    [$.enum_identifier, $.tf_identifier],
+    [$.specparam_identifier, $.formal_port_identifier],
+    [$.generate_block_identifier, $.specparam_identifier, $.formal_port_identifier],
+    [$.hierarchical_block_identifier, $.hierarchical_task_identifier],
+    [$._module_common_item, $.checker_or_generate_item],
+    [$._module_common_item, $.checker_generate_item],
     [$.dpi_function_import_property, $.dpi_task_import_property],
     [$.class_method, $.constraint_prototype_qualifier],
-    [$.checker_or_generate_item_declaration, $._package_or_generate_item_declaration],
+    [$._package_or_generate_item_declaration, $.checker_or_generate_item_declaration],
     [$.module_or_generate_item, $.interface_or_generate_item],
-    [$._module_common_item, $.checker_or_generate_item],
     [$.class_method, $.method_qualifier],
-    [$.class_identifier, $.package_identifier],
-    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier],
-    [$.formal_port_identifier, $.specparam_identifier],
-    [$.formal_port_identifier, $.generate_block_identifier, $.specparam_identifier],
-    [$.integral_number, $.unsigned_number],
-    [$.enum_identifier, $.tf_identifier],
+    [$.unsigned_number, $.integral_number],
     [$.method_call_body, $.array_method_name],
-    [$.simple_type, $.constant_primary],
+    [$.constant_primary, $.simple_type],
     [$.constant_primary, $.class_qualifier, $.ps_parameter_identifier, $.ps_type_identifier],
     [$.method_call_root, $.class_qualifier],
     [$.structure_pattern_key, $.array_pattern_key],
     [$.pattern, $.structure_pattern_key],
     [$.constraint_set, $.empty_unpacked_array_concatenation],
-    [$.module_identifier, $.interface_identifier],
-    [$.module_identifier, $.interface_identifier, $.program_identifier],
-    [$.module_identifier, $.hierarchical_identifier, $.interface_identifier],
-    [$.module_identifier, $.interface_identifier, $.program_identifier, $.checker_identifier],
     [$.interface_declaration, $.non_port_interface_item],
     [$.program_declaration, $.non_port_program_item],
     [$.list_of_ports, $.list_of_port_declarations],
-    [$.expression_or_dist, $.mintypmax_expression],
-    [$.interface_identifier, $.program_identifier],
-    [$._module_common_item, $.checker_generate_item]
-  ],
-
+    [$.mintypmax_expression, $.expression_or_dist],
+    [$.class_constructor_declaration, $.implicit_class_handle],
+    [$.statement_or_null, $.action_block],
+    [$.sequence_actual_arg, $.event_expression],
+    [$.net_type_identifier, $.interface_identifier, $.program_identifier],
+    [$.net_type_identifier, $.checker_identifier],
+    [$.net_type_identifier, $.module_identifier, $.interface_identifier, $.program_identifier],
+    [$.port_identifier, $.variable_identifier],
+    [$.list_of_port_identifiers, $.list_of_variable_port_identifiers],
+    [$.net_type_identifier, $.module_identifier, $.interface_identifier, $.program_identifier, $.checker_identifier],
+    [$.list_of_port_identifiers, $._variable_dimension],
+    [$.net_type_identifier, $.class_identifier],
+    [$.variable_identifier, $.type_identifier],
+    [$.net_type_identifier, $.class_identifier, $.covergroup_identifier, $.type_identifier],
+    [$.class_identifier, $.covergroup_identifier, $.type_identifier],
+    [$.interface_instance_identifier, $.type_identifier],
+    [$.class_identifier, $.interface_identifier, $.net_type_identifier, $.program_identifier],
+    [$.class_identifier, $.covergroup_identifier, $.interface_identifier, $.net_type_identifier, $.program_identifier, $.type_identifier],
+    [$.checker_identifier, $.class_identifier, $.covergroup_identifier, $.net_type_identifier, $.type_identifier],
+    [$.net_identifier, $.type_identifier],
+    [$.covergroup_identifier, $.type_identifier],
+    [$.data_type, $.constant_primary, $.class_qualifier, $.ps_parameter_identifier, $.ps_type_identifier],
+    [$.class_identifier, $.covergroup_identifier, $.hierarchical_identifier, $.type_identifier],
+    [$.formal_port_identifier, $.generate_block_identifier, $.hierarchical_identifier, $.specparam_identifier, $.type_identifier],
+    [$.net_type_identifier, $.type_identifier],
+    [$.covergroup_identifier, $.net_type_identifier, $.type_identifier],
+    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.formal_port_identifier, $.generate_block_identifier, $.hierarchical_identifier, $.parameter_identifier, $.specparam_identifier],
+    [$.parameter_identifier, $.type_identifier],
+    [$.formal_port_identifier, $.generate_block_identifier, $.hierarchical_identifier, $.parameter_identifier, $.specparam_identifier, $.type_identifier],
+    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.member_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.enum_identifier, $.parameter_identifier],
+    [$.enum_identifier, $.parameter_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier],
+    [$.generate_block_identifier, $.parameter_identifier],
+    [$.net_port_header, $.variable_port_header],
+    [$.port_identifier, $.type_identifier],
+    [$.class_identifier, $.covergroup_identifier, $.interface_identifier, $.type_identifier],
+    [$.port_reference, $.ansi_port_declaration],
+    [$.class_identifier, $.interface_identifier, $.module_identifier, $.net_type_identifier, $.program_identifier],
+    [$.class_identifier, $.covergroup_identifier, $.interface_identifier, $.module_identifier, $.net_type_identifier, $.program_identifier, $.type_identifier],
+    [$.data_type_or_implicit1, $._var_data_type],
+    [$.port_identifier, $.type_identifier, $.variable_identifier],
+    [$.checker_identifier, $.class_identifier, $.covergroup_identifier, $.interface_identifier, $.module_identifier, $.net_type_identifier, $.program_identifier, $.type_identifier],
+    [$.block_identifier, $.parameter_identifier, $.type_identifier],
+    [$.checker_identifier, $.covergroup_identifier, $.type_identifier],
+    [$.formal_port_identifier, $.type_identifier],
+    [$.checker_identifier, $.class_identifier, $.covergroup_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.covergroup_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.formal_port_identifier, $.generate_block_identifier, $.parameter_identifier, $.specparam_identifier, $.type_identifier, $.variable_identifier],
+    [$.block_identifier, $.checker_identifier, $.class_identifier, $.covergroup_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.enum_identifier, $.parameter_identifier, $.tf_identifier],
+    [$.data_type, $.constant_primary],
+    [$.hierarchical_identifier, $.class_identifier, $.covergroup_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier, $.type_identifier],
+    [$.ansi_port_declaration, $._variable_dimension],
+    [$.enum_identifier, $.parameter_identifier, $.type_identifier],
+    [$.covergroup_identifier, $.enum_identifier, $.parameter_identifier, $.tf_identifier, $.type_identifier],
+    [$.unpacked_dimension, $.constant_part_select_range],
+    [$.generate_block_identifier, $.type_identifier],
+    [$.port, $.ansi_port_declaration],
+    [$.hierarchical_identifier, $.port_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.port_identifier, $.generate_block_identifier, $.specparam_identifier, $.formal_port_identifier],
+    [$.parameter_identifier, $.member_identifier],
+    [$.module_ansi_header, $.module_declaration],
+    [$.net_type_identifier, $.class_identifier, $.covergroup_identifier, $.interface_identifier, $.type_identifier, $.checker_identifier],
+    [$.instance_identifier, $.interface_identifier],
+    [$.module_declaration, $._non_port_module_item],
+    [$.hierarchical_identifier, $.port_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier],
+    [$._module_or_generate_item_declaration, $.checker_or_generate_item_declaration],
+    [$.expression_or_cond_pattern, $.tagged_union_expression],
+    [$.pattern, $.tagged_union_expression],
+    [$.cell_identifier, $.library_identifier],
+    [$.variable_decl_assignment, $.class_variable_identifier],
+    [$.variable_decl_assignment, $.dynamic_array_variable_identifier],
+    [$.input_port_identifier, $.inout_port_identifier],
+    [$.output_port_identifier, $.inout_port_identifier],
+    [$.class_identifier, $.covergroup_identifier, $.interface_identifier, $.net_type_identifier, $.type_identifier]
+  ]
 });

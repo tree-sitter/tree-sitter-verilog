@@ -14,6 +14,7 @@ endmodule
       (module_keyword)
       (module_identifier (_module_identifier (simple_identifier)))
     )
+    (module_ansi_header)
   )
 )
 
@@ -50,9 +51,9 @@ endmodule
       (module_keyword)
       (module_identifier (_module_identifier (simple_identifier)))
     )
-    (module_ansi_header
+    (module_nonansi_header
       (parameter_port_list)
-      (list_of_port_declarations)
+      (list_of_ports)
     )
   )
 )
@@ -75,16 +76,16 @@ endmodule
       (module_keyword)
       (module_identifier (_module_identifier (simple_identifier)))
     )
-    (module_ansi_header
+    (module_nonansi_header
       (parameter_port_list
-        (parameter_port_declaration (any_parameter_declaration (list_of_param_assignments
+        (parameter_port_declaration (any_parameter_declaration (parameter_declaration (list_of_param_assignments
           (param_assignment
-            (parameter_identifier)
+            (parameter_identifier (_parameter_identifier (simple_identifier)))
             (constant_param_expression (constant_mintypmax_expression (constant_expression (constant_primary (primary_literal (number (integral_number)))))))
           )
-        )))
+        ))))
       )
-      (list_of_port_declarations)
+      (list_of_ports)
     )
   )
 )
@@ -108,25 +109,25 @@ endmodule
       (module_keyword)
       (module_identifier (_module_identifier (simple_identifier)))
     )
-    (module_ansi_header
+    (module_nonansi_header
       (parameter_port_list
-        (parameter_port_declaration (any_parameter_declaration (list_of_param_assignments
+        (parameter_port_declaration (any_parameter_declaration (parameter_declaration (list_of_param_assignments
           (param_assignment
-            (parameter_identifier)
+            (parameter_identifier (_parameter_identifier (simple_identifier)))
             (constant_param_expression (constant_mintypmax_expression (constant_expression (constant_primary (primary_literal (number (integral_number)))))))
           )
-        )))
-        (parameter_port_declaration (any_parameter_declaration (list_of_param_assignments
+        ))))
+        (parameter_port_declaration (any_parameter_declaration (local_parameter_declaration (list_of_param_assignments
           (param_assignment
-            (parameter_identifier)
+            (parameter_identifier (_parameter_identifier (simple_identifier)))
             (constant_param_expression (constant_mintypmax_expression (constant_expression
               (constant_expression (constant_primary (primary_literal (number (integral_number)))))
               (constant_expression (constant_primary (primary_literal (number (integral_number)))))
             )))
           )
-        )))
+        ))))
       )
-      (list_of_port_declarations)
+      (list_of_ports)
     )
   )
 )
