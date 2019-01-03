@@ -435,10 +435,10 @@ const rules = {
   ),
 
   timeunits_declaration: $ => choice(
-    seq('timeunit', $.time_literal, optseq('/', $.time_literal), ';'),
-    seq('timeprecision', $.time_literal, ';'),
-    // seq('timeunit', $.time_literal, ';', 'timeprecision', $.time_literal, ';'),
-    // seq('timeprecision', $.time_literal, ';', 'timeunit', $.time_literal, ';')
+    prec.left(seq('timeunit', $.time_literal, optseq('/', $.time_literal), ';')),
+    prec.left(seq('timeprecision', $.time_literal, ';')),
+    prec.left(seq('timeunit', $.time_literal, ';', 'timeprecision', $.time_literal, ';')),
+    prec.left(seq('timeprecision', $.time_literal, ';', 'timeunit', $.time_literal, ';'))
   ),
 
   /* A.1.3 Module parameters and ports */
@@ -557,7 +557,7 @@ const rules = {
     $._module_or_generate_item_declaration,
     $.interface_instantiation,
     $.program_instantiation,
-    // $.assertion_item,
+    $.assertion_item,
     $.bind_directive,
     $.continuous_assign,
     $.net_alias,
@@ -773,7 +773,7 @@ const rules = {
     $.function_declaration,
     $.checker_declaration,
     $.assertion_item_declaration,
-    // $.covergroup_declaration,
+    $.covergroup_declaration,
     $.genvar_declaration,
     // $.clocking_declaration,
     seq('default', 'clocking', $.clocking_identifier, ';'),
@@ -795,7 +795,7 @@ const rules = {
     seq(repeat($.attribute_instance), $.class_method),
     seq(repeat($.attribute_instance), $.class_constraint),
     seq(repeat($.attribute_instance), $.class_declaration),
-    // seq(repeat($.attribute_instance), $.covergroup_declaration),
+    seq(repeat($.attribute_instance), $.covergroup_declaration),
     seq($.any_parameter_declaration, ';'),
     ';'
   ),
@@ -846,7 +846,7 @@ const rules = {
 
   method_prototype: $ => choice(
     $.task_prototype,
-    // $.function_prototype
+    $.function_prototype
   ),
 
   class_constructor_declaration: $ => seq(
@@ -966,7 +966,7 @@ const rules = {
     $.class_declaration,
     $.class_constructor_declaration,
     seq($.any_parameter_declaration, ';'),
-    // $.covergroup_declaration,
+    $.covergroup_declaration,
     $.overload_declaration,
     $.assertion_item_declaration,
     ';'
@@ -980,7 +980,7 @@ const rules = {
     $.task_declaration,
     $.function_declaration,
     $.class_declaration,
-    // $.covergroup_declaration,
+    $.covergroup_declaration,
     $.class_constructor_declaration,
     ';'
   ),
@@ -1995,7 +1995,10 @@ const rules = {
   ),
 
   sequence_list_of_arguments: $ => choice(
-    // [sequence_actual_arg] { , [sequence_actual_arg] } { , . identifier ( [sequence_actual_arg]
+    // seq(
+    //   sep1(',', optional($.sequence_actual_arg)),
+    //   repseq(',', '.', $.identifier, '(', optional($.sequence_actual_arg), ')')
+    // ),
     sep1(',', seq('.', $.identifier, '(', optional($.sequence_actual_arg), ')'))
   ),
 
@@ -2044,6 +2047,222 @@ const rules = {
   ),
 
   // A.2.11 Covergroup declarations
+
+  covergroup_declaration: $ => seq(
+    'covergroup', $.covergroup_identifier,
+    optseq('(', optional($.tf_port_list), ')'),
+    optional($.coverage_event),
+    ';',
+    repeat($.coverage_spec_or_option),
+    'endgroup', optseq(':', $.covergroup_identifier)
+  ),
+
+  coverage_spec_or_option: $ => choice(
+    seq(repeat($.attribute_instance), $.coverage_spec),
+    seq(repeat($.attribute_instance), $.coverage_option, ';')
+  ),
+
+  coverage_option: $ => choice(
+    seq('option', '.', $.member_identifier, '=', $.expression),
+    seq('type_option', '.', $.member_identifier, '=', $.constant_expression)
+  ),
+
+  coverage_spec: $ => choice($.cover_point, $.cover_cross),
+
+  coverage_event: $ => choice(
+    $.clocking_event,
+    seq('with', 'function', 'sample', '(', optional($.tf_port_list), ')'),
+    seq('@@', '(', $.block_event_expression, ')')
+  ),
+
+  block_event_expression: $ => choice(
+    prec.left(seq($.block_event_expression, 'or', $.block_event_expression)),
+    seq('begin', $.hierarchical_btf_identifier),
+    seq('end', $.hierarchical_btf_identifier),
+  ),
+
+  hierarchical_btf_identifier: $ => choice(
+    $.hierarchical_tf_identifier,
+    $.hierarchical_block_identifier,
+    seq(
+      choice(seq($.hierarchical_identifier, '.'), $.class_scope),
+      $.method_identifier
+    )
+  ),
+
+  cover_point: $ => seq(
+    optseq(optional($.data_type_or_implicit1), $.cover_point_identifier, ':'),
+    'coverpoint', $.expression,
+    optseq('iff', '(', $.expression, ')'),
+    $.bins_or_empty
+  ),
+
+  bins_or_empty: $ => choice(
+    seq('{', repeat($.attribute_instance), repseq($.bins_or_options, ';'), '}'),
+    ';'
+  ),
+
+  bins_or_options: $ => choice(
+    $.coverage_option,
+    seq(
+      'wildcard',
+      $.bins_keyword,
+      $.bin_identifier,
+      optseq('[', optional($.covergroup_expression), ']'),
+      '=',
+      '{', $.covergroup_range_list, '}',
+      optseq('with', '(', $.with_covergroup_expression, ')'),
+      optseq('iff', '(', $.expression, ')')
+    ),
+    seq(
+      'wildcard',
+      $.bins_keyword,
+      $.bin_identifier,
+      optseq('[', optional($.covergroup_expression), ']'),
+      '=',
+      $.cover_point_identifier,
+      'with', '(', $.with_covergroup_expression, ')',
+      optseq('iff', '(', $.expression, ')')
+    ),
+    seq(
+      'wildcard',
+      $.bins_keyword,
+      $.bin_identifier,
+      optseq('[', optional($.covergroup_expression), ']'),
+      '=',
+      $.set_covergroup_expression,
+      optseq('iff', '(', $.expression, ')')
+    ),
+    seq(
+      'wildcard',
+      $.bins_keyword,
+      $.bin_identifier,
+      optseq('[', ']'),
+      '=',
+      $.trans_list,
+      optseq('iff', '(', $.expression, ')')
+    ),
+    seq(
+      $.bins_keyword,
+      $.bin_identifier,
+      optseq('[', optional($.covergroup_expression), ']'),
+      '=',
+      'default',
+      optseq('iff', '(', $.expression, ')')
+    ),
+    seq(
+      $.bins_keyword,
+      $.bin_identifier,
+      '=',
+      'default',
+      'sequence',
+      optseq('iff', '(', $.expression, ')')
+    )
+  ),
+
+  bins_keyword: $ => choice('bins', 'illegal_bins', 'ignore_bins'),
+
+  trans_list: $ => sep1(',', seq('(', $.trans_set, ')')),
+
+  trans_set: $ => sep1('=>', $.trans_range_list),
+
+  trans_range_list: $ => choice(
+    $.trans_item,
+    seq($.trans_item, '[*', $.repeat_range, ']'),
+    seq($.trans_item, '[–>', $.repeat_range, ']'),
+    seq($.trans_item, '[=', $.repeat_range, ']')
+  ),
+
+  trans_item: $ => $.covergroup_range_list,
+
+  repeat_range: $ => seq(
+    $.covergroup_expression, optseq(':', $.covergroup_expression)
+  ),
+
+  cover_cross: $ => seq(
+    optseq($.cross_identifier, ':'),
+    'cross',
+    $.list_of_cross_items,
+    optseq('iff', '(', $.expression, ')'),
+    $.cross_body
+  ),
+
+  list_of_cross_items: $ => seq($.cross_item, ',', sep1(',', $.cross_item)),
+
+  cross_item: $ => choice(
+    $.cover_point_identifier,
+    $.variable_identifier
+  ),
+
+  cross_body: $ => choice(
+    seq('{', repseq($.cross_body_item, ';'), '}'),
+    ';'
+  ),
+
+  cross_body_item: $ => choice(
+    $.function_declaration, // FIXME standard function_declaraton => function_declaration
+    seq($.bins_selection_or_option, ';')
+  ),
+
+  bins_selection_or_option: $ => choice(
+    seq(repeat($.attribute_instance), $.coverage_option),
+    seq(repeat($.attribute_instance), $.bins_selection)
+  ),
+
+  bins_selection: $ => seq(
+    $.bins_keyword, $.bin_identifier, '=', $.select_expression,
+    optseq('iff', '(', $.expression, ')')
+  ),
+
+  select_expression: $ => choice(
+    $.select_condition,
+    prec.left(PREC.UNARY, seq('!', $.select_condition)),
+    prec.left(PREC.LOGICAL_AND, seq($.select_expression, '&&', $.select_expression)),
+    prec.left(PREC.LOGICAL_OR, seq($.select_expression, '||', $.select_expression)),
+    seq('(', $.select_expression, ')'),
+    seq(
+      $.select_expression, 'with', '(', $.with_covergroup_expression, ')',
+      optseq('matches', $.integer_covergroup_expression)
+    ),
+    $.cross_identifier,
+    seq(
+      $.cross_set_expression,
+      optseq('matches', $.integer_covergroup_expression)
+    ),
+  ),
+
+  select_condition: $ => seq(
+    'binsof', '(', $.bins_expression, ')',
+    optseq('intersect', '{', $.covergroup_range_list, '}')
+  ),
+
+  bins_expression: $ => choice(
+    $.variable_identifier,
+    seq($.cover_point_identifier, optseq('.', $.bin_identifier))
+  ),
+
+  covergroup_range_list: $ => sep1(',', $.covergroup_value_range),
+
+  covergroup_value_range: $ => choice(
+    $.covergroup_expression,
+    seq('[', $.covergroup_expression, ':', $.covergroup_expression, ']')
+  ),
+
+  with_covergroup_expression: $ => $.covergroup_expression,
+
+  set_covergroup_expression: $ => $.covergroup_expression,
+
+  integer_covergroup_expression: $ => $.covergroup_expression,
+
+  cross_set_expression: $ => $.covergroup_expression,
+
+  covergroup_expression: $ => $.expression,
+
+
+
+
+
+
 
   // A.3 Primitive instances
 
@@ -3645,21 +3864,21 @@ const rules = {
     '{', psep1(PREC.CONCAT, ',', $.constant_expression), '}'
   ),
 
-  constant_multiple_concatenation: $ => seq(
+  constant_multiple_concatenation: $ => prec.left(PREC.CONCAT, seq(
     '{', $.constant_expression, $.constant_concatenation, '}'
-  ),
+  )),
 
   module_path_concatenation: $ => seq(
-    '{', sep1(',', $.module_path_expression), '}'
+    '{', psep1(PREC.CONCAT, ',', $.module_path_expression), '}'
   ),
 
-  module_path_multiple_concatenation: $ => seq(
+  module_path_multiple_concatenation: $ => prec.left(PREC.CONCAT, seq(
     '{', $.constant_expression, $.module_path_concatenation, '}'
-  ),
+  )),
 
-  multiple_concatenation: $ => seq(
+  multiple_concatenation: $ => prec.left(PREC.CONCAT, seq(
     '{', $.expression, $.concatenation, '}'
-  ),
+  )),
 
   // streaming_concatenation
   //  = { stream_operator [ slice_size ] stream_concatenation }
@@ -4612,5 +4831,14 @@ module.exports = grammar({
     [$.enum_identifier, $.hierarchical_identifier, $.parameter_identifier, $.sequence_identifier, $.tf_identifier],
     [$.primary, $.hierarchical_net_identifier],
     [$.primary, $.hierarchical_net_identifier, $.hierarchical_tf_identifier],
+    [$.net_type_identifier, $.class_identifier, $.interface_identifier, $.program_identifier, $.checker_identifier, $.covergroup_identifier, $.type_identifier],
+    [$.cover_point_identifier, $.cross_identifier],
+    [$.variable_identifier, $.cover_point_identifier],
+    [$.hierarchical_block_identifier, $.hierarchical_tf_identifier],
+    [$.covergroup_expression, $.cond_pattern],
+    [$.hierarchical_identifier, $.cross_identifier],
+    [$.mintypmax_expression, $.covergroup_expression],
+    [$.hierarchical_identifier, $.parameter_identifier, $.cross_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.concatenation, $.covergroup_expression]
   ]
 });
