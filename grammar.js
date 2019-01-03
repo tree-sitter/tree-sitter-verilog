@@ -1680,7 +1680,7 @@ const rules = {
       $.data_declaration,
       seq($.any_parameter_declaration, ';'),
       $.overload_declaration,
-      // $.let_declaration
+      $.let_declaration
     )
   ),
 
@@ -1817,7 +1817,7 @@ const rules = {
   assertion_item_declaration: $ => choice(
     $.property_declaration,
     $.sequence_declaration,
-    // $.let_declaration
+    $.let_declaration
   ),
 
   property_declaration: $ => seq(
@@ -2258,11 +2258,47 @@ const rules = {
 
   covergroup_expression: $ => $.expression,
 
+  /* A.2.12 Let declarations */
 
+  let_declaration: $ => seq(
+    'let', $.let_identifier,
+    optseq('(', optional($.let_port_list), ')'),
+    '=', $.expression, ';'
+  ),
 
+  let_identifier: $ => $.identifier,
 
+  let_port_list: $ => sep1(',', $.let_port_item),
 
+  let_port_item: $ => seq(
+    repeat($.attribute_instance),
+    optional($.let_formal_type1),
+    $.formal_port_identifier,
+    repeat($._variable_dimension),
+    optseq('=', $.expression)
+  ),
 
+  let_formal_type1: $ => choice(
+    $.data_type_or_implicit1,
+    'untyped'
+  ),
+
+  let_expression: $ => seq(
+    optional($.package_scope),
+    $.let_identifier,
+    optseq('(', optional($.let_list_of_arguments), ')')
+  ),
+
+  let_list_of_arguments: $ => choice(
+    // FIXME empty string
+    // seq(
+    //   sep1(',', optional($.let_actual_arg)),
+    //   repseq(',', '.', $.identifier, '(', optional($.let_actual_arg), ')')
+    // ),
+    sep1(',', seq('.', $.identifier, '(', optional($.let_actual_arg), ')'))
+  ),
+
+  let_actual_arg: $ => $.expression,
 
   // A.3 Primitive instances
 
