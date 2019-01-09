@@ -18,5 +18,6 @@ addons:
 install:
   - g++ --version
   - npm --version
-  - npm install
+  - time npm install
+  - wc -l srs/parser.c
 script: npm test
