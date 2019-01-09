@@ -185,10 +185,10 @@ const rules = {
     $._directives,
     $.module_declaration,
     // $.udp_declaration,
-    $.interface_declaration,
-    $.program_declaration,
-    $.package_declaration,
-    seq(repeat($.attribute_instance), $.package_item),
+    // $.interface_declaration,
+    // $.program_declaration,
+    // $.package_declaration,
+    // seq(repeat($.attribute_instance), $.package_item),
     seq(repeat($.attribute_instance), $.bind_directive),
     $.config_declaration,
   ),
@@ -599,9 +599,9 @@ const rules = {
     $.module_or_generate_item,
     // $.specify_block,
     seq(repeat($.attribute_instance), $.specparam_declaration),
-    $.program_declaration,
+    // $.program_declaration,
     $.module_declaration,
-    $.interface_declaration,
+    // $.interface_declaration,
     $.timeunits_declaration,
   ),
 
@@ -713,9 +713,9 @@ const rules = {
   non_port_interface_item: $ => choice(
     $.generate_region,
     $.interface_or_generate_item,
-    $.program_declaration,
+    // $.program_declaration,
     $.modport_declaration,
-    $.interface_declaration,
+    // $.interface_declaration,
     $.timeunits_declaration
   ),
 
@@ -771,7 +771,7 @@ const rules = {
   checker_or_generate_item_declaration: $ => choice(
     seq(optional('rand'), $.data_declaration),
     $.function_declaration,
-    $.checker_declaration,
+    // $.checker_declaration,
     $.assertion_item_declaration,
     $.covergroup_declaration,
     $.genvar_declaration,
@@ -960,13 +960,13 @@ const rules = {
     $.data_declaration,
     $.task_declaration,
     $.function_declaration,
-    $.checker_declaration,
+    // $.checker_declaration,
     $.dpi_import_export,
     $.extern_constraint_declaration,
     $.class_declaration,
     $.class_constructor_declaration,
     seq($.any_parameter_declaration, ';'),
-    $.covergroup_declaration,
+    // $.covergroup_declaration,
     $.overload_declaration,
     $.assertion_item_declaration,
     ';'
@@ -2283,11 +2283,11 @@ const rules = {
     'untyped'
   ),
 
-  let_expression: $ => seq(
+  let_expression: $ => prec.left(seq(
     optional($.package_scope),
     $.let_identifier,
     optseq('(', optional($.let_list_of_arguments), ')')
-  ),
+  )),
 
   let_list_of_arguments: $ => choice(
     // FIXME empty string
@@ -2638,199 +2638,6 @@ const rules = {
   /*Digit
     = Nd*/
 
-  /* Annex B */
-
-  ReservedWord: $ => choice(
-    $.Keyword,
-    $.SystemKeyword,
-    // $.NullLiteral,
-    // $.BooleanLiteral
-  ),
-
-  Keyword: $ => choice(
-    'always',
-    'and',
-    'assert',
-    'assign',
-    'automatic',
-    'begin',
-    'bit',
-    'break',
-    'buf',
-    'bufif0',
-    'bufif1',
-    'byte',
-    'case',
-    'casex',
-    'casez',
-    'chandle',
-    'clocking',
-    'const',
-    'const-in-lex',
-    'cmos',
-    'context',
-    'continue',
-    'cover',
-    'default',
-    'defparam',
-    'disable',
-    'do',
-    'edge',
-    'else',
-    'end',
-    'endcase',
-    'endclocking',
-    'endfunction',
-    'endgenerate',
-    'endmodule',
-    'endpackage',
-    'endprimitive',
-    'endprogram',
-    'endproperty',
-    'endspecify',
-    'endtable',
-    'endtask',
-    'enum',
-    'export',
-    'final',
-    'for',
-    'forever',
-    'function',
-    'generate',
-    'genvar',
-    'global-then-clocking',
-    'global-in-lex',
-    'if',
-    'iff',
-    'import',
-    'initial',
-    'inout',
-    'input',
-    'int',
-    'integer',
-    'localparam',
-    'logic',
-    'longint',
-    'module',
-    'nand',
-    'negedge',
-    'nmos',
-    'nor',
-    'not',
-    'notif0',
-    'notif1',
-    'or',
-    'output',
-    'package',
-    'parameter',
-    'pmos',
-    'posedge',
-    'primitive',
-    'priority',
-    'program',
-    'property',
-    'pulldown',
-    'pullup',
-    'pure',
-    'rcmos',
-    'real',
-    'realtime',
-    'reg',
-    'repeat',
-    'return',
-    'rnmos',
-    'rpmos',
-    'rtran',
-    'rtranif0',
-    'rtranif1',
-    'scalared',
-    'shortint',
-    'signed',
-    'specify',
-    'specparam',
-    'static',
-    'string',
-    'supply0',
-    'supply1',
-    'table',
-    'task',
-    'time',
-    'timeprecision',
-    'timeunit',
-    'tran',
-    'tranif0',
-    'tranif1',
-    'tri',
-    'tri0',
-    'tri1',
-    'true',
-    'typedef',
-    'unique',
-    'unique0',
-    'unsigned',
-    'var',
-    'vectored',
-    'void',
-    'while',
-    'wire',
-    'wreal',
-    'xnor',
-    'xor'
-  ),
-
-  SystemKeyword: $ => choice(
-    '$bits',
-    '$bitstoreal',
-    '$c',
-    '$ceil',
-    '$clog2',
-    '$countones',
-    '$display',
-    '$error',
-    '$exp',
-    '$fatal',
-    '$fclose',
-    '$fdisplay',
-    '$feof',
-    '$fflush',
-    '$fgetc',
-    '$fgets',
-    '$finish',
-    '$floor',
-    '$fopen',
-    '$fscanf',
-    '$fwrite',
-    '$info',
-    '$isunknown',
-    '$itor',
-    '$ln',
-    '$log10',
-    '$onehot',
-    '$onehot0',
-    '$pow',
-    '$random',
-    '$readmemb',
-    '$readmemh',
-    '$realtime',
-    '$realtobits',
-    '$rtoi',
-    '$sformat',
-    '$signed',
-    '$sqrt',
-    '$sscanf',
-    '$stime',
-    '$stop',
-    '$swrite',
-    '$system',
-    '$test$plusargs',
-    '$time',
-    '$unit',
-    '$unsigned',
-    '$value$plusargs',
-    '$warning',
-    '$write'
-  ),
-
   /* 5.5 Operators */
 
   /* 5.6 Identifiers, keywords, and system names */
@@ -2885,14 +2692,12 @@ const rules = {
   // A.6.1 Continuous assignment and net alias statements
 
   continuous_assign: $ => seq(
-    'assign', choice(
-      seq(
-        optional($.drive_strength),
-        optional($.delay3),
-        $.list_of_net_assignments
-      ),
-      // seq(optional($.delay_control), $.list_of_variable_assignments)
-    ), ';'
+    'assign',
+    choice(
+      seq(optional($.drive_strength), optional($.delay3), $.list_of_net_assignments),
+      seq(optional($.delay_control), $.list_of_variable_assignments)
+    ),
+    ';'
   ),
 
   list_of_net_assignments: $ => sep1(',', $.net_assignment),
@@ -2950,21 +2755,8 @@ const rules = {
     $.expression
   ),
 
-  // reordered
   assignment_operator: $ => choice(
-    '<<<=',
-    '>>>=',
-    '<<=',
-    '>>=',
-    '+=',
-    '-=',
-    '*=',
-    '/=',
-    '%=',
-    '&=',
-    '|=',
-    '^=',
-    '=' // !=
+    '=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<=', '>>=', '<<<=', '>>>='
   ),
 
   nonblocking_assignment: $ => seq(
@@ -3987,11 +3779,11 @@ const rules = {
   method_call: $ => seq($.method_call_root, '.', $.method_call_body),
 
   method_call_body: $ => choice(
-    seq(
+    prec.left(seq(
       $.method_identifier,
       repeat($.attribute_instance),
       optional($.list_of_arguments_parent)
-    ),
+    )),
     $.built_in_method_call
   ),
 
@@ -4000,14 +3792,12 @@ const rules = {
     $.randomize_call
   ),
 
-  array_manipulation_call: $ => seq(
+  array_manipulation_call: $ => prec.left(seq(
     $.array_method_name,
     repeat($.attribute_instance),
     optional($.list_of_arguments_parent),
-    optseq(
-      'with', '(', $.expression, ')'
-    )
-  ),
+    optseq('with', '(', $.expression, ')')
+  )),
 
   randomize_call: $ => prec.left(seq(
     'randomize',
@@ -4124,11 +3914,8 @@ const rules = {
     $.primary,
 
     prec.left(PREC.UNARY, seq(
-      $.unary_operator,
-      repeat($.attribute_instance),
-      $.primary
+      $.unary_operator, repeat($.attribute_instance), $.primary
     )),
-
     prec.left(PREC.UNARY, $.inc_or_dec_expression),
     seq('(', $.operator_assignment, ')'),
 
@@ -4239,7 +4026,7 @@ const rules = {
       optseq('[', $.constant_range_expression, ']')
     ),
     $.constant_function_call,
-    // $.constant_let_expression,
+    $.constant_let_expression,
     seq('(', $.constant_mintypmax_expression, ')'),
     $.constant_cast,
     // $.constant_assignment_pattern_expression,
@@ -4266,13 +4053,13 @@ const rules = {
     $.empty_unpacked_array_concatenation,
     seq($.concatenation, optional('[', $.range_expression, ']')),
     seq($.multiple_concatenation, optional('[', $.range_expression, ']')),
-    // $.function_subroutine_call,
-    // $.let_expression,
+    $.function_subroutine_call,
+    $.let_expression,
     seq('(', $.mintypmax_expression, ')'),
     $.cast,
     $.assignment_pattern_expression,
     // $.streaming_concatenation,
-    // $.sequence_method_call,
+    $.sequence_method_call,
     'this',
     '$',
     'null'
@@ -4296,8 +4083,8 @@ const rules = {
   primary_literal: $ => choice(
     $.number,
     $.time_literal,
-    // $.unbased_unsized_literal,
-    // $.string_literal
+    $.unbased_unsized_literal,
+    $.string_literal
   ),
 
 
@@ -4385,7 +4172,7 @@ const rules = {
 
   constant_cast: $ => seq($.casting_type, '\'', '(', $.constant_expression, ')'),
 
-  // constant_let_expression: $ => $.let_expression,
+  constant_let_expression: $ => $.let_expression,
 
   cast: $ => seq($.casting_type, '\'', '(', $.expression, ')'),
 
@@ -4401,9 +4188,19 @@ const rules = {
   ),
 
   variable_lvalue: $ => choice(
-    // ( implicit_class_handle __ '.' / package_scope )? ($.hierarchical_variable_identifier, $.select),
+    seq(
+      optional(choice(
+        seq($.implicit_class_handle, '.'),
+        $.package_scope
+      )),
+      $.hierarchical_variable_identifier,
+      optional($.select1)
+    ),
     seq('{', sep1(',', $.variable_lvalue), '}'),
-    seq(optional($.assignment_pattern_expression_type), $.assignment_pattern_variable_lvalue),
+    seq(
+      optional($.assignment_pattern_expression_type),
+      $.assignment_pattern_variable_lvalue
+    ),
     // $.streaming_concatenation
   ),
 
@@ -4453,54 +4250,83 @@ const rules = {
 
   number: $ => choice($.integral_number, $.real_number),
 
-  integral_number: $ => token(/\d+/),
+  // integral_number: $ => token(/\d+/),
 
-  // integral_number: $ =>
-  // decimal_number
-  // | octal_number
-  // | binary_number
-  // | hex_number
+  integral_number: $ => choice(
+    $.decimal_number,
+    $.octal_number,
+    $.binary_number,
+    $.hex_number
+  ),
 
-  // decimal_number: $ =>
-  // unsigned_number
-  // | [ size ] decimal_base unsigned_number
-  // | [ size ] decimal_base x_digit { _ }
-  // | [ size ] decimal_base z_digit { _ }
-  // binary_number: $ => [ size ] binary_base binary_value
-  // octal_number: $ => [ size ] octal_base octal_value
-  // hex_number: $ => [ size ] hex_base hex_value
-  // sign: $ => + | -
-  // size: $ => non_zero_unsigned_number
-  // non_zero_unsigned_number: $ => non_zero_decimal_digit { _ | decimal_digit}
+  decimal_number: $ => choice(
+    $.unsigned_number,
+    seq(optional($.size), $.decimal_base, $.unsigned_number),
+    seq(optional($.size), $.decimal_base, $.x_digit, repeat('_')),
+    seq(optional($.size), $.decimal_base, $.z_digit, repeat('_')),
+  ),
 
-  // real_number: $ =>
-  // fixed_point_number
-  // | unsigned_number [ . unsigned_number ] exp [ sign ] unsigned_number
-  real_number: $ => token(/\d+(\.\d+)?/),
+  binary_number: $ => seq(optional($.size), $.binary_base, $.binary_value),
 
-  fixed_point_number: $ => seq($.unsigned_number, '.', $.unsigned_number), // FIXME no space between dot and digits
+  octal_number: $ => seq(optional($.size), $.octal_base, $.octal_value),
 
+  hex_number: $ => seq(optional($.size), $.hex_base, $.hex_value),
 
-  // exp: $ => e | E
+  sign: $ => choice('+', '-'),
 
-  // unsigned_number: $ => decimal_digit { _ | decimal_digit }
-  unsigned_number: $ => token(/\d+/),
+  size: $ => $.non_zero_unsigned_number,
 
-  // binary_value: $ => binary_digit { _ | binary_digit }
-  // octal_value: $ => octal_digit { _ | octal_digit }
-  // hex_value: $ => hex_digit { _ | hex_digit }
-  // decimal_base: $ => '[ s|S]d | '[s|S]D
-  // binary_base: $ => '[s|S]b | '[s|S]B
-  // octal_base: $ => '[s|S]o | ' [s|S]O
-  // hex_base: $ => '[s|S]h | '[s|S]H
-  // non_zero_decimal_digit: $ => 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-  // decimal_digit: $ => 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-  // binary_digit: $ => x_digit | z_digit | 0 | 1
-  // octal_digit: $ => x_digit | z_digit | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
-  // hex_digit: $ => x_digit | z_digit | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f | A | B | C | D | E | F
-  // x_digit: $ => x | X
-  // z_digit: $ => z | Z | ?
-  // unbased_unsized_literal: $ => '0 | '1 | 'z_or_x
+  non_zero_unsigned_number: $ => seq(
+    $.non_zero_decimal_digit, repeat(choice('_', $.decimal_digit))
+  ),
+
+  real_number: $ => choice(
+    $.fixed_point_number,
+    seq(
+      $.unsigned_number,
+      optseq('.', $.unsigned_number),
+      $.exp,
+      optional($.sign),
+      $.unsigned_number
+    )
+  ),
+
+  // FIXME spec no space between dot and digits?
+  fixed_point_number: $ => seq($.unsigned_number, '.', $.unsigned_number),
+
+  exp: $ => choice('e', 'E'),
+
+  unsigned_number: $ => prec.left(seq($.decimal_digit, repeat(choice('_', $.decimal_digit)))),
+
+  binary_value: $ => prec.left(seq($.binary_digit, repeat(choice('_', $.binary_digit)))),
+
+  octal_value: $ => prec.left(seq($.octal_digit, repeat(choice('_', $.octal_digit)))),
+
+  hex_value: $ => prec.left(seq($.hex_digit, repeat(choice('_', $.hex_digit)))),
+
+  decimal_base: $ => seq('\'', /[sS]/, /[dD]/),
+
+  binary_base: $ => seq('\'', /[sS]/, /[bB]/),
+
+  octal_base: $ => seq('\'', /[sS]/, /[oO]/),
+
+  hex_base: $ => seq('\'', /[sS]/, /[hH]/),
+
+  non_zero_decimal_digit: $ => /[1-9]/,
+
+  decimal_digit: $ => /[0-9]/,
+
+  binary_digit: $ => choice($.x_digit, $.z_digit, '0', '1'),
+
+  octal_digit: $ => choice($.x_digit, $.z_digit, /[0-7]/),
+
+  hex_digit: $ => choice($.x_digit, $.z_digit, /[0-9a-fA-F]/),
+
+  x_digit: $ => /[xX]/,
+
+  z_digit: $ => choice('z', 'Z', '?'),
+
+  unbased_unsized_literal: $ => choice('\'0', '\'1', seq('\'', $.z_or_x)),
 
   /* A.9 General */
 
@@ -4709,7 +4535,7 @@ module.exports = grammar({
   conflicts: $ => [
     [$.primary, $.implicit_class_handle],
     [$.primary, $.hierarchical_property_identifier],
-    [$.primary, $.hierarchical_tf_identifier],
+    [$.primary,                                     $.hierarchical_tf_identifier],
     [$.primary, $.hierarchical_property_identifier, $.hierarchical_tf_identifier],
     [$.primary, $.constant_function_call],
     [$.primary, $.param_expression],
@@ -4718,7 +4544,7 @@ module.exports = grammar({
     [$.primary, $.hierarchical_sequence_identifier],
     [$.primary, $.hierarchical_property_identifier, $.hierarchical_sequence_identifier],
     [$.primary, $.hierarchical_property_identifier, $.hierarchical_sequence_identifier, $.tf_identifier],
-    [$.module_identifier, $.hierarchical_identifier, $.interface_identifier],
+    [$.hierarchical_identifier, $.module_identifier, $.interface_identifier],
     [$.module_identifier, $.interface_identifier],
     [$.module_identifier, $.interface_identifier, $.program_identifier],
     [$.module_identifier, $.interface_identifier, $.program_identifier, $.checker_identifier],
@@ -4729,7 +4555,7 @@ module.exports = grammar({
     [$.hierarchical_identifier, $.generate_block_identifier],
     [$.hierarchical_identifier, $.generate_block_identifier, $.tf_identifier],
     [$.hierarchical_identifier, $.generate_block_identifier, $.specparam_identifier, $.formal_port_identifier],
-    [$.hierarchical_identifier, $.generate_block_identifier, $.specparam_identifier, $.variable_identifier, $.formal_port_identifier],
+    [$.hierarchical_identifier, $.variable_identifier, $.generate_block_identifier, $.specparam_identifier, $.formal_port_identifier],
     [$.hierarchical_identifier, $.variable_identifier, $.tf_identifier],
     [$.hierarchical_identifier, $.tf_identifier],
     [$.hierarchical_identifier, $.block_identifier, $.tf_identifier],
@@ -4756,11 +4582,11 @@ module.exports = grammar({
     [$.method_call_body, $.array_method_name],
     [$.constant_primary, $.simple_type],
     [$.constant_primary, $.class_qualifier, $.ps_parameter_identifier, $.ps_type_identifier],
-    [$.method_call_root, $.class_qualifier],
+    [$.class_qualifier, $.method_call_root],
     [$.structure_pattern_key, $.array_pattern_key],
     [$.pattern, $.structure_pattern_key],
     [$.constraint_set, $.empty_unpacked_array_concatenation],
-    [$.interface_declaration, $.non_port_interface_item],
+    // [$.interface_declaration, $.non_port_interface_item],
     [$.program_declaration, $.non_port_program_item],
     [$.list_of_ports, $.list_of_port_declarations],
     [$.mintypmax_expression, $.expression_or_dist],
@@ -4770,7 +4596,7 @@ module.exports = grammar({
     [$.net_type_identifier, $.interface_identifier, $.program_identifier],
     [$.net_type_identifier, $.checker_identifier],
     [$.net_type_identifier, $.module_identifier, $.interface_identifier, $.program_identifier],
-    [$.port_identifier, $.variable_identifier],
+    [$.variable_identifier, $.port_identifier],
     [$.list_of_port_identifiers, $.list_of_variable_port_identifiers],
     [$.net_type_identifier, $.module_identifier, $.interface_identifier, $.program_identifier, $.checker_identifier],
     [$.list_of_port_identifiers, $._variable_dimension],
@@ -4785,15 +4611,15 @@ module.exports = grammar({
     [$.net_identifier, $.type_identifier],
     [$.covergroup_identifier, $.type_identifier],
     [$.data_type, $.constant_primary, $.class_qualifier, $.ps_parameter_identifier, $.ps_type_identifier],
-    [$.class_identifier, $.covergroup_identifier, $.hierarchical_identifier, $.type_identifier],
-    [$.formal_port_identifier, $.generate_block_identifier, $.hierarchical_identifier, $.specparam_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.class_identifier, $.covergroup_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.formal_port_identifier, $.generate_block_identifier, $.specparam_identifier, $.type_identifier],
     [$.net_type_identifier, $.type_identifier],
     [$.covergroup_identifier, $.net_type_identifier, $.type_identifier],
-    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier],
-    [$.formal_port_identifier, $.generate_block_identifier, $.hierarchical_identifier, $.parameter_identifier, $.specparam_identifier],
+    [$.hierarchical_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.formal_port_identifier, $.generate_block_identifier, $.parameter_identifier, $.specparam_identifier],
     [$.parameter_identifier, $.type_identifier],
-    [$.formal_port_identifier, $.generate_block_identifier, $.hierarchical_identifier, $.parameter_identifier, $.specparam_identifier, $.type_identifier],
-    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.member_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.formal_port_identifier, $.generate_block_identifier, $.parameter_identifier, $.specparam_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.member_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier],
     [$.enum_identifier, $.parameter_identifier],
     [$.enum_identifier, $.parameter_identifier, $.tf_identifier],
     [$.hierarchical_identifier, $.parameter_identifier],
@@ -4805,7 +4631,7 @@ module.exports = grammar({
     [$.class_identifier, $.interface_identifier, $.module_identifier, $.net_type_identifier, $.program_identifier],
     [$.class_identifier, $.covergroup_identifier, $.interface_identifier, $.module_identifier, $.net_type_identifier, $.program_identifier, $.type_identifier],
     [$.data_type_or_implicit1, $._var_data_type],
-    [$.port_identifier, $.type_identifier, $.variable_identifier],
+    [$.variable_identifier, $.port_identifier, $.type_identifier],
     [$.checker_identifier, $.class_identifier, $.covergroup_identifier, $.interface_identifier, $.module_identifier, $.net_type_identifier, $.program_identifier, $.type_identifier],
     [$.block_identifier, $.parameter_identifier, $.type_identifier],
     [$.checker_identifier, $.covergroup_identifier, $.type_identifier],
@@ -4813,20 +4639,20 @@ module.exports = grammar({
     [$.checker_identifier, $.class_identifier, $.covergroup_identifier, $.type_identifier],
     [$.hierarchical_identifier, $.covergroup_identifier, $.type_identifier],
     [$.hierarchical_identifier, $.parameter_identifier, $.type_identifier],
-    [$.hierarchical_identifier, $.formal_port_identifier, $.generate_block_identifier, $.parameter_identifier, $.specparam_identifier, $.type_identifier, $.variable_identifier],
+    [$.hierarchical_identifier, $.variable_identifier, $.formal_port_identifier, $.generate_block_identifier, $.parameter_identifier, $.specparam_identifier, $.type_identifier],
     [$.block_identifier, $.checker_identifier, $.class_identifier, $.covergroup_identifier, $.type_identifier],
     [$.hierarchical_identifier, $.enum_identifier, $.parameter_identifier, $.tf_identifier],
     [$.data_type, $.constant_primary],
     [$.hierarchical_identifier, $.class_identifier, $.covergroup_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier, $.type_identifier],
     [$.ansi_port_declaration, $._variable_dimension],
-    [$.enum_identifier, $.parameter_identifier, $.type_identifier],
-    [$.covergroup_identifier, $.enum_identifier, $.parameter_identifier, $.tf_identifier, $.type_identifier],
+    [                           $.parameter_identifier, $.enum_identifier, $.type_identifier],
+    [                           $.parameter_identifier, $.covergroup_identifier, $.enum_identifier, $.tf_identifier, $.type_identifier],
     [$.unpacked_dimension, $.constant_part_select_range],
     [$.generate_block_identifier, $.type_identifier],
     [$.port, $.ansi_port_declaration],
     [$.hierarchical_identifier, $.port_identifier],
     [$.hierarchical_identifier, $.parameter_identifier, $.port_identifier, $.generate_block_identifier, $.specparam_identifier, $.formal_port_identifier],
-    [$.parameter_identifier, $.member_identifier],
+    [                           $.parameter_identifier, $.member_identifier],
     [$.module_ansi_header, $.module_declaration],
     [$.net_type_identifier, $.class_identifier, $.covergroup_identifier, $.interface_identifier, $.type_identifier, $.checker_identifier],
     [$.instance_identifier, $.interface_identifier],
@@ -4844,11 +4670,11 @@ module.exports = grammar({
     [$.hierarchical_property_identifier, $.hierarchical_tf_identifier],
     [$.hierarchical_identifier, $.property_identifier, $.tf_identifier],
     [$.hierarchical_identifier, $.property_identifier],
-    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.specparam_identifier, $.tf_identifier],
-    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.sequence_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.property_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.property_identifier, $.sequence_identifier, $.specparam_identifier, $.tf_identifier],
     [$.property_spec, $.property_expr],
     [$.property_identifier, $.tf_identifier],
-    [$.enum_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.enum_identifier, $.property_identifier, $.tf_identifier],
     [$.property_expr, $.sequence_expr],
     [$.hierarchical_property_identifier, $.hierarchical_sequence_identifier, $.hierarchical_tf_identifier],
     [$.primary, $.hierarchical_property_identifier, $.hierarchical_sequence_identifier, $.hierarchical_tf_identifier],
@@ -4859,12 +4685,12 @@ module.exports = grammar({
     [$.hierarchical_identifier, $.sequence_identifier],
     [$.property_identifier, $.sequence_identifier, $.tf_identifier],
     [$.primary, $.hierarchical_sequence_identifier, $.hierarchical_tf_identifier],
-    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.sequence_identifier, $.specparam_identifier, $.tf_identifier],
-    [$.enum_identifier, $.hierarchical_identifier, $.parameter_identifier, $.property_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.sequence_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.enum_identifier, $.property_identifier, $.sequence_identifier, $.tf_identifier],
     [$.sequence_identifier, $.tf_identifier],
     [$.assignment_pattern_expression_type, $.constant_primary],
-    [$.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.hierarchical_identifier, $.parameter_identifier, $.specparam_identifier, $.tf_identifier, $.type_identifier],
-    [$.enum_identifier, $.hierarchical_identifier, $.parameter_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.enum_identifier, $.sequence_identifier, $.tf_identifier],
     [$.primary, $.hierarchical_net_identifier],
     [$.primary, $.hierarchical_net_identifier, $.hierarchical_tf_identifier],
     [$.net_type_identifier, $.class_identifier, $.interface_identifier, $.program_identifier, $.checker_identifier, $.covergroup_identifier, $.type_identifier],
@@ -4875,6 +4701,53 @@ module.exports = grammar({
     [$.hierarchical_identifier, $.cross_identifier],
     [$.mintypmax_expression, $.covergroup_expression],
     [$.hierarchical_identifier, $.parameter_identifier, $.cross_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier],
-    [$.concatenation, $.covergroup_expression]
+    [$.hierarchical_identifier, $.parameter_identifier, $.block_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.concatenation, $.covergroup_expression],
+    [$.decimal_number, $.real_number, $.fixed_point_number],
+    [$.delay3, $.delay_control],
+    [$.hierarchical_identifier, $.let_identifier, $.tf_identifier],
+    [$.let_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.sequence_identifier, $.let_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.generate_block_identifier, $.sequence_identifier, $.let_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.let_identifier, $.class_identifier, $.covergroup_identifier, $.type_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.specparam_identifier, $.let_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.let_identifier, $.block_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.let_identifier, $.covergroup_identifier, $.tf_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.let_identifier, $.enum_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.property_identifier, $.sequence_identifier, $.let_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.sequence_identifier, $.generate_block_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.class_identifier, $.covergroup_identifier, $.tf_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.block_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.covergroup_identifier, $.tf_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.tf_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.port_identifier, $.tf_identifier],
+    [$.primary, $.constant_let_expression],
+    [$.hierarchical_identifier, $.parameter_identifier, $.let_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.member_identifier, $.specparam_identifier, $.tf_identifier],
+    [                           $.parameter_identifier, $.let_identifier, $.enum_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.let_identifier, $.block_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.let_identifier, $.class_identifier, $.covergroup_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.let_identifier, $.tf_identifier, $.type_identifier],
+    [                           $.parameter_identifier, $.let_identifier, $.covergroup_identifier, $.enum_identifier, $.tf_identifier, $.type_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.let_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.property_identifier, $.sequence_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.let_identifier, $.property_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.let_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.sequence_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.let_identifier, $.enum_identifier, $.property_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.let_identifier, $.enum_identifier, $.sequence_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.port_identifier, $.let_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.port_identifier, $.let_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.let_identifier, $.cross_identifier, $.tf_identifier],
+    [$.hierarchical_identifier, $.parameter_identifier, $.let_identifier, $.cross_identifier, $.enum_identifier, $.formal_port_identifier, $.genvar_identifier, $.specparam_identifier, $.tf_identifier],
+    [$.variable_lvalue, $.method_call_root, $.class_qualifier],
+    [$.primary, $.hierarchical_variable_identifier],
+    [$.hierarchical_variable_identifier, $.hierarchical_tf_identifier],
+    [$.primary, $.hierarchical_variable_identifier, $.hierarchical_tf_identifier],
+    [$.hierarchical_net_identifier, $.hierarchical_variable_identifier],
+    [$.hierarchical_identifier, $.block_identifier],
+    [$.variable_lvalue, $.class_qualifier],
+    [$.hierarchical_identifier, $.variable_identifier],
+    [$.hierarchical_identifier, $.generate_block_identifier,  $.type_identifier],
+    [$.hierarchical_identifier,                               $.type_identifier],
+    [$.primary, $.hierarchical_net_identifier, $.hierarchical_variable_identifier],
+    [$.primary, $.hierarchical_net_identifier, $.hierarchical_variable_identifier, $.hierarchical_tf_identifier]
   ]
 });
