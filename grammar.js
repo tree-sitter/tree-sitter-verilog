@@ -1,24 +1,41 @@
 const PREC = {
-  // The matches operator shall have higher precedence than the && and || operators
-  MATCHES: 10,
 
-  PARENT: 17,     // () [] :: .                                   Left Highest
-  UNARY: 16,      // + - ! ~ & ~& | ~| ^ ~^ ^~ ++ -- (unary)
-  POW: 15,        // **                                           Left
-  MUL: 14,        // * / %                                        Left
-  ADD: 13,        // + - (binary)                                 Left
-  SHIFT: 12,      // << >> <<< >>>                                Left
-  RELATIONAL: 11, // < <= > >= inside dist                        Left
-  EQUAL: 10,      // == != === !== ==? !=?                        Left
-  AND: 9,         // & (binary)                                   Left
-  XOR: 8,         // ^ ~^ ^~ (binary)                             Left
-  OR: 7,          // | (binary)                                   Left
-  LOGICAL_AND: 6, // &&                                           Left
-  LOGICAL_OR: 5,  // ||                                           Left
-  CONDITIONAL: -2,// ?: (conditional operator)                    Right
-  IMPLICATION: -3,// –> <–>                                       Right
-  ASIGN: -4,      // = += -= *= /= %= &= ^= |= <<= >>= <<<= >>>= := :/ <= None
-  CONCAT: -5,     // {} {{}}                            Concatenation   Lowest
+  PARENT: 37,     // () [] :: .                                   Left Highest
+  UNARY: 36,      // + - ! ~ & ~& | ~| ^ ~^ ^~ ++ -- (unary)
+  POW: 35,        // **                                           Left
+  MUL: 34,        // * / %                                        Left
+  ADD: 33,        // + - (binary)                                 Left
+  SHIFT: 32,      // << >> <<< >>>                                Left
+  RELATIONAL: 31, // < <= > >= inside dist                        Left
+  EQUAL: 30,      // == != === !== ==? !=?                        Left
+  AND: 29,        // & (binary)                                   Left
+  XOR: 28,        // ^ ~^ ^~ (binary)                             Left
+  OR: 27,         // | (binary)                                   Left
+
+  // The matches operator shall have higher precedence than the && and || operators
+  MATCHES: 26,
+
+  LOGICAL_AND: 25,// &&                                           Left
+  LOGICAL_OR: 24, // ||                                           Left
+  CONDITIONAL: 23,// ?: (conditional operator)                    Right
+  IMPLICATION: 22,// –> <–>                                       Right
+  ASIGN: 21,      // = += -= *= /= %= &= ^= |= <<= >>= <<<= >>>= := :/ <= None
+  CONCAT: 20,     // {} {{}}                            Concatenation   Lowest
+
+  SPARENT: 19,    // [* ] [= ] [-> ]
+  SHARP2: 18,     // ##                                                 Left
+  throughout: 17, // throughout                                         Right
+  within: 16,     // within                                             Left
+  intersect: 15,  // intersect                                          Left
+  nexttime: 14,   // not, nexttime, s_nexttime
+  and: 13,        // and                                                Left
+  or: 12,         // or                                                 Left
+  iff: 11,        // iff                                                Right
+  until: 10,      // until, s_until, until_with, s_until_with, implies  Right
+  INCIDENCE: 9,   // |->, |=>, #-#, #=#                                 Right
+  always: 8,      // always, s_always, eventually, s_eventually,        —
+                  // if-else, case , accept_on, reject_on,
+                  // sync_accept_on, sync_reject_on
 };
 
 function optseq() {
@@ -189,8 +206,8 @@ const rules = {
     // $.program_declaration,
     // $.package_declaration,
     // seq(repeat($.attribute_instance), $.package_item),
-    seq(repeat($.attribute_instance), $.bind_directive),
-    $.config_declaration,
+    // seq(repeat($.attribute_instance), $.bind_directive),
+    // $.config_declaration,
   ),
 
   // module_nonansi_header: $ =>
@@ -276,6 +293,7 @@ const rules = {
 
   module_keyword: $ => choice('module', 'macromodule'),
 
+/*
   interface_declaration: $ => choice(
     seq(
       $.interface_nonansi_header,
@@ -324,6 +342,8 @@ const rules = {
     ';'
   ),
 
+*/
+/*
   program_declaration: $ => choice(
     seq(
       $.program_nonansi_header,
@@ -371,7 +391,9 @@ const rules = {
     $.list_of_port_declarations,
     ';'
   ),
+*/
 
+/*
   checker_declaration: $ => seq(
     'checker',
     $.checker_identifier,
@@ -383,7 +405,9 @@ const rules = {
     )),
     'endchecker', optseq(':', $.checker_identifier)
   ),
+*/
 
+/*
   class_declaration: $ => seq(
     optional('virtual'),
     'class',
@@ -425,6 +449,7 @@ const rules = {
   ),
 
   interface_class_method: $ => seq('pure', 'virtual', $.method_prototype, ';'),
+*/
 
   package_declaration: $ => seq(
     repeat($.attribute_instance),
@@ -557,8 +582,8 @@ const rules = {
     $._module_or_generate_item_declaration,
     $.interface_instantiation,
     $.program_instantiation,
-    $.assertion_item,
-    $.bind_directive,
+    // $.assertion_item,
+    // $.bind_directive,
     $.continuous_assign,
     $.net_alias,
     $.initial_construct,
@@ -578,7 +603,7 @@ const rules = {
     repeat($.attribute_instance),
     choice(
       $.parameter_override,
-      $.gate_instantiation,
+      // $.gate_instantiation,
       // $.udp_instantiation,
       $.module_instantiation,
       $._module_common_item
@@ -701,7 +726,7 @@ const rules = {
   ),
 
   extern_tf_declaration: $ => choice(
-    seq('extern', $.method_prototype, ';'),
+    // seq('extern', $.method_prototype, ';'),
     seq('extern', 'forkjoin', $.task_prototype, ';')
   ),
 
@@ -763,7 +788,7 @@ const rules = {
     $.initial_construct,
     $.always_construct,
     $.final_construct,
-    $.assertion_item,
+    // $.assertion_item,
     $.continuous_assign,
     $.checker_generate_item
   ),
@@ -790,6 +815,7 @@ const rules = {
 
   /* A.1.9 Class items */
 
+/*
   class_item: $ => choice(
     seq(repeat($.attribute_instance), $.class_property),
     seq(repeat($.attribute_instance), $.class_method),
@@ -864,6 +890,7 @@ const rules = {
     repeat($.function_statement_or_null),
     'endfunction', optseq(':', 'new')
   ),
+*/
 
   /* A.1.10 Constraints */
 
@@ -963,8 +990,8 @@ const rules = {
     // $.checker_declaration,
     $.dpi_import_export,
     $.extern_constraint_declaration,
-    $.class_declaration,
-    $.class_constructor_declaration,
+    // $.class_declaration,
+    // $.class_constructor_declaration,
     seq($.any_parameter_declaration, ';'),
     // $.covergroup_declaration,
     $.overload_declaration,
@@ -979,9 +1006,9 @@ const rules = {
   anonymous_program_item: $ => choice(
     $.task_declaration,
     $.function_declaration,
-    $.class_declaration,
+    // $.class_declaration,
     $.covergroup_declaration,
-    $.class_constructor_declaration,
+    // $.class_constructor_declaration,
     ';'
   ),
 
@@ -1184,13 +1211,13 @@ const rules = {
       repeat($.packed_dimension)
     ),
     'string',
-    'chandle',
-    prec.left(seq(
+    // 'chandle',
+    seq(
       'virtual', optional('interface'),
       $.interface_identifier,
       optional($.parameter_value_assignment),
       optseq('.', $.modport_identifier)
-    )),
+    ),
     seq(
       optional(choice($.class_scope, $.package_scope)),
       $.type_identifier,
@@ -1281,7 +1308,7 @@ const rules = {
 
   struct_union_member: $ => seq(
     repeat($.attribute_instance),
-    optional($.random_qualifier),
+    // optional($.random_qualifier),
     $.data_type_or_void,
     $.list_of_variable_decl_assignments,
     ';'
@@ -1735,7 +1762,7 @@ const rules = {
   ),
 
   modport_tf_port: $ => choice(
-    $.method_prototype,
+    // $.method_prototype,
     $.tf_identifier
   ),
 
@@ -1866,7 +1893,7 @@ const rules = {
     $.sequence_expr,
     seq('strong', '(', $.sequence_expr, ')'),
     seq('weak', '(', $.sequence_expr, ')'),
-    seq('(', $.property_expr, ')'),
+    prec.left(seq('(', $.property_expr, ')')),
 
     // FIXME no assosiativity rules per spec
     prec.left(seq('not', $.property_expr)),
@@ -1965,12 +1992,12 @@ const rules = {
     seq($.expression_or_dist, optional($.boolean_abbrev)),
     seq($.sequence_instance, optional($.sequence_abbrev)),
     prec.left(seq('(', $.sequence_expr, repseq(',', $.sequence_match_item), ')', optional($.sequence_abbrev))),
-    prec.left(seq($.sequence_expr, 'and', $.sequence_expr)),
-    prec.left(seq($.sequence_expr, 'intersect', $.sequence_expr)),
-    prec.left(seq($.sequence_expr, 'or', $.sequence_expr)),
+    prec.left(PREC.and, seq($.sequence_expr, 'and', $.sequence_expr)),
+    prec.left(PREC.intersect, seq($.sequence_expr, 'intersect', $.sequence_expr)),
+    prec.left(PREC.or, seq($.sequence_expr, 'or', $.sequence_expr)),
     seq('first_match', '(', $.sequence_expr, repseq(',', $.sequence_match_item), ')'),
-    prec.right(seq($.expression_or_dist, 'throughout', $.sequence_expr)),
-    prec.left(seq($.sequence_expr, 'within', $.sequence_expr)),
+    prec.right(PREC.throughout, seq($.expression_or_dist, 'throughout', $.sequence_expr)),
+    prec.left(PREC.within, seq($.sequence_expr, 'within', $.sequence_expr)),
     prec.left(seq($.clocking_event, $.sequence_expr)) // FIXME precedence?
   ),
 
@@ -2219,7 +2246,7 @@ const rules = {
     prec.left(PREC.UNARY, seq('!', $.select_condition)),
     prec.left(PREC.LOGICAL_AND, seq($.select_expression, '&&', $.select_expression)),
     prec.left(PREC.LOGICAL_OR, seq($.select_expression, '||', $.select_expression)),
-    seq('(', $.select_expression, ')'),
+    prec.left(PREC.PARENT, seq('(', $.select_expression, ')')),
     seq(
       $.select_expression, 'with', '(', $.with_covergroup_expression, ')',
       optseq('matches', $.integer_covergroup_expression)
@@ -2304,6 +2331,7 @@ const rules = {
 
   // A.3.1 Primitive instantiation and instances
 
+/*
   gate_instantiation: $ => seq(
     choice(
       seq(
@@ -2431,6 +2459,8 @@ const rules = {
   n_output_gatetype: $ => choice('buf', 'not'),
   pass_en_switchtype: $ => choice('tranif0', 'tranif1', 'rtranif1', 'rtranif0'),
   pass_switchtype: $ => choice('tran', 'rtran'),
+
+*/
 
   // A.4 Instantiations
 
@@ -2717,20 +2747,14 @@ const rules = {
   always_construct: $ => seq($.always_keyword, $.statement),
 
   always_keyword: $ => choice(
-    'always',
-    'always_comb',
-    'always_latch',
-    'always_ff'
+    'always', 'always_comb', 'always_latch', 'always_ff'
   ),
 
   final_construct: $ => seq('final', $.function_statement),
 
   blocking_assignment: $ => choice(
     seq(
-      $.variable_lvalue,
-      '=', // !=,
-      $.delay_or_event_control,
-      $.expression
+      $.variable_lvalue, '=', $.delay_or_event_control, $.expression
     ),
     // seq(
     //   $.nonrange_variable_lvalue, '=', $.dynamic_array_new
@@ -2750,9 +2774,7 @@ const rules = {
   ),
 
   operator_assignment: $ => seq(
-    $.variable_lvalue,
-    $.assignment_operator,
-    $.expression
+    $.variable_lvalue, $.assignment_operator, $.expression
   ),
 
   assignment_operator: $ => choice(
@@ -2918,7 +2940,7 @@ const rules = {
 
   event_trigger: $ => choice(
     seq('->', $.hierarchical_event_identifier, ';'),
-    seq('|->>', optional($.delay_or_event_control), $.hierarchical_event_identifier, ';')
+    seq('->>', optional($.delay_or_event_control), $.hierarchical_event_identifier, ';')
   ),
 
   disable_statement: $ => choice(
@@ -3846,9 +3868,7 @@ const rules = {
     $.constant_primary,
 
     prec.left(PREC.UNARY, seq(
-      $.unary_operator,
-      repeat($.attribute_instance),
-      $.constant_primary
+      $.unary_operator, repeat($.attribute_instance), $.constant_primary
     )),
 
     constExprOp($, PREC.ADD, choice('+', '-')),
@@ -3917,7 +3937,7 @@ const rules = {
       $.unary_operator, repeat($.attribute_instance), $.primary
     )),
     prec.left(PREC.UNARY, $.inc_or_dec_expression),
-    seq('(', $.operator_assignment, ')'),
+    prec.left(PREC.PARENT, seq('(', $.operator_assignment, ')')),
 
     exprOp($, PREC.ADD, choice('+', '-')),
     exprOp($, PREC.MUL, choice('*', '/', '%')),
@@ -4211,17 +4231,7 @@ const rules = {
   // A.8.6 Operators
 
   unary_operator: $ => choice(
-    '~|', // !'=') /
-    '~^', // !'=') /
-    '~&', // !'=') /
-    '^~',
-    '+', // ![ += ]) /
-    '-', // ![- >= ]) /
-    '!', // ![ != ]) /
-    '&', // ![ &= ]) /
-    '|', // ![ |= ]) /
-    '^', // ![ |= ]) /
-    '~', // ![ | ^ &= ])
+    '+', '-', '!', '~', '&', '~&', '|', '~|', '^', '~^', '^~'
   ),
 
   inc_or_dec_operator: $ => choice('++', '--'),

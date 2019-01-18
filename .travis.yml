@@ -19,5 +19,5 @@ install:
   - g++ --version
   - npm --version
   - time npm install
-  - wc -l srs/parser.c
+  - wc -l src/parser.c
 script: npm test

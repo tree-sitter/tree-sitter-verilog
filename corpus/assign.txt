@@ -1,9 +1,29 @@
 ============================================
-constant
+constant decimal
 ============================================
 
 module mod ();
   assign a = 5;
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_nonansi_header (list_of_ports))
+    (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
+      (net_lvalue (ps_or_hierarchical_net_identifier (hierarchical_net_identifier (hierarchical_identifier (identifier (simple_identifier))))))
+      (expression (primary (primary_literal (number (integral_number))))))))
+    )
+))
+
+============================================
+constant '0
+============================================
+
+module mod ();
+  assign a = '0;
+  assign b = 3'bx01;
 endmodule
 
 ----
