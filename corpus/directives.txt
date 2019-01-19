@@ -62,12 +62,12 @@ usage args
     (list_of_actual_arguments
       (actual_argument
         (expression
-          (primary (primary_literal (number (integral_number))))
+          (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))
         )
       )
       (actual_argument
         (expression
-          (primary (primary_literal (number (integral_number))))
+          (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))
         )
       )
     )

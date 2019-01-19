@@ -81,7 +81,9 @@ endmodule
         (parameter_port_declaration (any_parameter_declaration (parameter_declaration (list_of_param_assignments
           (param_assignment
             (parameter_identifier (_parameter_identifier (simple_identifier)))
-            (constant_param_expression (constant_mintypmax_expression (constant_expression (constant_primary (primary_literal (number (integral_number)))))))
+            (constant_param_expression (constant_mintypmax_expression (constant_expression
+              (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))
+            )))
           )
         ))))
       )
@@ -114,15 +116,15 @@ endmodule
         (parameter_port_declaration (any_parameter_declaration (parameter_declaration (list_of_param_assignments
           (param_assignment
             (parameter_identifier (_parameter_identifier (simple_identifier)))
-            (constant_param_expression (constant_mintypmax_expression (constant_expression (constant_primary (primary_literal (number (integral_number)))))))
+            (constant_param_expression (constant_mintypmax_expression (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))))
           )
         ))))
         (parameter_port_declaration (any_parameter_declaration (local_parameter_declaration (list_of_param_assignments
           (param_assignment
             (parameter_identifier (_parameter_identifier (simple_identifier)))
             (constant_param_expression (constant_mintypmax_expression (constant_expression
-              (constant_expression (constant_primary (primary_literal (number (integral_number)))))
-              (constant_expression (constant_primary (primary_literal (number (integral_number)))))
+              (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
+              (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
             )))
           )
         ))))
@@ -210,11 +212,11 @@ endmodule
                       (ps_parameter_identifier (parameter_identifier))
                     ))
                     (constant_expression (constant_primary
-                      (primary_literal (number (integral_number)))
+                      (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
                     ))
                   )
                   (constant_expression (constant_primary
-                    (primary_literal (number (integral_number)))
+                    (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
                   ))
                 )
               )
@@ -234,10 +236,10 @@ endmodule
               (packed_dimension
                 (constant_range
                   (constant_expression (constant_primary
-                    (primary_literal (number (integral_number)))
+                    (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
                   ))
                   (constant_expression (constant_primary
-                    (primary_literal (number (integral_number)))
+                    (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
                   ))
                 )
               )
@@ -307,12 +309,12 @@ endmodule
                   (constant_range
                     (constant_expression
                       (constant_primary
-                        (primary_literal (number (integral_number)))
+                        (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
                       )
                     )
                     (constant_expression
                       (constant_primary
-                        (primary_literal (number (integral_number)))
+                        (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
                       )
                     )
                   )
@@ -334,12 +336,12 @@ endmodule
                   (constant_range
                     (constant_expression
                       (constant_primary
-                        (primary_literal (number (integral_number)))
+                        (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
                       )
                     )
                     (constant_expression
                       (constant_primary
-                        (primary_literal (number (integral_number)))
+                        (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
                       )
                     )
                   )

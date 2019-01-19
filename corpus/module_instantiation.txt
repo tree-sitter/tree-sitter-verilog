@@ -154,7 +154,7 @@ endmodule
     (module_identifier (_module_identifier (simple_identifier)))
     (parameter_value_assignment (list_of_parameter_assignments
       (ordered_parameter_assignment (_ordered_parameter_assignment
-        (mintypmax_expression (expression (primary (primary_literal (number (integral_number))))))
+        (mintypmax_expression (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))))
       ))
     ))
     (hierarchical_instance
@@ -197,15 +197,15 @@ endmodule
     (module_identifier (_module_identifier (simple_identifier)))
     (parameter_value_assignment (list_of_parameter_assignments
       (named_parameter_assignment
-        (parameter_identifier)
+        (parameter_identifier (_parameter_identifier (simple_identifier)))
         (param_expression
-          (mintypmax_expression (expression (primary (primary_literal (number (integral_number))))))
+          (mintypmax_expression (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))))
         )
       )
       (named_parameter_assignment
-        (parameter_identifier)
+        (parameter_identifier (_parameter_identifier (simple_identifier)))
         (param_expression
-          (mintypmax_expression (expression (primary (primary_literal (number (integral_number))))))
+          (mintypmax_expression (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))))
         )
       )
     ))
