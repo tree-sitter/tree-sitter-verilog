@@ -12,12 +12,12 @@ endmodule
   (module_declaration
     (module_header
       (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
+      (module_identifier (simple_identifier))
     )
     (module_nonansi_header (list_of_ports))
     (module_or_generate_item (net_declaration
       (net_type)
-      (list_of_net_decl_assignments (net_decl_assignment (net_identifier (_net_identifier (simple_identifier)))))
+      (list_of_net_decl_assignments (net_decl_assignment (net_identifier (simple_identifier))))
     ))
   )
 )
@@ -36,7 +36,7 @@ endmodule
   (module_declaration
     (module_header
       (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
+      (module_identifier (simple_identifier))
     )
     (module_nonansi_header (list_of_ports))
     (module_or_generate_item (net_declaration
@@ -51,7 +51,7 @@ endmodule
           )
         )
       )
-      (list_of_net_decl_assignments (net_decl_assignment (net_identifier (_net_identifier (simple_identifier)))))
+      (list_of_net_decl_assignments (net_decl_assignment (net_identifier (simple_identifier))))
     ))
   )
 )
@@ -70,7 +70,7 @@ endmodule
   (module_declaration
     (module_header
       (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
+      (module_identifier (simple_identifier))
     )
     (module_nonansi_header (list_of_ports))
     (module_or_generate_item (net_declaration
@@ -82,7 +82,7 @@ endmodule
               (constant_expression
                 (constant_expression
                   (constant_primary
-                    (ps_parameter_identifier (parameter_identifier))
+                    (parameter_identifier (simple_identifier))
                   )
                 )
                 (constant_expression
@@ -100,7 +100,7 @@ endmodule
           )
         )
       )
-      (list_of_net_decl_assignments (net_decl_assignment (net_identifier (_net_identifier (simple_identifier)))))
+      (list_of_net_decl_assignments (net_decl_assignment (net_identifier (simple_identifier))))
     ))
   )
 )
@@ -122,27 +122,27 @@ endmodule
   (module_declaration
     (module_header
       (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
+      (module_identifier (simple_identifier))
     )
     (module_nonansi_header (list_of_ports))
     (module_or_generate_item (net_declaration
       (net_type)
       (list_of_net_decl_assignments
-        (net_decl_assignment (net_identifier (_net_identifier (simple_identifier))))
-        (net_decl_assignment (net_identifier (_net_identifier (simple_identifier))))
-        (net_decl_assignment (net_identifier (_net_identifier (simple_identifier))))
+        (net_decl_assignment (net_identifier (simple_identifier)))
+        (net_decl_assignment (net_identifier (simple_identifier)))
+        (net_decl_assignment (net_identifier (simple_identifier)))
       )
     ))
     (module_or_generate_item (net_declaration
       (net_type)
       (list_of_net_decl_assignments
-        (net_decl_assignment (net_identifier (_net_identifier (simple_identifier))))
+        (net_decl_assignment (net_identifier (simple_identifier)))
       )
     ))
     (module_or_generate_item (data_declaration
       (data_type_or_implicit1 (data_type (integer_vector_type)))
       (list_of_variable_decl_assignments
-        (variable_decl_assignment (variable_identifier (_variable_identifier (simple_identifier))))
+        (variable_decl_assignment (variable_identifier (simple_identifier)))
       )
     ))
     (module_or_generate_item (data_declaration
@@ -156,7 +156,7 @@ endmodule
         )
       )
       (list_of_variable_decl_assignments
-        (variable_decl_assignment (variable_identifier (_variable_identifier (simple_identifier))))
+        (variable_decl_assignment (variable_identifier (simple_identifier)))
       )
     ))
   )

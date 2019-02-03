@@ -1,24 +1,4 @@
 ============================================
-module with no io
-============================================
-
-module mod;
-
-endmodule
-
-----
-
-(source_file
-  (module_declaration
-    (module_header
-      (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
-    )
-    (module_ansi_header)
-  )
-)
-
-============================================
 module with empty io
 ============================================
 
@@ -30,7 +10,7 @@ module mod (); endmodule
   (module_declaration
     (module_header
       (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
+      (module_identifier (simple_identifier))
     )
     (module_nonansi_header (list_of_ports))
   )
@@ -49,7 +29,7 @@ endmodule
   (module_declaration
     (module_header
       (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
+      (module_identifier (simple_identifier))
     )
     (module_nonansi_header
       (parameter_port_list)
@@ -74,13 +54,13 @@ endmodule
   (module_declaration
     (module_header
       (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
+      (module_identifier (simple_identifier))
     )
     (module_nonansi_header
       (parameter_port_list
         (parameter_port_declaration (any_parameter_declaration (parameter_declaration (list_of_param_assignments
           (param_assignment
-            (parameter_identifier (_parameter_identifier (simple_identifier)))
+            (parameter_identifier (simple_identifier))
             (constant_param_expression (constant_mintypmax_expression (constant_expression
               (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))
             )))
@@ -109,19 +89,19 @@ endmodule
   (module_declaration
     (module_header
       (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
+      (module_identifier (simple_identifier))
     )
     (module_nonansi_header
       (parameter_port_list
         (parameter_port_declaration (any_parameter_declaration (parameter_declaration (list_of_param_assignments
           (param_assignment
-            (parameter_identifier (_parameter_identifier (simple_identifier)))
+            (parameter_identifier (simple_identifier))
             (constant_param_expression (constant_mintypmax_expression (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))))
           )
         ))))
         (parameter_port_declaration (any_parameter_declaration (local_parameter_declaration (list_of_param_assignments
           (param_assignment
-            (parameter_identifier (_parameter_identifier (simple_identifier)))
+            (parameter_identifier (simple_identifier))
             (constant_param_expression (constant_mintypmax_expression (constant_expression
               (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
               (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
@@ -147,17 +127,17 @@ endmodule
 (source_file
   (module_declaration
     (module_header (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
+      (module_identifier (simple_identifier))
     )
     (module_nonansi_header
       (list_of_ports
-        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
+        (port (port_reference (port_identifier (simple_identifier))))
       )
     )
     (port_declaration
       (input_declaration
         (list_of_port_identifiers
-          (port_identifier (_port_identifier (simple_identifier)))
+          (port_identifier (simple_identifier))
         )
       )
     )
@@ -182,55 +162,37 @@ endmodule
 (source_file
   (module_declaration
     (module_header (module_keyword)
-      (module_identifier (_module_identifier (simple_identifier)))
-    )
+      (module_identifier (simple_identifier)))
     (module_nonansi_header
       (list_of_ports
-        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
-        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
-        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
-        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
-        (port (port_reference (port_identifier (_port_identifier (simple_identifier)))))
-      )
-    )
+        (port (port_reference (port_identifier (simple_identifier))))
+        (port (port_reference (port_identifier (simple_identifier))))
+        (port (port_reference (port_identifier (simple_identifier))))
+        (port (port_reference (port_identifier (simple_identifier))))
+        (port (port_reference (port_identifier (simple_identifier))))))
     (port_declaration
       (input_declaration
         (list_of_port_identifiers
-          (port_identifier (_port_identifier (simple_identifier)))
-        )
-      )
-    )
+          (port_identifier (simple_identifier)))))
     (port_declaration
       (input_declaration
-        (net_port_type
+        (net_port_type1
           (data_type_or_implicit1
             (implicit_data_type1
               (packed_dimension
                 (constant_range
                   (constant_expression
                     (constant_expression (constant_primary
-                      (ps_parameter_identifier (parameter_identifier))
-                    ))
+                      (parameter_identifier (simple_identifier))))
                     (constant_expression (constant_primary
-                      (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
-                    ))
-                  )
+                      (primary_literal (number (integral_number (decimal_number (unsigned_number))))))))
                   (constant_expression (constant_primary
-                    (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
-                  ))
-                )
-              )
-            )
-          )
-        )
+                    (primary_literal (number (integral_number (decimal_number (unsigned_number))))))))))))
         (list_of_port_identifiers
-          (port_identifier (_port_identifier (simple_identifier)))
-        )
-      )
-    )
+          (port_identifier (simple_identifier)))))
     (port_declaration
       (output_declaration
-        (net_port_type
+        (net_port_type1
           (data_type_or_implicit1
             (implicit_data_type1
               (packed_dimension
@@ -240,20 +202,10 @@ endmodule
                   ))
                   (constant_expression (constant_primary
                     (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
-                  ))
-                )
-              )
-            )
-          )
-        )
+                  )))))))
         (list_of_port_identifiers
-          (port_identifier (_port_identifier (simple_identifier)))
-          (port_identifier (_port_identifier (simple_identifier)))
-        )
-      )
-    )
-  )
-)
+          (port_identifier (simple_identifier))
+          (port_identifier (simple_identifier)))))))
 
 ============================================
 empty module with ANSI io
@@ -266,11 +218,11 @@ endmodule
 
 (source_file
   (module_declaration
-    (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
-    (module_ansi_header (list_of_port_declarations1
+    (module_header (module_keyword) (module_identifier (simple_identifier)))
+    (module_ansi_header (list_of_port_declarations
       (ansi_port_declaration
-        (net_port_header (port_direction))
-        (port_identifier (_port_identifier (simple_identifier)))
+        (net_port_header1 (port_direction))
+        (port_identifier (simple_identifier))
       )
     ))
   )
@@ -281,9 +233,10 @@ module with ANSI ios
 ============================================
 
 module mod (
-  input alfa,
-  input [3:0] beta,
-  output logic [3:0] gamma
+  input foo,
+  input [3:0] bar,
+  output logic [3:0] qux,
+  input wire ham
 );
 
 endmodule
@@ -292,66 +245,37 @@ endmodule
 
 (source_file
   (module_declaration
-    (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
-    (module_ansi_header (list_of_port_declarations1
+    (module_header (module_keyword) (module_identifier (simple_identifier)))
+    (module_ansi_header (list_of_port_declarations
+
       (ansi_port_declaration
-        (net_port_header
-          (port_direction))
-        (port_identifier (_port_identifier (simple_identifier)))
-      )
+        (net_port_header1 (port_direction))
+        (port_identifier (simple_identifier)))
+
       (ansi_port_declaration
-        (net_port_header
+        (net_port_header1
           (port_direction)
-          (net_port_type
-            (data_type_or_implicit1
-              (implicit_data_type1
-                (packed_dimension
-                  (constant_range
-                    (constant_expression
-                      (constant_primary
-                        (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
-                      )
-                    )
-                    (constant_expression
-                      (constant_primary
-                        (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
+          (net_port_type1 (data_type_or_implicit1 (implicit_data_type1
+            (packed_dimension (constant_range
+              (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
+              (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))))))))
         )
-        (port_identifier (_port_identifier (simple_identifier)))
-      )
+        (port_identifier (simple_identifier)))
+
       (ansi_port_declaration
-        (net_port_header
+        (variable_port_header
           (port_direction)
-          (net_port_type
-            (data_type_or_implicit1
-              (data_type
-                (integer_vector_type)
-                (packed_dimension
-                  (constant_range
-                    (constant_expression
-                      (constant_primary
-                        (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
-                      )
-                    )
-                    (constant_expression
-                      (constant_primary
-                        (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-        (port_identifier (_port_identifier (simple_identifier)))
-      )
-    ))
+          (variable_port_type (_variable_port_type (data_type
+            (integer_vector_type)
+            (packed_dimension (constant_range
+              (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
+              (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))))))))
+        (port_identifier (simple_identifier)))
+
+      (ansi_port_declaration
+        (net_port_header1
+          (port_direction)
+          (net_port_type1 (net_type)))
+        (port_identifier (simple_identifier)))))
   )
 )

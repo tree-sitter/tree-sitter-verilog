@@ -11,7 +11,7 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item
     (always_construct (always_keyword) (statement (statement_item (seq_block))))
@@ -31,7 +31,7 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item
     (always_construct
@@ -57,7 +57,7 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item
     (always_construct
@@ -83,7 +83,7 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item
     (always_construct
@@ -91,7 +91,7 @@ endmodule
       (statement (statement_item (procedural_timing_control_statement
         (event_control (event_expression
           (edge_identifier)
-          (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+          (expression (primary (identifier (simple_identifier))))
         ))
         (statement_or_null (statement (statement_item (seq_block))))
       )))
@@ -115,7 +115,7 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (always_construct (always_keyword) (statement (statement_item (seq_block)))))
   (module_or_generate_item (always_construct (always_keyword) (statement (statement_item (seq_block)))))
@@ -138,7 +138,7 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item
     (always_construct (always_keyword)
@@ -146,8 +146,8 @@ endmodule
         (statement_item
           (seq_block (block_item_declaration
             (data_declaration (list_of_variable_decl_assignments (variable_decl_assignment
-              (variable_identifier (_variable_identifier (simple_identifier)))
-              (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+              (variable_identifier (simple_identifier))
+              (expression (primary (identifier (simple_identifier))))
             )))
           ))
         )
@@ -172,19 +172,19 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (_module_identifier (simple_identifier))))
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item
     (always_construct (always_keyword)
       (statement (statement_item (conditional_statement
         (cond_predicate (expression_or_cond_pattern
-          (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+          (expression (primary (identifier (simple_identifier))))
         ))
         (statement_or_null (statement
           (statement_item (seq_block
             (block_item_declaration (data_declaration (list_of_variable_decl_assignments (variable_decl_assignment
-              (variable_identifier (_variable_identifier (simple_identifier)))
-              (expression (primary (hierarchical_identifier (identifier (simple_identifier)))))
+              (variable_identifier (simple_identifier))
+              (expression (primary (identifier (simple_identifier))))
             ))))
           ))
         ))
