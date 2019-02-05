@@ -111,3 +111,14 @@ undefineall
 (source_file
   (zero_directive)
 )
+
+============================================
+line
+============================================
+
+`line 10 "bar" 42
+
+----
+
+(source_file
+  (line_compiler_directive (unsigned_number) (include_compiler_directive_relative) (unsigned_number)))
