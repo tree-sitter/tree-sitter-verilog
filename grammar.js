@@ -161,7 +161,16 @@ const rules = {
     directive('else')
   ),
 
+  line_compiler_directive: $ => seq(
+    directive('line'),
+    $.unsigned_number,
+    $.include_compiler_directive_relative,
+    $.unsigned_number,
+    '\n'
+  ),
+
   _directives: $ => choice(
+    $.line_compiler_directive,
     $.include_compiler_directive,
     $.text_macro_definition,
     $.text_macro_usage,
