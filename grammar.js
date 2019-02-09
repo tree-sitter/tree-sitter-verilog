@@ -51,7 +51,7 @@ function commaSep(rule) {
 }
 
 function commaSep1(rule) {
-  return seq(rule, repeat(seq(',', rule)))
+  return seq(rule, repseq(',', rule))
 }
 
 function sep1(separator, rule) {
@@ -395,10 +395,10 @@ const rules = {
     $.checker_identifier,
     optseq('(', optional($.checker_port_list), ')'),
     ';',
-    repeat(seq(
+    repseq(
       repeat($.attribute_instance),
       $.checker_or_generate_item
-    )),
+    ),
     'endchecker', optseq(':', $.checker_identifier)
   ),
 
@@ -448,7 +448,7 @@ const rules = {
     repeat($.attribute_instance),
     'package', optional($.lifetime), $.package_identifier, ';',
     optional($.timeunits_declaration),
-    repeat(seq($.attribute_instance), $.package_item),
+    repseq($.attribute_instance, $.package_item),
     'endpackage', optseq(':', $.package_identifier)
   ),
 
@@ -464,7 +464,7 @@ const rules = {
   parameter_port_list: $ => seq(
     '#', '(',
     optional(choice(
-      seq($.list_of_param_assignments, repeat(seq(',', $.parameter_port_declaration))),
+      seq($.list_of_param_assignments, repseq(',', $.parameter_port_declaration)),
       sep1(',', $.parameter_port_declaration)
     )),
     ')'
@@ -548,7 +548,7 @@ const rules = {
       optional($.variable_port_header),
       $.port_identifier,
       repeat($._variable_dimension),
-      optional('=', $.constant_expression)
+      optseq('=', $.constant_expression)
     ),
     seq(
       optional($.port_direction), '.', $.port_identifier,
@@ -844,7 +844,7 @@ const rules = {
   ),
 
   class_constructor_prototype: $ => seq(
-    'function', 'new', optional('(', optional($.tf_port_list), ')'), ';'
+    'function', 'new', optseq('(', optional($.tf_port_list), ')'), ';'
   ),
 
   class_constraint: $ => choice(
@@ -1259,11 +1259,11 @@ const rules = {
   class_type: $ => prec.right(seq(
     $.ps_class_identifier,
     optional($.parameter_value_assignment),
-    repeat(seq(
+    repseq(
       '::',
       $.class_identifier,
       optional($.parameter_value_assignment)
-    ))
+    )
   )),
 
   _integer_type: $ => choice(
@@ -1387,11 +1387,11 @@ const rules = {
   list_of_interface_identifiers: $ => seq(
     $.interface_identifier,
     repeat($.unpacked_dimension),
-    repeat(seq(
+    repseq(
       ',',
       $.interface_identifier,
       repeat($.unpacked_dimension)
-    ))
+    )
   ),
 
   list_of_net_decl_assignments: $ => sep1(',', $.net_decl_assignment),
@@ -2810,10 +2810,10 @@ const rules = {
   ),
 
   seq_block: $ => seq(
-    'begin', optional(':', $.block_identifier),
+    'begin', optseq(':', $.block_identifier),
     repeat($.block_item_declaration),
     repeat($.statement_or_null),
-    'end', optional(':', $.block_identifier)
+    'end', optseq(':', $.block_identifier)
   ),
 
   par_block: $ => seq(
@@ -2833,7 +2833,7 @@ const rules = {
   ),
 
   statement: $ => seq(
-    optional($.block_identifier, ':'),
+    optseq($.block_identifier, ':'),
     repeat($.attribute_instance),
     $.statement_item
   ),
@@ -2960,7 +2960,7 @@ const rules = {
   conditional_statement: $ => prec.left(seq(
     optional($.unique_priority),
     'if', '(', $.cond_predicate, ')', $.statement_or_null,
-    // repeat(seq('else', 'if', '(', $.cond_predicate, ')', $.statement_or_null)),
+    // repseq('else', 'if', '(', $.cond_predicate, ')', $.statement_or_null),
     optseq('else', $.statement_or_null)
   )),
 
@@ -3127,9 +3127,7 @@ const rules = {
 
   loop_variables1: $ => seq(
     $.index_variable_identifier,
-    repeat(seq(
-      ',', optional($.index_variable_identifier)
-    ))
+    repseq(',', optional($.index_variable_identifier))
   ),
 
   // A.6.9 Subroutine call statements
@@ -3795,11 +3793,9 @@ const rules = {
     choice(
       seq(
         // sep1(',', optional($.expression)),
-        repeat(seq(
-          ',', '.', $.identifier, '(', optional($.expression), ')'
-        ))
+        repseq(',', '.', $.identifier, '(', optional($.expression), ')')
       ),
-      sep1(',', repeat(seq(',', '.', $.identifier, '(', optional($.expression), ')')))
+      sep1(',', repseq(',', '.', $.identifier, '(', optional($.expression), ')'))
     ),
     ')'
   ),
@@ -3835,9 +3831,9 @@ const rules = {
       optional(choice(
         $.variable_identifier_list,
         'null'
-      ),
+      )),
       ')'
-    )),
+    ),
     optseq(
       'with',
       optseq(
@@ -4081,8 +4077,8 @@ const rules = {
       optional($.select1)
     )),
     $.empty_unpacked_array_concatenation,
-    seq($.concatenation, optional('[', $.range_expression, ']')),
-    seq($.multiple_concatenation, optional('[', $.range_expression, ']')),
+    seq($.concatenation, optseq('[', $.range_expression, ']')),
+    seq($.multiple_concatenation, optseq('[', $.range_expression, ']')),
     $.function_subroutine_call,
     $.let_expression,
     seq('(', $.mintypmax_expression, ')'),
@@ -4134,7 +4130,7 @@ const rules = {
 
   // select1: $ => choice( // reordered -> non empty
   //   seq(
-  //     repeat(seq('.', $.member_identifier, optional($.bit_select1))),
+  //     repseq('.', $.member_identifier, optional($.bit_select1)),
   //     '.', $.member_identifier,
   //     optional($.bit_select1),
   //     optseq('[', $.part_select_range, ']')
@@ -4153,7 +4149,7 @@ const rules = {
   select1: $ => choice( // reordered -> non empty
     seq(
       '[',
-      repeat(seq($.expression, ']', '[')),
+      repseq($.expression, ']', '['),
       choice(
         $.expression,
         $.part_select_range
@@ -4165,7 +4161,7 @@ const rules = {
   // nonrange_select1: $ => choice( // reordered -> non empty
   //   seq(
   //     seq(
-  //       repeat(seq('.', $.member_identifier, optional($.bit_select1))),
+  //       repseq('.', $.member_identifier, optional($.bit_select1)),
   //       '.', $.member_identifier
   //     ),
   //     optional($.bit_select1)
@@ -4180,7 +4176,7 @@ const rules = {
   constant_select1: $ => choice( // reordered -> non empty
     seq(
       '[',
-      repeat(seq($.constant_expression, ']', '[')),
+      repseq($.constant_expression, ']', '['),
       choice($.constant_expression, $.constant_part_select_range),
       ']'
     )
@@ -4188,7 +4184,7 @@ const rules = {
 
   // constant_select1: $ => choice( // reordered -> non empty
   //   // seq(
-  //   //   repeat(seq('.', $.member_identifier, optional($.constant_bit_select1))),
+  //   //   repseq('.', $.member_identifier, optional($.constant_bit_select1))),
   //   //   '.', $.member_identifier,
   //   //   optional($.constant_bit_select1),
   //   //   optseq('[', $.constant_part_select_range, ']')
@@ -4357,7 +4353,7 @@ const rules = {
 
   attribute_instance: $ => seq('(*', sep1(',', $.attr_spec), '*)'),
 
-  attr_spec: $ => seq($.attr_name, optional('=', $.constant_expression)),
+  attr_spec: $ => seq($.attr_name, optseq('=', $.constant_expression)),
 
   attr_name: $ => $.identifier,
 
@@ -4414,7 +4410,7 @@ const rules = {
 
   hierarchical_identifier: $ => prec.right(seq(
     optseq('$root', '.'),
-    repeat(seq($.identifier, optional($.constant_bit_select1), '.')),
+    repseq($.identifier, optional($.constant_bit_select1), '.'),
     $.identifier
   )),
 
@@ -4512,11 +4508,11 @@ const rules = {
       $.parameter_identifier
     ),
     seq(
-      repeat(seq(
+      repseq(
         $.generate_block_identifier,
         optseq('[', $.constant_expression, ']'),
         '.'
-      )),
+      ),
       $.parameter_identifier
     )
   ),
