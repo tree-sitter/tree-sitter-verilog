@@ -151,8 +151,11 @@ empty module with nonANSI ios
 module mod (clk, reset_n, inp, a, b);
 
 input clk;
+input clk0, clk1;
 input [W-1:0] inp;
 output [3:0] a, b;
+output foo, bar;
+output baz;
 
 
 endmodule
@@ -174,6 +177,11 @@ endmodule
       (input_declaration
         (list_of_port_identifiers
           (port_identifier (simple_identifier)))))
+    (port_declaration
+      (input_declaration
+        (list_of_variable_identifiers
+          (variable_identifier (simple_identifier))
+          (variable_identifier (simple_identifier)))))
     (port_declaration
       (input_declaration
         (net_port_type1
@@ -198,13 +206,20 @@ endmodule
               (packed_dimension
                 (constant_range
                   (constant_expression (constant_primary
-                    (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
-                  ))
+                    (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
                   (constant_expression (constant_primary
-                    (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
-                  )))))))
+                    (primary_literal (number (integral_number (decimal_number (unsigned_number))))))))))))
         (list_of_port_identifiers
           (port_identifier (simple_identifier))
+          (port_identifier (simple_identifier)))))
+    (port_declaration
+      (output_declaration
+        (list_of_variable_port_identifiers
+          (port_identifier (simple_identifier))
+          (port_identifier (simple_identifier)))))
+    (port_declaration
+      (output_declaration
+        (list_of_port_identifiers
           (port_identifier (simple_identifier)))))))
 
 ============================================
