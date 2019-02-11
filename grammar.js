@@ -248,7 +248,6 @@ const rules = {
     repeat($.package_import_declaration),
     optional($.parameter_port_list),
     $.list_of_ports,
-    ';'
   ),
 
   module_ansi_header: $ => seq(
@@ -257,29 +256,19 @@ const rules = {
       seq($.parameter_port_list, optional($.list_of_port_declarations)),
       $.list_of_port_declarations,
     ),
-    ';'
   ),
 
   module_declaration: $ => choice(
     seq(
       $.module_header,
       choice(
-        seq(
-          $.module_nonansi_header,
-          optional($.timeunits_declaration),
-          repeat($._module_item),
-        ),
-        seq(
-          $.module_ansi_header,
-          optional($.timeunits_declaration),
-          repeat($._non_port_module_item),
-        ),
-        seq(
-          '(', '.*', ')', ';',
-          optional($.timeunits_declaration),
-          repeat($._module_item),
-        )
+        $.module_nonansi_header,
+        $.module_ansi_header,
+        seq('(', '.*', ')')
       ),
+      ';',
+      optional($.timeunits_declaration),
+      repeat($._module_item),
       'endmodule', optseq(':', $.module_identifier)
     ),
     seq('extern', $.module_header, choice(
