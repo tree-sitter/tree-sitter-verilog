@@ -127,6 +127,8 @@ const rules = {
 
   text_macro_identifier: $ => $.identifier,
 
+  /* 22-5 define */
+
   text_macro_definition: $ => seq(
     directive('define'),
     $.text_macro_name,
@@ -134,7 +136,7 @@ const rules = {
     '\n'
   ),
 
-  /* 22-3 `usage */
+  /* 22-3 usage */
 
   text_macro_usage: $ => seq(
     '`',
@@ -142,24 +144,51 @@ const rules = {
     optseq('(', $.list_of_actual_arguments, ')')
   ),
 
-  /* 22-4 undef */
+  /* 22-4 22-5 */
 
   id_directive: $ => seq(
     choice(
       directive('ifdef'),
       directive('ifndef'),
       directive('elsif'),
-      directive('undef')
+      directive('undef') /* 22-5-2 */
     ),
     $.text_macro_identifier
   ),
 
   zero_directive: $ => choice(
-    directive('resetall'),
-    directive('undefineall'),
+    directive('resetall'), /* 22-3 */
+    directive('undefineall'), /* 22-5-3 */
     directive('endif'),
-    directive('else')
+    directive('else'),
+    directive('unconnected_drive'), /* 22-9 */
+    directive('nounconnected_drive'),
+    directive('celldefine'), /* 22-10 */
+    directive('endcelldefine')
   ),
+
+  /* 22-7 timescale */
+
+  timescale_compiler_directive: $ => seq(
+    directive('timescale'),
+    $.time_literal, // time_unit,
+    '/',
+    $.time_literal, // time_precision
+    '\n'
+  ),
+
+  /* 22-8 default_nettype */
+
+  default_nettype_compiler_directive: $ => seq(
+    directive('default_nettype'),
+    $.default_nettype_value,
+    '\n'
+  ),
+
+  default_nettype_value: $ => choice('wire', 'tri', 'tri0', 'tri1', 'wand', 'triand', 'wor', 'trior', 'trireg', 'uwire', 'none'),
+
+
+  /* 22-12 */
 
   line_compiler_directive: $ => seq(
     directive('line'),
@@ -175,7 +204,9 @@ const rules = {
     $.text_macro_definition,
     $.text_macro_usage,
     $.id_directive,
-    $.zero_directive
+    $.zero_directive,
+    $.timescale_compiler_directive,
+    $.default_nettype_compiler_directive
   ),
 
   // TODO missing arguments, empty list of arguments

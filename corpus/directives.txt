@@ -113,6 +113,29 @@ undefineall
 )
 
 ============================================
+timescale
+============================================
+
+`timescale 1ns/ 100ps
+
+----
+
+(source_file
+  (timescale_compiler_directive
+    (time_literal (unsigned_number) (time_unit))
+    (time_literal (unsigned_number) (time_unit))))
+
+============================================
+default_nettype
+============================================
+
+`default_nettype wire
+
+----
+
+(source_file (default_nettype_compiler_directive (default_nettype_value)))
+
+============================================
 line
 ============================================
 
@@ -121,4 +144,7 @@ line
 ----
 
 (source_file
-  (line_compiler_directive (unsigned_number) (include_compiler_directive_relative) (unsigned_number)))
+  (line_compiler_directive
+    (unsigned_number)
+    (include_compiler_directive_relative)
+    (unsigned_number)))
