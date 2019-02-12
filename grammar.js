@@ -144,6 +144,11 @@ const rules = {
     optseq('(', $.list_of_actual_arguments, ')')
   ),
 
+  simple_text_macro_usage: $ => seq(
+    '`',
+    $.text_macro_identifier
+  ),
+
   /* 22-4 22-5 */
 
   id_directive: $ => seq(
@@ -3977,6 +3982,7 @@ const rules = {
     $.conditional_expression,
     $.inside_expression,
     $.tagged_union_expression,
+    $.simple_text_macro_usage
   ),
 
   tagged_union_expression: $ => prec.left(seq(
@@ -4298,22 +4304,33 @@ const rules = {
     $.hex_number
   ),
 
+  // decimal_number: $ => choice(
+  //   $.unsigned_number,
+  //   seq(optional($.size), $.decimal_base, $.unsigned_number),
+  //   seq(optional($.size), $.decimal_base, $.x_digit, repeat('_')),
+  //   seq(optional($.size), $.decimal_base, $.z_digit, repeat('_')),
+  // ),
+
+  // binary_number: $ => seq(optional($.size), $.binary_base, $.binary_value),
+  //
+  // octal_number: $ => seq(optional($.size), $.octal_base, $.octal_value),
+  //
+  // hex_number: $ => seq(optional($.size), $.hex_base, $.hex_value),
+
   decimal_number: $ => choice(
     $.unsigned_number,
-    seq(optional($.size), $.decimal_base, $.unsigned_number),
-    seq(optional($.size), $.decimal_base, $.x_digit, repeat('_')),
-    seq(optional($.size), $.decimal_base, $.z_digit, repeat('_')),
+    token(/[0-9]*\'[dD][0-9_]+/)
   ),
 
-  binary_number: $ => seq(optional($.size), $.binary_base, $.binary_value),
+  binary_number: $ => token(/[0-9]*\'[bB][01_]+/),
 
-  octal_number: $ => seq(optional($.size), $.octal_base, $.octal_value),
+  octal_number: $ => token(/[0-9]*\'[oO][0-7_]+/),
 
-  hex_number: $ => seq(optional($.size), $.hex_base, $.hex_value),
+  hex_number: $ => token(/[0-9]+\'[hH][0-9a-fA-f_]+/),
 
   sign: $ => choice('+', '-'),
 
-  size: $ => $.non_zero_unsigned_number,
+  // size: $ => $.non_zero_unsigned_number,
 
   non_zero_unsigned_number: $ => seq(
     $.non_zero_decimal_digit, repeat(choice('_', $.decimal_digit))
@@ -4335,21 +4352,21 @@ const rules = {
 
   exp: $ => choice('e', 'E'),
 
-  unsigned_number: $ => /[0-9]+/, // prec.left(seq($.decimal_digit, repeat(choice('_', $.decimal_digit)))),
+  unsigned_number: $ => token(/[0-9]+/), // prec.left(seq($.decimal_digit, repeat(choice('_', $.decimal_digit)))),
 
-  binary_value: $ => prec.left(seq($.binary_digit, repeat(choice('_', $.binary_digit)))),
+  // binary_value: $ => prec.left(seq($.binary_digit, repeat(choice('_', $.binary_digit)))),
 
-  octal_value: $ => prec.left(seq($.octal_digit, repeat(choice('_', $.octal_digit)))),
+  // octal_value: $ => prec.left(seq($.octal_digit, repeat(choice('_', $.octal_digit)))),
 
-  hex_value: $ => prec.left(seq($.hex_digit, repeat(choice('_', $.hex_digit)))),
+  // hex_value: $ => prec.left(seq($.hex_digit, repeat(choice('_', $.hex_digit)))),
 
-  decimal_base: $ => seq('\'', /[sS]/, /[dD]/),
+  // decimal_base: $ => seq('\'', optional(choice('s', 'S')), choice('d', 'D')),
 
-  binary_base: $ => seq('\'', /[sS]/, /[bB]/),
+  // binary_base: $ => seq('\'', optional(choice('s', 'S')), choice('b', 'B')),
 
-  octal_base: $ => seq('\'', /[sS]/, /[oO]/),
+  // octal_base: $ => seq('\'', optional(choice('s', 'S')), choice('o', 'O')),
 
-  hex_base: $ => seq('\'', /[sS]/, /[hH]/),
+  // hex_base: $ => seq('\'', optional(choice('s', 'S')), choice('h', 'H')),
 
   non_zero_decimal_digit: $ => /[1-9]/,
 
