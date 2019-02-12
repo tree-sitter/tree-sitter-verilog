@@ -39,6 +39,37 @@ endmodule
 ))
 
 ============================================
+constants: bin oct dec hex
+============================================
+
+module mod ();
+
+  assign quz = 16'habc;
+  assign bar = 6'o42;
+  assign foo = 7'b010_1000;
+  assign baz = 12'd987654;
+
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
+    (net_lvalue (identifier (simple_identifier)))
+    (expression (primary (primary_literal (number (integral_number (hex_number))))))))))
+  (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
+    (net_lvalue (identifier (simple_identifier)))
+    (expression (primary (primary_literal (number (integral_number (octal_number))))))))))
+  (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
+    (net_lvalue (identifier (simple_identifier)))
+    (expression (primary (primary_literal (number (integral_number (binary_number))))))))))
+  (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
+    (net_lvalue (identifier (simple_identifier)))
+    (expression (primary (primary_literal (number (integral_number (decimal_number))))))))))))
+
+============================================
 net
 ============================================
 

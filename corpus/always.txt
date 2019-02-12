@@ -192,3 +192,30 @@ endmodule
     )
   )
 ))
+
+============================================
+if
+============================================
+
+module abc ();
+
+always_comb
+if (foo)
+  bar = baz;
+
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item
+    (always_construct (always_keyword)
+      (statement (statement_item (conditional_statement
+        (cond_predicate (expression_or_cond_pattern (expression (primary (identifier (simple_identifier))))))
+        (statement_or_null (statement
+          (statement_item (blocking_assignment (operator_assignment
+            (variable_lvalue (identifier (simple_identifier)))
+            (assignment_operator)
+            (expression (primary (identifier (simple_identifier))))))))))))))))
