@@ -3004,13 +3004,14 @@ const rules = {
 
   case_statement: $ => seq(
     optional($.unique_priority),
-    choice(
-      prec.left(seq($.case_keyword, '(', $.case_expression, ')', repeat1($.case_item))),
-
-      // The matches operator shall have higher precedence than the && and || operators
-      prec.left(PREC.MATCHES, seq($.case_keyword, '(', $.case_expression, ')', 'matches', repeat1($.case_pattern_item))),
-
-      prec.left(PREC.RELATIONAL, seq('case', '(', $.case_expression, ')', 'inside', repeat1($.case_inside_item)))
+    seq(
+      $.case_keyword,
+      '(', $.case_expression, ')',
+      choice(
+        repeat1($.case_item),
+        seq('matches', repeat1($.case_pattern_item)),
+        seq('inside', repeat1($.case_inside_item)) // only case
+      )
     ),
     'endcase'
   ),
@@ -4147,7 +4148,7 @@ const rules = {
 
   time_unit: $ => choice('s', 'ms', 'us', 'ns', 'ps', 'fs'),
 
-  string_literal: $ => seq('"', /\w+/, '"'),
+  string_literal: $ => seq('"', /[\x00-\x7F]*/, '"'),
 
   implicit_class_handle: $ => choice(
     prec.left(seq('this', optseq('.', 'super'))),

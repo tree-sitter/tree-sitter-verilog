@@ -219,3 +219,41 @@ endmodule
             (variable_lvalue (identifier (simple_identifier)))
             (assignment_operator)
             (expression (primary (identifier (simple_identifier))))))))))))))))
+
+============================================
+case
+============================================
+
+module abc ();
+
+always_comb
+case ( foo )
+  8'h00, 8'h05: bar <= 1'b0;
+  default       bar <= 1;
+endcase
+
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item
+    (always_construct (always_keyword)
+      (statement (statement_item (case_statement (case_keyword)
+        (case_expression (expression (primary (identifier (simple_identifier)))))
+        (case_item
+          (case_item_expression (expression (primary (primary_literal (number (integral_number (hex_number)))))))
+          (case_item_expression (expression (primary (primary_literal (number (integral_number (hex_number)))))))
+          (statement_or_null (statement
+            (statement_item
+              (nonblocking_assignment
+                (variable_lvalue (identifier (simple_identifier)))
+                (expression (primary (primary_literal (number (integral_number (binary_number)))))))))))
+        (case_item
+          (statement_or_null (statement
+            (statement_item
+              (nonblocking_assignment
+                (variable_lvalue (identifier (simple_identifier)))
+                (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))))))))))))))
