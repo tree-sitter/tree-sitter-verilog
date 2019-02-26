@@ -2915,9 +2915,8 @@ const rules = {
 
   event_control: $ => choice(
     // seq('@', $.hierarchical_event_identifier),
-    seq('@', '(', $.event_expression, ')'),
+    seq('@', '(', choice($.event_expression, '*'), ')'),
     '@*',
-    seq('@', '(*)'),
     // seq('@', $.ps_or_hierarchical_sequence_identifier)
   ),
 
