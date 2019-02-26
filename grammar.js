@@ -1409,14 +1409,10 @@ const rules = {
 
   list_of_genvar_identifiers: $ => sep1(',', $.genvar_identifier),
 
+  list_of_interface_identifiers: $ => sep1(',', seq(
     $.interface_identifier,
-    repeat($.unpacked_dimension),
-    repseq(
-      ',',
-      $.interface_identifier,
-      repeat($.unpacked_dimension)
-    )
-  ),
+    repeat($.unpacked_dimension)
+  )),
 
   list_of_net_decl_assignments: $ => sep1(',', $.net_decl_assignment),
 
