@@ -1456,11 +1456,15 @@ const rules = {
   /* A.2.4 Declaration assignments */
 
   defparam_assignment: $ => seq(
-    $.hierarchical_parameter_identifier, '=', $.constant_mintypmax_expression
+    $.hierarchical_parameter_identifier,
+    '=',
+    $.constant_mintypmax_expression
   ),
 
   net_decl_assignment: $ => seq(
-    $.net_identifier, repeat($.unpacked_dimension), optseq('=', $.expression)
+    $.net_identifier,
+    repeat($.unpacked_dimension),
+    optseq('=', $.expression)
   ),
 
   param_assignment: $ => seq(
