@@ -4146,7 +4146,7 @@ const rules = {
 
   time_unit: $ => choice('s', 'ms', 'us', 'ns', 'ps', 'fs'),
 
-  string_literal: $ => seq('"', /[\x00-\x7F]*/, '"'),
+  string_literal: $ => seq('"', /[\x09\x20-\xFE]*/, '"'),
 
   implicit_class_handle: $ => choice(
     prec.left(seq('this', optseq('.', 'super'))),
