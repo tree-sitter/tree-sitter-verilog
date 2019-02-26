@@ -1409,7 +1409,6 @@ const rules = {
 
   list_of_genvar_identifiers: $ => sep1(',', $.genvar_identifier),
 
-  list_of_interface_identifiers: $ => seq(
     $.interface_identifier,
     repeat($.unpacked_dimension),
     repseq(
