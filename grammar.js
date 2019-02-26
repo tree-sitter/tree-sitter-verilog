@@ -1444,7 +1444,7 @@ const rules = {
 
   list_of_variable_identifiers: $ => sep1(',', seq(
     $.variable_identifier,
-    optional($._variable_dimension)
+    repeat($._variable_dimension)
   )),
 
   list_of_variable_port_identifiers: $ => sep1(',', seq(
