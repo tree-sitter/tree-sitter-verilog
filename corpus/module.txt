@@ -251,6 +251,7 @@ module mod (
   input foo,
   input [3:0] bar,
   output logic [3:0] qux,
+  input br_pkt_t dec_i0_brp,
   input wire ham
 );
 
@@ -285,6 +286,13 @@ endmodule
             (packed_dimension (constant_range
               (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
               (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))))))))
+        (port_identifier (simple_identifier)))
+
+
+      (ansi_port_declaration
+        (net_port_header1
+          (port_direction)
+          (net_port_type1 (net_type_identifier (simple_identifier))))
         (port_identifier (simple_identifier)))
 
       (ansi_port_declaration
