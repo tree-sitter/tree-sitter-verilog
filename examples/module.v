@@ -7,12 +7,16 @@
 `include "isa.vh"
 `undef D
 `define D(x, y) initial $display("start", x, y)
+`define DELAY #1
+`define WIDTH 32
+
 
 module add_sub (x, y, z, sign);
 
   parameter WIDTH = 8;
 
   input [WIDTH-1:0] x, y;
+  output carry;
   output [WIDTH-1:0] z;
   input sign;
 
@@ -45,9 +49,34 @@ module alu (
 wire [31:0] tmp;
 
 add_sub #(32) u0 (
-  .x(a), .y(b), .z(tmp), .sign(1'b0)
+  .x(a),
+  .y(b),
+`ifdef CARRY
+  .carry(carry),
+`endif
+  .z(tmp),
+  .sign(1'b0)
 );
 
+add_sub #(32) u0 (a, b, , tmp, 1'b0); // missing argument
+
 assign res = tmp;
+
+endmodule
+
+module foo #(
+  parameter P1 = 32,
+  parameter P2 = (P1 / 8), // parrents
+  parameter P3 = P1 ? P2 : 64 // trinary
+)();
+
+always @ (posedge clk) begin
+  {x0, x1, x2} <= y; // deconcat
+  x <= `DELAY y; // define delay
+end
+
+assign x[P1-1:0] = y; // vector slice assignment
+assign x = `WIDTH'b0; // define as vector size
+assign x = $random(seed); // system functions
 
 endmodule
