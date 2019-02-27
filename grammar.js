@@ -3896,7 +3896,7 @@ const rules = {
     seq($.variable_lvalue, repeat($.attribute_instance), $.inc_or_dec_operator)
   ),
 
-  conditional_expression: $ => prec.left(PREC.CONDITIONAL, seq(
+  conditional_expression: $ => prec.right(PREC.CONDITIONAL, seq(
     $.cond_predicate,
     '?',
     repeat($.attribute_instance), $.expression,
@@ -3924,13 +3924,14 @@ const rules = {
     constExprOp($, PREC.SHIFT, choice('>>', '<<', '>>>', '<<<')),
     constExprOp($, PREC.IMPLICATION, choice('->', '<->')),
 
-    prec.left(PREC.CONDITIONAL, seq(
+    prec.right(PREC.CONDITIONAL, seq(
       $.constant_expression,
       '?',
       repeat($.attribute_instance),
       ':',
       $.constant_expression
     )),
+    $.simple_text_macro_usage
   ),
 
   constant_mintypmax_expression: $ => seq(
@@ -4458,7 +4459,7 @@ const rules = {
   hierarchical_block_identifier: $ => $.hierarchical_identifier,
   hierarchical_event_identifier: $ => $.hierarchical_identifier,
 
-  hierarchical_identifier: $ => prec.right(seq(
+  hierarchical_identifier: $ => prec.left(seq(
     optseq('$root', '.'),
     repseq($.identifier, optional($.constant_bit_select1), '.'),
     $.identifier
@@ -4804,5 +4805,8 @@ module.exports = grammar({
     [$.assignment_pattern_expression_type, $.terminal_identifier],
 
     [$.delayed_data, $.delayed_reference],
+
+    [$.constant_expression, $.expression],
+
   ]
 });
