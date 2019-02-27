@@ -3931,7 +3931,6 @@ const rules = {
       ':',
       $.constant_expression
     )),
-    $.simple_text_macro_usage
   ),
 
   constant_mintypmax_expression: $ => seq(
@@ -3996,7 +3995,6 @@ const rules = {
     $.conditional_expression,
     $.inside_expression,
     $.tagged_union_expression,
-    $.simple_text_macro_usage
   ),
 
   tagged_union_expression: $ => prec.left(seq(
@@ -4150,7 +4148,8 @@ const rules = {
     $.number,
     $.time_literal,
     $.unbased_unsized_literal,
-    $.string_literal
+    $.string_literal,
+    $.simple_text_macro_usage
   ),
 
 
