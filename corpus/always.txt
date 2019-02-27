@@ -142,19 +142,13 @@ endmodule
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item
     (always_construct (always_keyword)
-      (statement
-        (statement_item
-          (seq_block (block_item_declaration
-            (data_declaration (list_of_variable_decl_assignments (variable_decl_assignment
-              (variable_identifier (simple_identifier))
-              (expression (primary (identifier (simple_identifier))))
-            )))
-          ))
-        )
-      )
-    )
-  )
-))
+      (statement (statement_item
+        (seq_block
+          (statement_or_null (statement (statement_item
+            (blocking_assignment (operator_assignment
+              (variable_lvalue (identifier (simple_identifier)))
+              (assignment_operator)
+              (expression (primary (identifier (simple_identifier))))))))))))))))
 
 ============================================
 if begin end
@@ -178,20 +172,14 @@ endmodule
     (always_construct (always_keyword)
       (statement (statement_item (conditional_statement
         (cond_predicate (expression_or_cond_pattern
-          (expression (primary (identifier (simple_identifier))))
-        ))
-        (statement_or_null (statement
-          (statement_item (seq_block
-            (block_item_declaration (data_declaration (list_of_variable_decl_assignments (variable_decl_assignment
-              (variable_identifier (simple_identifier))
-              (expression (primary (identifier (simple_identifier))))
-            ))))
-          ))
-        ))
-      )))
-    )
-  )
-))
+          (expression (primary (identifier (simple_identifier))))))
+        (statement_or_null (statement (statement_item
+            (seq_block
+              (statement_or_null (statement (statement_item
+                (blocking_assignment (operator_assignment
+                  (variable_lvalue (identifier (simple_identifier)))
+                  (assignment_operator)
+                  (expression (primary (identifier (simple_identifier))))))))))))))))))))
 
 ============================================
 if
