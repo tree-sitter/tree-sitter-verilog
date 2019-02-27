@@ -4160,7 +4160,7 @@ const rules = {
 
   time_unit: $ => choice('s', 'ms', 'us', 'ns', 'ps', 'fs'),
 
-  string_literal: $ => seq('"', /[\x09\x20-\xFE]*/, '"'),
+  string_literal: $ => seq('"', /[\x09\x20\x21\x23-\xFE]*/, '"'),
 
   implicit_class_handle: $ => choice(
     prec.left(seq('this', optseq('.', 'super'))),
@@ -4335,11 +4335,11 @@ const rules = {
     token(/[0-9]*\'[dD][0-9_]+/)
   ),
 
-  binary_number: $ => token(/[0-9]*\'[bB][01_]+/),
+  binary_number: $ => token(/[0-9]*\'[bB][01_xXzZ?]+/),
 
-  octal_number: $ => token(/[0-9]*\'[oO][0-7_]+/),
+  octal_number: $ => token(/[0-9]*\'[oO][0-7_xXzZ?]+/),
 
-  hex_number: $ => token(/[0-9]+\'[hH][0-9a-fA-f_]+/),
+  hex_number: $ => token(/[0-9]*\'[hH][0-9a-fA-f_xXzZ?]+/),
 
   sign: $ => choice('+', '-'),
 
@@ -4385,15 +4385,15 @@ const rules = {
 
   decimal_digit: $ => /[0-9]/,
 
-  binary_digit: $ => choice($.x_digit, $.z_digit, '0', '1'),
+  // binary_digit: $ => choice($.x_digit, $.z_digit, '0', '1'),
 
-  octal_digit: $ => choice($.x_digit, $.z_digit, /[0-7]/),
+  // octal_digit: $ => choice($.x_digit, $.z_digit, /[0-7]/),
 
-  hex_digit: $ => choice($.x_digit, $.z_digit, /[0-9a-fA-F]/),
+  // hex_digit: $ => choice($.x_digit, $.z_digit, /[0-9a-fA-F]/),
 
-  x_digit: $ => /[xX]/,
+  // x_digit: $ => /[xX]/,
 
-  z_digit: $ => choice('z', 'Z', '?'),
+  // z_digit: $ => choice('z', 'Z', '?'),
 
   unbased_unsized_literal: $ => choice('\'0', '\'1', seq('\'', $.z_or_x)),
 
