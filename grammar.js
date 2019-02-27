@@ -644,7 +644,7 @@ const rules = {
     $._directives,
     $.generate_region,
     $.module_or_generate_item,
-    // $.specify_block,
+    $.specify_block,
     seq(repeat($.attribute_instance), $.specparam_declaration),
     $.program_declaration,
     $.module_declaration,
@@ -3308,21 +3308,32 @@ const rules = {
   // rs_case_item =
   // case_item_expression { , case_item_expression } : production_item ;
   // | default [ : ] production_item ;
+
   // A.7 Specify section
+
   // A.7.1 Specify block declaration
-  // specify_block = specify { specify_item } endspecify
-  // specify_item =
-  // specparam_declaration
-  // | pulsestyle_declaration
-  // | showcancelled_declaration
-  // | path_declaration
-  // | system_timing_check
-  // pulsestyle_declaration =
-  // pulsestyle_onevent list_of_path_outputs ;
-  // | pulsestyle_ondetect list_of_path_outputs ;
-  // showcancelled_declaration =
-  // showcancelled list_of_path_outputs ;
-  // | noshowcancelled list_of_path_outputs ;
+
+  specify_block: $ => seq('specify', repeat($.specify_item), 'endspecify'),
+
+  specify_item: $ => choice(
+    $.specparam_declaration,
+    $.pulsestyle_declaration,
+    $.showcancelled_declaration,
+    $.path_declaration,
+    $.system_timing_check
+  ),
+
+  pulsestyle_declaration: $ => seq(
+    choice('pulsestyle_onevent', 'pulsestyle_ondetect'),
+    $.list_of_path_outputs,
+    ';'
+  ),
+
+  showcancelled_declaration: $ => seq(
+    choice('showcancelled', 'noshowcancelled'),
+    $.list_of_path_outputs,
+    ';'
+  ),
 
   // A.7 Specify section
 
@@ -3333,21 +3344,22 @@ const rules = {
   path_declaration: $ => seq(
     choice(
       $.simple_path_declaration,
-      // $.edge_sensitive_path_declaration,
-      // $.state_dependent_path_declaration,
+      $.edge_sensitive_path_declaration,
+      $.state_dependent_path_declaration,
     ),
     ';'
   ),
 
   simple_path_declaration: $ => seq(
     choice($.parallel_path_description, $.full_path_description),
-    seq('=', $.path_delay_value)
+    '=',
+    $.path_delay_value
   ),
 
   parallel_path_description: $ => seq(
     '(',
     $.specify_input_terminal_descriptor,
-    // optional($.polarity_operator),
+    optional($.polarity_operator),
     '=>',
     $.specify_output_terminal_descriptor,
     ')'
@@ -3356,7 +3368,7 @@ const rules = {
   full_path_description: $ => seq(
     '(',
     $.list_of_path_inputs,
-    // optional($.polarity_operator),
+    optional($.polarity_operator),
     '*>',
     $.list_of_path_outputs,
     ')'
@@ -3395,44 +3407,46 @@ const rules = {
     seq('(', $.list_of_path_delay_expressions, ')')
   ),
 
-  list_of_path_delay_expressions: $ => choice(
-    $.t_path_delay_expression,
-    seq($.trise_path_delay_expression, ',', $.tfall_path_delay_expression),
-    seq(
-      $.trise_path_delay_expression, ',', $.tfall_path_delay_expression, ',',
-      $.tz_path_delay_expression
-    ),
-    seq(
-      $.t01_path_delay_expression, ',', $.t10_path_delay_expression, ',',
-      $.t0z_path_delay_expression, ',', $.tz1_path_delay_expression, ',',
-      $.t1z_path_delay_expression, ',', $.tz0_path_delay_expression
-    ),
-    seq(
-      $.t01_path_delay_expression, ',', $.t10_path_delay_expression, ',',
-      $.t0z_path_delay_expression, ',', $.tz1_path_delay_expression, ',',
-      $.t1z_path_delay_expression, ',', $.tz0_path_delay_expression, ',',
-      $.t0x_path_delay_expression, ',', $.tx1_path_delay_expression, ',',
-      $.t1x_path_delay_expression, ',', $.tx0_path_delay_expression, ',',
-      $.txz_path_delay_expression, ',', $.tzx_path_delay_expression
-    )
-  ),
+  list_of_path_delay_expressions: $ => sep1(',', $.path_delay_expression),
 
-  t_path_delay_expression: $ => $.path_delay_expression,
-  trise_path_delay_expression: $ => $.path_delay_expression,
-  tfall_path_delay_expression: $ => $.path_delay_expression,
-  tz_path_delay_expression: $ => $.path_delay_expression,
-  t01_path_delay_expression: $ => $.path_delay_expression,
-  t10_path_delay_expression: $ => $.path_delay_expression,
-  t0z_path_delay_expression: $ => $.path_delay_expression,
-  tz1_path_delay_expression: $ => $.path_delay_expression,
-  t1z_path_delay_expression: $ => $.path_delay_expression,
-  tz0_path_delay_expression: $ => $.path_delay_expression,
-  t0x_path_delay_expression: $ => $.path_delay_expression,
-  tx1_path_delay_expression: $ => $.path_delay_expression,
-  t1x_path_delay_expression: $ => $.path_delay_expression,
-  tx0_path_delay_expression: $ => $.path_delay_expression,
-  txz_path_delay_expression: $ => $.path_delay_expression,
-  tzx_path_delay_expression: $ => $.path_delay_expression,
+  // list_of_path_delay_expressions: $ => choice(
+  //   $.t_path_delay_expression,
+  //   seq($.trise_path_delay_expression, ',', $.tfall_path_delay_expression),
+  //   seq(
+  //     $.trise_path_delay_expression, ',', $.tfall_path_delay_expression, ',',
+  //     $.tz_path_delay_expression
+  //   ),
+  //   seq(
+  //     $.t01_path_delay_expression, ',', $.t10_path_delay_expression, ',',
+  //     $.t0z_path_delay_expression, ',', $.tz1_path_delay_expression, ',',
+  //     $.t1z_path_delay_expression, ',', $.tz0_path_delay_expression
+  //   ),
+  //   seq(
+  //     $.t01_path_delay_expression, ',', $.t10_path_delay_expression, ',',
+  //     $.t0z_path_delay_expression, ',', $.tz1_path_delay_expression, ',',
+  //     $.t1z_path_delay_expression, ',', $.tz0_path_delay_expression, ',',
+  //     $.t0x_path_delay_expression, ',', $.tx1_path_delay_expression, ',',
+  //     $.t1x_path_delay_expression, ',', $.tx0_path_delay_expression, ',',
+  //     $.txz_path_delay_expression, ',', $.tzx_path_delay_expression
+  //   )
+  // ),
+  //
+  // t_path_delay_expression: $ => alias($.path_delay_expression, $.t_path_delay_expression),
+  // trise_path_delay_expression: $ => alias($.path_delay_expression, $.trise_path_delay_expression),
+  // tfall_path_delay_expression: $ => alias($.path_delay_expression, $.tfall_path_delay_expression),
+  // tz_path_delay_expression: $ => alias($.path_delay_expression, $.tz_path_delay_expression),
+  // t01_path_delay_expression: $ => alias($.path_delay_expression, $.t01_path_delay_expression),
+  // t10_path_delay_expression: $ => alias($.path_delay_expression, $.t10_path_delay_expression),
+  // t0z_path_delay_expression: $ => alias($.path_delay_expression, $.t0z_path_delay_expression),
+  // tz1_path_delay_expression: $ => alias($.path_delay_expression, $.tz1_path_delay_expression),
+  // t1z_path_delay_expression: $ => alias($.path_delay_expression, $.t1z_path_delay_expression),
+  // tz0_path_delay_expression: $ => alias($.path_delay_expression, $.tz0_path_delay_expression),
+  // t0x_path_delay_expression: $ => alias($.path_delay_expression, $.t0x_path_delay_expression),
+  // tx1_path_delay_expression: $ => alias($.path_delay_expression, $.tx1_path_delay_expression),
+  // t1x_path_delay_expression: $ => alias($.path_delay_expression, $.t1x_path_delay_expression),
+  // tx0_path_delay_expression: $ => alias($.path_delay_expression, $.tx0_path_delay_expression),
+  // txz_path_delay_expression: $ => alias($.path_delay_expression, $.txz_path_delay_expression),
+  // tzx_path_delay_expression: $ => alias($.path_delay_expression, $.tzx_path_delay_expression),
 
   path_delay_expression: $ => $.constant_mintypmax_expression,
 
@@ -3635,7 +3649,7 @@ const rules = {
 
   timecheck_condition: $ => $.mintypmax_expression,
 
-  controlled_reference_event: $ => $.controlled_timing_check_event,
+  controlled_reference_event: $ => alias($.controlled_timing_check_event, $.controlled_reference_event),
 
   data_event: $ => $.timing_check_event,
 
@@ -4639,11 +4653,11 @@ module.exports = grammar({
     $.block_identifier,
     $.instance_identifier,
     $.property_identifier,
-    $.input_port_identifier,
-    $.output_port_identifier,
-    $.inout_port_identifier,
-    $.input_identifier,
-    $.output_identifier,
+    // $.input_port_identifier,
+    // $.output_port_identifier,
+    // $.inout_port_identifier,
+    // $.input_identifier,
+    // $.output_identifier,
     $.cover_point_identifier,
     $.cross_identifier,
   ],
@@ -4737,7 +4751,7 @@ module.exports = grammar({
     [$.list_of_interface_identifiers, $.net_decl_assignment],
     [$.data_type, $.class_type, $.checker_instantiation],
     [$.net_port_type1, $.interface_port_header, $.data_type, $.class_type],
-    [$.sequence_instance, $.let_expression, $.name_of_instance],
+    [$.name_of_instance, $.sequence_instance, $.let_expression],
     [$.list_of_port_identifiers, $._variable_dimension],
     [$.unpacked_dimension, $.packed_dimension],
     [$.delay_control, $.param_expression],
@@ -4771,5 +4785,24 @@ module.exports = grammar({
     [$.sequence_list_of_arguments, $.let_list_of_arguments],
     [$.expression_or_dist, $.let_actual_arg],
     [$.named_port_connection, $.expression_or_dist],
+
+    [$.output_port_identifier, $.inout_port_identifier],
+    [$.input_port_identifier, $.inout_port_identifier],
+    [$.input_port_identifier, $.output_port_identifier, $.inout_port_identifier],
+
+    [$.input_identifier, $.output_identifier],
+
+    [$.primary_literal, $.module_path_primary],
+    [$.primary, $.module_path_primary, $.constant_function_call],
+    [$.module_path_primary, $.constant_function_call],
+
+    [$.constant_primary, $.path_delay_expression],
+    [$.unary_operator, $.scalar_timing_check_condition],
+    [$.mintypmax_expression, $.scalar_timing_check_condition],
+
+    [$.sequence_instance, $.let_expression, $.terminal_identifier],
+    [$.assignment_pattern_expression_type, $.terminal_identifier],
+
+    [$.delayed_data, $.delayed_reference],
   ]
 });
