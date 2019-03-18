@@ -503,7 +503,11 @@ const rules = {
 
   list_of_ports: $ => seq(
     '(',
-    optional(sep1(',', $.port)),
+    optional(sep1(',', seq(
+      optional($.line_compiler_directive),
+      $.port,
+      optional($.line_compiler_directive)
+    ))),
     ')'
   ),
 

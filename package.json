@@ -33,7 +33,7 @@
     "get": "mkdir -p src/tree_sitter"
   },
   "dependencies": {
-    "nan": "^2.12.1"
+    "nan": "^2.13.1"
   },
   "devDependencies": {
     "tree-sitter-cli": "0.14.5"
