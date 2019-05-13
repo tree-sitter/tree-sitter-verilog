@@ -28,9 +28,8 @@
   },
   "scripts": {
     "gen": "tree-sitter generate",
-    "install": "if [ ! -d ./src ]; then tree-sitter generate; fi && npm run get && node-gyp configure build",
-    "test": "tree-sitter test",
-    "get": "mkdir -p src/tree_sitter"
+    "install": "if [ ! -d ./src ]; then tree-sitter generate; fi && node-gyp configure build",
+    "test": "tree-sitter test"
   },
   "dependencies": {
     "nan": "^2.13.1"
