@@ -8,3 +8,9 @@ Verilog grammar for [tree-sitter](https://github.com/tree-sitter/tree-sitter).
 ## References
   * https://en.wikipedia.org/wiki/Verilog
   * http://tree-sitter.github.io/tree-sitter/creating-parsers
+
+## Use in NodeJS
+
+```
+npm i tree-sitter-verilog
+```
