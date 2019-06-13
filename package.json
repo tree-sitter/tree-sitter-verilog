@@ -35,6 +35,6 @@
     "nan": "^2.13.1"
   },
   "devDependencies": {
-    "tree-sitter-cli": "^0.14.7"
+    "tree-sitter-cli": "^0.15.3"
   }
 }
