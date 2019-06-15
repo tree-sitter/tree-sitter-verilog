@@ -4819,4 +4819,3 @@ module.exports = grammar({
 /* eslint camelcase: 0 */
 /* eslint no-undef: 0 */
 /* eslint no-unused-vars: 0 */
-/* eslint indent: [1, 2] */

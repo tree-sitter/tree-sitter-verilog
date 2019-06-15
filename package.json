@@ -27,10 +27,7 @@
     "example": "examples"
   },
   "scripts": {
-    "gen": "tree-sitter generate",
-    "prepare": "tree-sitter generate && node-gyp configure build",
-    "preinstall": "echo preinstall",
-    "postinstall": "echo postinstall",
+    "install": "node bin/install.js",
     "test": "tree-sitter test"
   },
   "dependencies": {
@@ -42,6 +39,9 @@
     "tree-sitter-cli": "^0.15.3"
   },
   "eslintConfig": {
-    "extends": "@drom/eslint-config/eslint4/node4"
+    "extends": "@drom/eslint-config/eslint4/node4",
+    "rules": {
+      "indent": [1, 2]
+    }
   }
 }
