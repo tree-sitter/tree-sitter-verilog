@@ -29,7 +29,8 @@
   "scripts": {
     "gen": "tree-sitter generate",
     "prepare": "tree-sitter generate && node-gyp configure build",
-    "install": "node-gyp configure build",
+    "preinstall": "echo preinstall",
+    "postinstall": "echo postinstall",
     "test": "tree-sitter test"
   },
   "dependencies": {
