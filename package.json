@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-verilog",
-  "version": "0.15.3",
+  "version": "0.15.4",
   "description": "Verilog grammar for tree-sitter",
   "license": "MIT",
   "author": "Aliaksei Chapyzhenka",
@@ -41,7 +41,10 @@
   "eslintConfig": {
     "extends": "@drom/eslint-config/eslint4/node4",
     "rules": {
-      "indent": [1, 2]
+      "indent": [
+        1,
+        2
+      ]
     }
   }
 }
