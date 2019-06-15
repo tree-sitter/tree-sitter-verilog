@@ -16,7 +16,8 @@
   "files": [
     "grammar.js",
     "binding.gyp",
-    "src/*"
+    "src/*",
+    "bin/*"
   ],
   "keywords": [
     "parser",
@@ -28,6 +29,7 @@
   },
   "scripts": {
     "install": "node bin/install.js",
+    "prepare": "node bin/install.js",
     "test": "tree-sitter test"
   },
   "dependencies": {
