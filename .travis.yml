@@ -21,6 +21,7 @@ addons:
 install:
   - g++ --version
   - npm --version
+  - npm run prepare
   - time npm install
   - wc -l src/parser.c
   - wc -c build/Release/*.node
