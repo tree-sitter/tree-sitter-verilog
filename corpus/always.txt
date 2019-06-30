@@ -245,3 +245,36 @@ endmodule
               (nonblocking_assignment
                 (variable_lvalue (identifier (simple_identifier)))
                 (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))))))))))))))
+
+============================================
+seq_block
+============================================
+
+module a_l ();
+
+always @(a or b or c or d) begin end
+
+endmodule
+
+----
+(source_file (module_declaration
+  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item
+    (always_construct (always_keyword)
+      (statement (statement_item (procedural_timing_control_statement (event_control
+        (event_expression
+          (event_expression
+            (event_expression
+              (event_expression (expression (primary (identifier (simple_identifier)))))
+              (event_expression (expression (primary (identifier (simple_identifier)))))
+            )
+            (event_expression (expression (primary (identifier (simple_identifier)))))
+          )
+          (event_expression (expression (primary (identifier (simple_identifier)))))
+        )
+      )
+      (statement_or_null (statement (statement_item (seq_block))))
+    )))
+  )
+)))

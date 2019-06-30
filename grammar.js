@@ -2928,7 +2928,10 @@ const rules = {
   event_expression: $ => choice( // reordered : brake recursion
     prec.left(seq($.event_expression, 'or', $.event_expression)),
     prec.left(seq($.event_expression, ',', $.event_expression)),
-    seq($.edge_identifier, $.expression) // reordered : help parser
+    seq(
+      optional($.edge_identifier),
+      $.expression
+    ) // reordered : help parser
     // seq(
     //   optional($.edge_identifier),
     //   $.expression,
@@ -4697,6 +4700,9 @@ module.exports = grammar({
     [$.class_constructor_declaration, $.implicit_class_handle],
     [$.statement_or_null, $.action_block],
     [$.sequence_actual_arg, $.event_expression],
+    [$.expression_or_dist,                   $.event_expression],
+    [$.expression_or_dist, $.let_actual_arg, $.event_expression],
+    [$.expression_or_dist, $.let_actual_arg],
 
     [$.port_reference, $.ansi_port_declaration],
     [$.net_port_header1, $.variable_port_header],
@@ -4789,7 +4795,6 @@ module.exports = grammar({
     [$.simple_type, $.structure_pattern_key],
 
     [$.sequence_list_of_arguments, $.let_list_of_arguments],
-    [$.expression_or_dist, $.let_actual_arg],
     [$.named_port_connection, $.expression_or_dist],
 
     [$.output_port_identifier, $.inout_port_identifier],
