@@ -38,6 +38,12 @@ assign z = sign ? sub : add;
 
 endmodule: add_sub
 
+module bar (
+  input a, // `line define in the port list
+`line 123 "foo.v" 0
+  output b
+);
+endmodule
 
 module alu (
   input [31:0] a,
@@ -58,7 +64,11 @@ add_sub #(32) u0 (
   .sign(1'b0)
 );
 
-add_sub #(32) u0 (a, b, , tmp, 1'b0); // missing argument
+add_sub #(32) u0 (
+  a, b, ,  // missing argument
+  tmp[PARAM-1:0], // expressions with parameters
+  1'b0
+);
 
 assign res = tmp;
 
