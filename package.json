@@ -38,6 +38,8 @@
   "devDependencies": {
     "@drom/eslint-config": "^0.10.0",
     "eslint": "^5.16.0",
+    "fs-extra": "^8.1.0",
+    "tree-sitter": "^0.15.7",
     "tree-sitter-cli": "^0.15.5"
   },
   "eslintConfig": {
