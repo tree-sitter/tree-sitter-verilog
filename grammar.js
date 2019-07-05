@@ -855,7 +855,7 @@ const rules = {
   ),
 
   class_property: $ => choice(
-    // seq(repeat($.property_qualifier, $.data_declaration)),
+    seq(repeat($.property_qualifier), $.data_declaration),
     seq(
       'const',
       repeat($.class_item_qualifier),
@@ -4828,6 +4828,9 @@ module.exports = grammar({
 
     [$.delayed_data, $.delayed_reference],
     [$.system_tf_call, $.list_of_arguments_parent],
+    [$.class_item_qualifier, $.lifetime],
+    [$.property_qualifier, $.method_qualifier],
+    [$.class_property, $.data_type_or_implicit1],
 
     [$.constant_expression, $.expression]
 
