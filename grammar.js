@@ -844,6 +844,7 @@ const rules = {
   /* A.1.9 Class items */
 
   class_item: $ => choice(
+    $._directives,
     seq(repeat($.attribute_instance), $.class_property),
     seq(repeat($.attribute_instance), $.class_method),
     seq(repeat($.attribute_instance), $.class_constraint),
