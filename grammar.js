@@ -1697,11 +1697,20 @@ const rules = {
     repeat($.attribute_instance),
     optional($.tf_port_direction),
     optional('var'),
-    $.data_type_or_implicit1,
-    optseq(
-      $.port_identifier,
-      repeat($._variable_dimension),
-      $.expression
+    choice(
+      seq(
+        $.data_type_or_implicit1,
+        optseq(
+          $.port_identifier,
+          repeat($._variable_dimension),
+          optseq('=', $.expression)
+        )
+      ),
+      seq(
+        $.port_identifier,
+        repeat($._variable_dimension),
+        optseq('=', $.expression)
+      )
     )
   ),
 
@@ -4762,6 +4771,7 @@ module.exports = grammar({
     [$.program_instantiation, $.interface_instantiation],
     [$.list_of_interface_identifiers, $.net_decl_assignment],
     [$.data_type, $.class_type, $.checker_instantiation],
+    [$.data_type, $.class_type, $.tf_port_item1],
     [$.net_port_type1, $.interface_port_header, $.data_type, $.class_type],
     [$.name_of_instance, $.sequence_instance, $.let_expression],
     [$.list_of_port_identifiers, $._variable_dimension],
