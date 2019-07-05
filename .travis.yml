@@ -18,4 +18,7 @@ install:
   - npm install
   - wc -l src/parser.c
   - wc -c build/Release/*.node
-script: npm test
+script:
+  - npm test
+  - ./bin/get-uvm.sh
+  - ./bin/test-uvm.js
