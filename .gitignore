@@ -3,3 +3,5 @@ build
 package-lock.json
 src
 *.log
+uvm
+*.tar.gz
