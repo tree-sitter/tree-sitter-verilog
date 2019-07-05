@@ -20,5 +20,5 @@ install:
   - wc -c build/Release/*.node
 script:
   - npm test
-  - ./bin/get-uvm.sh
-  - ./bin/test-uvm.js
+  - bash bin/get-uvm.sh
+  - node bin/test-uvm.js
