@@ -3848,7 +3848,7 @@ const rules = {
   list_of_arguments_parent: $ => seq(
     '(',
     choice(
-      optional($.expression),
+      sep1(',', $.expression),
       // sep1(',', optional($.expression)), // FIXME
       seq(
         repseq(',', '.', $.identifier, '(', optional($.expression), ')')
