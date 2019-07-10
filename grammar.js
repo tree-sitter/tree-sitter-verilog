@@ -4352,14 +4352,14 @@ const rules = {
 
   decimal_number: $ => choice(
     $.unsigned_number,
-    token(/[0-9]*'[dD][0-9_]+/)
+    token(/[0-9]*'[sS]?[dD][0-9_]+/)
   ),
 
-  binary_number: $ => token(/[0-9]*'[bB][01_xXzZ?]+/),
+  binary_number: $ => token(/[0-9]*'[sS]?[bB][01_xXzZ?]+/),
 
-  octal_number: $ => token(/[0-9]*'[oO][0-7_xXzZ?]+/),
+  octal_number: $ => token(/[0-9]*'[sS]?[oO][0-7_xXzZ?]+/),
 
-  hex_number: $ => token(/[0-9]*'[hH][0-9a-fA-f_xXzZ?]+/),
+  hex_number: $ => token(/[0-9]*'[sS]?[hH][0-9a-fA-f_xXzZ?]+/),
 
   sign: $ => choice('+', '-'),
 
