@@ -1528,7 +1528,7 @@ const rules = {
 
   class_new: $ => choice(
     seq(
-      optional($.class_scope), 'new', optseq('(', $.list_of_arguments, ')')
+      optional($.class_scope), 'new', optional($.list_of_arguments_parent)
     ),
     seq('new', $.expression)
   ),
@@ -3808,11 +3808,12 @@ const rules = {
 
   constant_function_call: $ => $.function_subroutine_call,
 
-  tf_call: $ => seq(
-    $.ps_or_hierarchical_tf_identifier,
+  tf_call: $ => prec.left(seq(
+    $.hierarchical_tf_identifier, // FIXME
+    // $.ps_or_hierarchical_tf_identifier,
     repeat($.attribute_instance),
     optional($.list_of_arguments_parent)
-  ),
+  )),
 
   system_tf_call: $ => prec.left(seq(
     $.system_tf_identifier,
@@ -3829,7 +3830,7 @@ const rules = {
   )),
 
   subroutine_call: $ => choice(
-    // $.tf_call,
+    $.tf_call,
     $.system_tf_call,
     $.method_call,
     seq(optseq('std', '::'), $.randomize_call)
@@ -4831,6 +4832,17 @@ module.exports = grammar({
     [$.class_item_qualifier, $.lifetime],
     [$.property_qualifier, $.method_qualifier],
     [$.class_property, $.data_type_or_implicit1],
+
+    [$.list_of_arguments_parent, $.mintypmax_expression],
+
+    [$.terminal_identifier, $.list_of_arguments_parent, $.sequence_instance, $.let_expression, $.tf_call],
+    [$.terminal_identifier, $.sequence_instance, $.let_expression, $.tf_call],
+    [$.terminal_identifier, $.list_of_arguments_parent, $.sequence_instance, $.let_expression],
+    [$.list_of_arguments_parent, $.sequence_instance, $.let_expression],
+    [$.list_of_arguments_parent, $.sequence_instance],
+    [$.list_of_arguments_parent, $.let_expression],
+    [$.variable_decl_assignment, $.tf_call],
+    [$.module_path_primary, $.tf_call],
 
     [$.constant_expression, $.expression]
 
