@@ -113,7 +113,7 @@ const rules = {
 
   default_text: $ => /\w+/,
 
-  macro_text: $ => /[^\n]+/,
+  macro_text: $ => /(\\(.|\r?\n)|[^\\\n])*/,
 
   text_macro_name: $ => seq(
     $.text_macro_identifier,
