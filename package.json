@@ -33,14 +33,14 @@
     "test": "tree-sitter test"
   },
   "dependencies": {
-    "nan": "^2.13.1"
+    "nan": "^2.14.0"
   },
   "devDependencies": {
     "@drom/eslint-config": "^0.10.0",
     "eslint": "^5.16.0",
     "fs-extra": "^8.1.0",
-    "tree-sitter": "^0.15.7",
-    "tree-sitter-cli": "^0.15.5"
+    "tree-sitter": "^0.15.8",
+    "tree-sitter-cli": "^0.15.7"
   },
   "eslintConfig": {
     "extends": "@drom/eslint-config/eslint4/node4",
