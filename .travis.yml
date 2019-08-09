@@ -9,7 +9,6 @@ node_js:
 os:
   - linux
   - osx
-  - windows
 sudo: false
 install:
   - g++ --version
