@@ -71,11 +71,11 @@ function psep1(precedence, separator, rule) {
 }
 
 function exprOp ($, prior, ops) {
-  return prec.left(prior, seq($.expression, token(ops), repeat($.attribute_instance), $.expression));
+  return prec.left(prior, seq($.expression, ops, repeat($.attribute_instance), $.expression));
 }
 
 function constExprOp ($, prior, ops) {
-  return prec.left(prior, seq($.constant_expression, token(ops), repeat($.attribute_instance), $.constant_expression));
+  return prec.left(prior, seq($.constant_expression, ops, repeat($.attribute_instance), $.constant_expression));
 }
 
 function directive (command) {
