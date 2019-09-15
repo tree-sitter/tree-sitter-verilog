@@ -1,4 +1,22 @@
 ============================================
+module without io
+============================================
+
+module mod;
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header
+      (module_keyword)
+      (module_identifier (simple_identifier))
+    )
+  )
+)
+
+============================================
 module with empty io
 ============================================
 

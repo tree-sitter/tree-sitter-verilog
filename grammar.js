@@ -299,11 +299,11 @@ const rules = {
   module_declaration: $ => choice(
     seq(
       $.module_header,
-      choice(
+      optional(choice(
         $.module_nonansi_header,
         $.module_ansi_header,
         seq('(', '.*', ')')
-      ),
+      )),
       ';',
       optional($.timeunits_declaration),
       repeat($._module_item),
