@@ -3791,17 +3791,29 @@ const rules = {
     '{', $.expression, $.concatenation, '}'
   )),
 
-  // streaming_concatenation
-  //  = { stream_operator [ slice_size ] stream_concatenation }
-  // stream_operator = >> | <<
-  // slice_size = simple_type | constant_expression
-  // stream_concatenation = { stream_expression { , stream_expression } }
-  // stream_expression = expression [ with [ array_range_expression ] ]
-  // array_range_expression =
-  // expression
-  // | expression : expression
-  // | expression +: expression
-  // | expression -: expression
+  streaming_concatenation: $ => prec.left(PREC.CONCAT, seq(
+    '{', $.stream_operator, optional($.slice_size), $.stream_concatenation, '}'
+  )),
+
+  stream_operator: $ => choice('>>', '<<'),
+
+  slice_size: $ => choice($.simple_type, $.constant_expression),
+
+  stream_concatenation: $ => prec.left(PREC.CONCAT, seq(
+    '{', sep1(',', $.stream_expression), '}'
+  )),
+
+  stream_expression: $ => seq($.expression, optseq('with', '[', $.array_range_expression, ']')),
+
+  array_range_expression: $ => seq(
+    $.expression,
+    optional(choice(
+      seq( ':', $.expression),
+      seq('+:', $.expression),
+      seq('-:', $.expression)
+    ))
+  ),
+
   empty_unpacked_array_concatenation: $ => seq('{', '}'),
 
   /* A.8.2 Subroutine calls */
@@ -4143,7 +4155,7 @@ const rules = {
     seq('(', $.mintypmax_expression, ')'),
     $.cast,
     $.assignment_pattern_expression,
-    // $.streaming_concatenation,
+    $.streaming_concatenation,
     $.sequence_method_call,
     'this',
     '$',
@@ -4289,8 +4301,8 @@ const rules = {
     seq(
       optional($.assignment_pattern_expression_type),
       $.assignment_pattern_variable_lvalue
-    )
-    // $.streaming_concatenation
+    ),
+    $.streaming_concatenation
   ),
 
   // nonrange_variable_lvalue
@@ -4690,6 +4702,7 @@ module.exports = grammar({
     [$.primary, $.param_expression],
     [$.primary, $.constant_primary],
     [$.primary, $.constant_let_expression],
+    [$.primary, $.variable_lvalue],
 
     [$._module_common_item, $.checker_or_generate_item],
     [$._module_common_item, $.checker_generate_item],
@@ -4842,6 +4855,8 @@ module.exports = grammar({
     [$.list_of_arguments_parent, $.let_expression],
     [$.variable_decl_assignment, $.tf_call],
     [$.module_path_primary, $.tf_call],
+
+    [$.concatenation, $.stream_expression],
 
     [$.constant_expression, $.expression]
 
