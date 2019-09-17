@@ -4468,8 +4468,7 @@ const rules = {
   cross_identifier: $ => alias($.identifier, $.cross_identifier),
   dynamic_array_variable_identifier: $ => alias($.variable_identifier, $.dynamic_array_variable_identifier),
   enum_identifier: $ => alias($.identifier, $.enum_identifier),
-  // escaped_identifier
-  //  = \ {any_printable_ASCII_character_except_white_space} white_space
+  escaped_identifier: $ => seq('\\', /.*/),
   formal_identifier: $ => alias($.identifier, $.formal_identifier),
   formal_port_identifier: $ => alias($.identifier, $.formal_port_identifier),
   function_identifier: $ => alias($.identifier, $.function_identifier),
@@ -4494,8 +4493,8 @@ const rules = {
   hierarchical_variable_identifier: $ => $.hierarchical_identifier,
 
   identifier: $ => choice(
-    $.simple_identifier
-    // $.escaped_identifier
+    $.simple_identifier,
+    $.escaped_identifier
   ),
 
   index_variable_identifier: $ => alias($.identifier, $.index_variable_identifier),
