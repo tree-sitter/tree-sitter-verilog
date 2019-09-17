@@ -4193,7 +4193,16 @@ const rules = {
 
   time_unit: $ => choice('s', 'ms', 'us', 'ns', 'ps', 'fs'),
 
-  string_literal: $ => seq('"', /[\x09\x20\x21\x23-\xFE]*/, '"'),
+  string_literal: $ => seq(
+    '"',
+    repeat(choice(
+      token.immediate(/[^\\"]+/),
+      // EXTENDS Verilog spec with escape sequences
+      token.immediate(seq('\\', /./)),
+      token.immediate(seq('\\', '\n'))
+    )),
+    '"'
+  ),
 
   implicit_class_handle: $ => choice(
     prec.left(seq('this', optseq('.', 'super'))),
