@@ -4601,7 +4601,7 @@ const rules = {
 
   // signal_identifier = identifier
 
-  simple_identifier: $ => /[a-zA-Z_]\w*/,
+  simple_identifier: $ => /[a-zA-Z_][a-zA-Z0-9_$]*/,
 
   specparam_identifier: $ => alias($.identifier, $.specparam_identifier),
 
