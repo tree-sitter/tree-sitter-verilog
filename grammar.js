@@ -610,7 +610,7 @@ const rules = {
     $._module_or_generate_item_declaration,
     $.interface_instantiation,
     $.program_instantiation,
-    // $.assertion_item,
+    $.assertion_item,
     $.bind_directive,
     $.continuous_assign,
     $.net_alias,
@@ -816,7 +816,7 @@ const rules = {
     $.initial_construct,
     $.always_construct,
     $.final_construct,
-    // $.assertion_item,
+    $.assertion_item,
     $.continuous_assign,
     $.checker_generate_item
   ),
@@ -4753,7 +4753,7 @@ module.exports = grammar({
 
     [$.class_method, $.constraint_prototype_qualifier],
     [$.class_method, $.method_qualifier],
-    [$.data_type, $.class_type, $.checker_instantiation, $.statement],
+    [$.data_type, $.class_type, $.statement, $.checker_instantiation],
 
     [$.bind_target_scope, $.bind_target_instance],
     [$.class_type, $.package_scope],
@@ -4765,8 +4765,14 @@ module.exports = grammar({
     [$.net_declaration, $.data_type, $.interface_port_declaration, $.class_type, $.checker_instantiation],
     [$.net_declaration, $.data_type, $.class_type, $.checker_instantiation],
     [$.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation],
-    [$.net_declaration, $.data_type, $.class_type, $.module_instantiation, $.interface_instantiation, $.program_instantiation],
-    [$.net_declaration, $.data_type, $.class_type, $.module_instantiation, $.interface_port_declaration, $.interface_instantiation, $.program_instantiation],
+    [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation],
+    [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_port_declaration, $.interface_instantiation, $.program_instantiation],
+
+    [$.module_instantiation, $.interface_port_declaration, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
+    [$.interface_port_declaration, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
+    [$.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
+    [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
+
     [$.data_type, $.class_type],
     [$.net_type_declaration, $.data_type, $.class_type],
     [$.net_type_declaration, $.data_type],
@@ -4857,6 +4863,7 @@ module.exports = grammar({
     [$.module_path_primary, $.tf_call],
 
     [$.concatenation, $.stream_expression],
+    [$.concurrent_assertion_item, $.deferred_immediate_assertion_item, $.generate_block_identifier],
 
     [$.constant_expression, $.expression]
 
