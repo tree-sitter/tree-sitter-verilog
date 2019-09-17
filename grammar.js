@@ -3829,16 +3829,20 @@ const rules = {
 
   system_tf_call: $ => prec.left(seq(
     $.system_tf_identifier,
-    choice(
-      optional($.list_of_arguments_parent),
-      seq('(', $.data_type, optseq(',', $.expression), ')'),
-      prec.left(seq(
-        '(', $.expression,
-        repseq(',', optional($.expression)),
-        optseq(',', optional($.clocking_event)),
+    optional(choice(
+      $.list_of_arguments_parent,
+      seq(
+        '(',
+        choice(
+          seq($.data_type, optseq(',', $.expression)),
+          prec.left(seq(
+            sep1(',', $.expression),
+            optseq(',', optional($.clocking_event))
+          ))
+        ),
         ')'
-      ))
-    )
+      )
+    ))
   )),
 
   subroutine_call: $ => choice(
