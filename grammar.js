@@ -3016,7 +3016,7 @@ const rules = {
     $.cond_pattern
   ),
 
-  cond_pattern: $ => seq($.expression, 'matches', $.pattern),
+  cond_pattern: $ => prec.left(PREC.MATCHES, seq($.expression, 'matches', $.pattern)),
 
   // A.6.7 Case statements
 
