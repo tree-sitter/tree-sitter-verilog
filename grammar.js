@@ -1018,6 +1018,7 @@ const rules = {
     $.dpi_import_export,
     $.extern_constraint_declaration,
     $.class_declaration,
+    $.interface_class_declaration, // not in spec
     $.class_constructor_declaration,
     seq($.any_parameter_declaration, ';'),
     // $.covergroup_declaration,
