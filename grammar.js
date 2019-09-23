@@ -327,7 +327,7 @@ const rules = {
     seq(
       $.interface_ansi_header,
       optional($.timeunits_declaration),
-      repeat($.non_port_interface_item),
+      repeat($._non_port_interface_item),
       'endinterface', optseq(':', $.interface_identifier)
     ),
     seq(
@@ -424,7 +424,7 @@ const rules = {
     ';',
     repseq(
       repeat($.attribute_instance),
-      $.checker_or_generate_item
+      $._checker_or_generate_item
     ),
     'endchecker', optseq(':', $.checker_identifier)
   ),
@@ -469,7 +469,7 @@ const rules = {
     ';'
   ),
 
-  interface_class_method: $ => seq('pure', 'virtual', $.method_prototype, ';'),
+  interface_class_method: $ => seq('pure', 'virtual', $._method_prototype, ';'),
 
   package_declaration: $ => seq(
     repeat($.attribute_instance),
@@ -610,7 +610,7 @@ const rules = {
     $._module_or_generate_item_declaration,
     $.interface_instantiation,
     $.program_instantiation,
-    $.assertion_item,
+    $._assertion_item,
     $.bind_directive,
     $.continuous_assign,
     $.net_alias,
@@ -618,7 +618,7 @@ const rules = {
     $.final_construct,
     $.always_construct,
     $.loop_generate_construct,
-    $.conditional_generate_construct,
+    $._conditional_generate_construct,
     $.elaboration_system_task
   ),
 
@@ -673,7 +673,7 @@ const rules = {
       ),
       $.bind_target_instance
     ),
-    $.bind_instantiation,
+    $._bind_instantiation,
     ';'
   ),
 
@@ -689,7 +689,7 @@ const rules = {
 
   bind_target_instance_list: $ => sep1(',', $.bind_target_instance),
 
-  bind_instantiation: $ => choice(
+  _bind_instantiation: $ => choice(
     $.program_instantiation,
     $.module_instantiation,
     $.interface_instantiation,
@@ -754,16 +754,16 @@ const rules = {
   ),
 
   extern_tf_declaration: $ => choice(
-    // seq('extern', $.method_prototype, ';'),
+    seq('extern', $._method_prototype, ';'),
     seq('extern', 'forkjoin', $.task_prototype, ';')
   ),
 
   interface_item: $ => choice(
     seq($.port_declaration, ';'),
-    $.non_port_interface_item
+    $._non_port_interface_item
   ),
 
-  non_port_interface_item: $ => choice(
+  _non_port_interface_item: $ => choice(
     $.generate_region,
     $.interface_or_generate_item,
     $.program_declaration,
@@ -786,12 +786,12 @@ const rules = {
     seq(repeat($.attribute_instance), $.final_construct),
     seq(repeat($.attribute_instance), $.concurrent_assertion_item),
     $.timeunits_declaration,
-    $.program_generate_item
+    $._program_generate_item
   ),
 
-  program_generate_item: $ => choice(
+  _program_generate_item: $ => choice(
     $.loop_generate_construct,
-    $.conditional_generate_construct,
+    $._conditional_generate_construct,
     $.generate_region,
     $.elaboration_system_task
   ),
@@ -811,21 +811,21 @@ const rules = {
 
   checker_port_direction: $ => choice('input', 'output'),
 
-  checker_or_generate_item: $ => choice(
+  _checker_or_generate_item: $ => choice(
     $.checker_or_generate_item_declaration,
     $.initial_construct,
     $.always_construct,
     $.final_construct,
-    $.assertion_item,
+    $._assertion_item,
     $.continuous_assign,
-    $.checker_generate_item
+    $._checker_generate_item
   ),
 
   checker_or_generate_item_declaration: $ => choice(
     seq(optional('rand'), $.data_declaration),
     $.function_declaration,
     $.checker_declaration,
-    $.assertion_item_declaration,
+    $._assertion_item_declaration,
     $.covergroup_declaration,
     $.genvar_declaration,
     // $.clocking_declaration,
@@ -834,9 +834,9 @@ const rules = {
     ';'
   ),
 
-  checker_generate_item: $ => choice(
+  _checker_generate_item: $ => choice(
     $.loop_generate_construct,
-    $.conditional_generate_construct,
+    $._conditional_generate_construct,
     $.generate_region,
     $.elaboration_system_task
   ),
@@ -847,7 +847,7 @@ const rules = {
     $._directives,
     seq(repeat($.attribute_instance), $.class_property),
     seq(repeat($.attribute_instance), $.class_method),
-    seq(repeat($.attribute_instance), $.class_constraint),
+    seq(repeat($.attribute_instance), $._class_constraint),
     seq(repeat($.attribute_instance), $.class_declaration),
     seq(repeat($.attribute_instance), $.covergroup_declaration),
     seq($.any_parameter_declaration, ';'),
@@ -855,7 +855,7 @@ const rules = {
   ),
 
   class_property: $ => choice(
-    seq(repeat($.property_qualifier), $.data_declaration),
+    seq(repeat($._property_qualifier), $.data_declaration),
     seq(
       'const',
       repeat($.class_item_qualifier),
@@ -869,8 +869,8 @@ const rules = {
   class_method: $ => choice(
     seq(repeat($.method_qualifier), $.task_declaration),
     seq(repeat($.method_qualifier), $.function_declaration),
-    seq('pure', 'virtual', repeat($.class_item_qualifier), $.method_prototype, ';'),
-    seq('extern', repeat($.method_qualifier), $.method_prototype, ';'),
+    seq('pure', 'virtual', repeat($.class_item_qualifier), $._method_prototype, ';'),
+    seq('extern', repeat($.method_qualifier), $._method_prototype, ';'),
     seq(repeat($.method_qualifier), $.class_constructor_declaration),
     seq('extern', repeat($.method_qualifier), $.class_constructor_prototype)
   ),
@@ -879,14 +879,14 @@ const rules = {
     'function', 'new', optseq('(', optional($.tf_port_list), ')'), ';'
   ),
 
-  class_constraint: $ => choice(
+  _class_constraint: $ => choice(
     $.constraint_prototype,
     $.constraint_declaration
   ),
 
   class_item_qualifier: $ => choice('static', 'protected', 'local'),
 
-  property_qualifier: $ => choice(
+  _property_qualifier: $ => choice(
     $.random_qualifier,
     $.class_item_qualifier
   ),
@@ -898,7 +898,7 @@ const rules = {
     $.class_item_qualifier
   ),
 
-  method_prototype: $ => choice(
+  _method_prototype: $ => choice(
     $.task_prototype,
     $.function_prototype
   ),
@@ -1023,7 +1023,7 @@ const rules = {
     seq($.any_parameter_declaration, ';'),
     // $.covergroup_declaration,
     $.overload_declaration,
-    $.assertion_item_declaration,
+    $._assertion_item_declaration,
     ';'
   ),
 
@@ -1216,7 +1216,7 @@ const rules = {
   /* A.2.2.1 Net and variable types */
 
   casting_type: $ => choice(
-    $.simple_type,
+    $._simple_type,
     $.constant_primary,
     $._signing,
     'string',
@@ -1228,13 +1228,13 @@ const rules = {
     seq($.integer_atom_type, optional($._signing)),
     $.non_integer_type,
     seq(
-      $._struct_union,
+      $.struct_union,
       optseq('packed', optional($._signing)),
       '{', repeat1($.struct_union_member), '}',
       repeat($.packed_dimension)
     ),
     seq(
-      'enum', optional($._enum_base_type),
+      'enum', optional($.enum_base_type),
       '{', sep1(',', $.enum_name_declaration), '}',
       repeat($.packed_dimension)
     ),
@@ -1267,7 +1267,7 @@ const rules = {
     repeat1($.packed_dimension)
   ),
 
-  _enum_base_type: $ => choice(
+  enum_base_type: $ => choice(
     seq(
       $.integer_atom_type, optional($._signing)
     ),
@@ -1289,6 +1289,7 @@ const rules = {
 
   class_scope: $ => seq($.class_type, '::'),
 
+  // class_type: $ => prec.left(PREC.PARENT, seq(
   class_type: $ => prec.right(seq(
     $.ps_class_identifier,
     optional($.parameter_value_assignment),
@@ -1330,7 +1331,7 @@ const rules = {
 
   _signing: $ => choice('signed', 'unsigned'),
 
-  simple_type: $ => choice(
+  _simple_type: $ => choice(
     $._integer_type,
     $.non_integer_type,
     $.ps_type_identifier,
@@ -1339,7 +1340,7 @@ const rules = {
 
   struct_union_member: $ => seq(
     repeat($.attribute_instance),
-    // optional($.random_qualifier),
+    optional($.random_qualifier),
     $.data_type_or_void,
     $.list_of_variable_decl_assignments,
     ';'
@@ -1350,7 +1351,7 @@ const rules = {
     'void'
   ),
 
-  _struct_union: $ => choice(
+  struct_union: $ => choice(
     'struct',
     seq('union', optional('tagged'))
   ),
@@ -1796,11 +1797,11 @@ const rules = {
   ),
 
   modport_tf_ports_declaration: $ => seq(
-    $.import_export, sep1(',', $.modport_tf_port)
+    $.import_export, sep1(',', $._modport_tf_port)
   ),
 
-  modport_tf_port: $ => choice(
-    // $.method_prototype,
+  _modport_tf_port: $ => choice(
+    $._method_prototype,
     $.tf_identifier
   ),
 
@@ -1811,12 +1812,12 @@ const rules = {
   concurrent_assertion_item: $ => choice(
     seq(
       optseq($.block_identifier, ':'),
-      $.concurrent_assertion_statement
+      $._concurrent_assertion_statement
     ),
     $.checker_instantiation
   ),
 
-  concurrent_assertion_statement: $ => choice(
+  _concurrent_assertion_statement: $ => choice(
     $.assert_property_statement,
     $.assume_property_statement,
     $.cover_property_statement,
@@ -1876,10 +1877,10 @@ const rules = {
 
   property_actual_arg: $ => choice(
     $.property_expr
-    // $.sequence_actual_arg
+    // $._sequence_actual_arg
   ),
 
-  assertion_item_declaration: $ => choice(
+  _assertion_item_declaration: $ => choice(
     $.property_declaration,
     $.sequence_declaration,
     $.let_declaration
@@ -2011,7 +2012,7 @@ const rules = {
     $.formal_port_identifier,
     repeat($._variable_dimension),
     optseq(
-      '=', $.sequence_actual_arg
+      '=', $._sequence_actual_arg
     )
   ),
 
@@ -2026,13 +2027,13 @@ const rules = {
   sequence_expr: $ => choice(
     prec.left(sep1(',', $.cycle_delay_range, $.sequence_expr)), // FIXME precedence?
     // prec.left(seq($.sequence_expr, repeat1(seq($.cycle_delay_range, $.sequence_expr)))), // FIXME precedence?
-    seq($.expression_or_dist, optional($.boolean_abbrev)),
+    seq($.expression_or_dist, optional($._boolean_abbrev)),
     seq($.sequence_instance, optional($.sequence_abbrev)),
-    prec.left(seq('(', $.sequence_expr, repseq(',', $.sequence_match_item), ')', optional($.sequence_abbrev))),
+    prec.left(seq('(', $.sequence_expr, repseq(',', $._sequence_match_item), ')', optional($.sequence_abbrev))),
     prec.left(PREC.and, seq($.sequence_expr, 'and', $.sequence_expr)),
     prec.left(PREC.intersect, seq($.sequence_expr, 'intersect', $.sequence_expr)),
     prec.left(PREC.or, seq($.sequence_expr, 'or', $.sequence_expr)),
-    seq('first_match', '(', $.sequence_expr, repseq(',', $.sequence_match_item), ')'),
+    seq('first_match', '(', $.sequence_expr, repseq(',', $._sequence_match_item), ')'),
     prec.right(PREC.throughout, seq($.expression_or_dist, 'throughout', $.sequence_expr)),
     prec.left(PREC.within, seq($.sequence_expr, 'within', $.sequence_expr)),
     prec.left(seq($.clocking_event, $.sequence_expr)) // FIXME precedence?
@@ -2047,7 +2048,7 @@ const rules = {
 
   sequence_method_call: $ => seq($.sequence_instance, '.', $.method_identifier),
 
-  sequence_match_item: $ => choice(
+  _sequence_match_item: $ => choice(
     $.operator_assignment,
     $.inc_or_dec_expression,
     $.subroutine_call
@@ -2060,18 +2061,18 @@ const rules = {
 
   sequence_list_of_arguments: $ => choice(
     // seq(
-    //   sep1(',', optional($.sequence_actual_arg)),
-    //   repseq(',', '.', $.identifier, '(', optional($.sequence_actual_arg), ')')
+    //   sep1(',', optional($._sequence_actual_arg)),
+    //   repseq(',', '.', $.identifier, '(', optional($._sequence_actual_arg), ')')
     // ),
-    sep1(',', seq('.', $.identifier, '(', optional($.sequence_actual_arg), ')'))
+    sep1(',', seq('.', $.identifier, '(', optional($._sequence_actual_arg), ')'))
   ),
 
-  sequence_actual_arg: $ => choice(
+  _sequence_actual_arg: $ => choice(
     $.event_expression,
     $.sequence_expr
   ),
 
-  boolean_abbrev: $ => choice(
+  _boolean_abbrev: $ => choice(
     $.consecutive_repetition,
     $.non_consecutive_repetition,
     $.goto_repetition
@@ -2080,16 +2081,16 @@ const rules = {
   sequence_abbrev: $ => $.consecutive_repetition,
 
   consecutive_repetition: $ => choice(
-    seq('[*', $.const_or_range_expression, ']'),
+    seq('[*', $._const_or_range_expression, ']'),
     '[*]',
     '[+]'
   ),
 
-  non_consecutive_repetition: $ => seq('[=', $.const_or_range_expression, ']'),
+  non_consecutive_repetition: $ => seq('[=', $._const_or_range_expression, ']'),
 
-  goto_repetition: $ => seq('[->', $.const_or_range_expression, ']'),
+  goto_repetition: $ => seq('[->', $._const_or_range_expression, ']'),
 
-  const_or_range_expression: $ => choice(
+  _const_or_range_expression: $ => choice(
     $.constant_expression,
     $.cycle_delay_const_range_expression
   ),
@@ -2122,7 +2123,7 @@ const rules = {
   ),
 
   coverage_spec_or_option: $ => choice(
-    seq(repeat($.attribute_instance), $.coverage_spec),
+    seq(repeat($.attribute_instance), $._coverage_spec),
     seq(repeat($.attribute_instance), $.coverage_option, ';')
   ),
 
@@ -2131,7 +2132,7 @@ const rules = {
     seq('type_option', '.', $.member_identifier, '=', $.constant_expression)
   ),
 
-  coverage_spec: $ => choice($.cover_point, $.cover_cross),
+  _coverage_spec: $ => choice($.cover_point, $.cover_cross),
 
   coverage_event: $ => choice(
     $.clocking_event,
@@ -2627,7 +2628,7 @@ const rules = {
   /* A.4.2 Generated instantiation */
 
   generate_region: $ => seq(
-    'generate', repeat($.generate_item), 'endgenerate'
+    'generate', repeat($._generate_item), 'endgenerate'
   ),
 
   loop_generate_construct: $ => seq(
@@ -2650,7 +2651,7 @@ const rules = {
     seq($.genvar_identifier, $.inc_or_dec_operator)
   ),
 
-  conditional_generate_construct: $ => choice(
+  _conditional_generate_construct: $ => choice(
     $.if_generate_construct,
     $.case_generate_construct
   ),
@@ -2672,21 +2673,21 @@ const rules = {
   ),
 
   generate_block: $ => choice(
-    $.generate_item,
+    $._generate_item,
     seq(
       optseq($.generate_block_identifier, ':'),
       'begin',
       optseq(':', $.generate_block_identifier),
-      repeat($.generate_item),
+      repeat($._generate_item),
       'end',
       optseq(':', $.generate_block_identifier)
     )
   ),
 
-  generate_item: $ => choice(
+  _generate_item: $ => choice(
     $.module_or_generate_item,
     $.interface_or_generate_item,
-    $.checker_or_generate_item
+    $._checker_or_generate_item
   ),
 
   /* 5. Lexical conventions */
@@ -2895,7 +2896,7 @@ const rules = {
     $.seq_block,
     $.procedural_timing_control_statement,
     $.wait_statement,
-    $.procedural_assertion_statement,
+    $._procedural_assertion_statement,
     // seq($.clocking_drive, ';'),
     // $.randsequence_statement,
     $.randcase_statement,
@@ -3009,9 +3010,9 @@ const rules = {
 
   unique_priority: $ => choice('unique', 'unique0', 'priority'),
 
-  cond_predicate: $ => psep1(PREC.PARENT, '&&&', $.expression_or_cond_pattern), // FIXME precedence
+  cond_predicate: $ => psep1(PREC.PARENT, '&&&', $._expression_or_cond_pattern), // FIXME precedence
 
-  expression_or_cond_pattern: $ => choice(
+  _expression_or_cond_pattern: $ => choice(
     $.expression,
     $.cond_pattern
   ),
@@ -3080,33 +3081,33 @@ const rules = {
     '\'{',
     choice(
       sep1(',', $.expression),
-      // sep1(',', seq($.structure_pattern_key, ':', $.expression)),
-      sep1(',', seq($.array_pattern_key, ':', $.expression)),
+      // sep1(',', seq($._structure_pattern_key, ':', $.expression)),
+      sep1(',', seq($._array_pattern_key, ':', $.expression)),
       seq($.constant_expression, '{', sep1(',', $.expression), '}')
     ),
     '}'
   ),
 
-  structure_pattern_key: $ => choice(
+  _structure_pattern_key: $ => choice(
     $.member_identifier,
     $.assignment_pattern_key
   ),
 
-  array_pattern_key: $ => choice(
+  _array_pattern_key: $ => choice(
     $.constant_expression,
     $.assignment_pattern_key
   ),
 
   assignment_pattern_key: $ => choice(
-    $.simple_type,
+    $._simple_type,
     'default'
   ),
 
   assignment_pattern_expression: $ => seq(
-    optional($.assignment_pattern_expression_type), $.assignment_pattern
+    optional($._assignment_pattern_expression_type), $.assignment_pattern
   ),
 
-  assignment_pattern_expression_type: $ => choice(
+  _assignment_pattern_expression_type: $ => choice(
     $.ps_type_identifier,
     // $.ps_parameter_identifier,
     $.integer_atom_type,
@@ -3161,9 +3162,9 @@ const rules = {
     ))
   ),
 
-  for_step: $ => sep1(',', $.for_step_assignment),
+  for_step: $ => sep1(',', $._for_step_assignment),
 
-  for_step_assignment: $ => choice(
+  _for_step_assignment: $ => choice(
     $.operator_assignment,
     $.inc_or_dec_expression,
     $.function_subroutine_call
@@ -3183,7 +3184,7 @@ const rules = {
 
   // A.6.10 Assertion statements
 
-  assertion_item: $ => choice(
+  _assertion_item: $ => choice(
     $.concurrent_assertion_item,
     $.deferred_immediate_assertion_item
   ),
@@ -3192,21 +3193,21 @@ const rules = {
     optseq(
       $.block_identifier, ':'
     ),
-    $.deferred_immediate_assertion_statement
+    $._deferred_immediate_assertion_statement
   ),
 
-  procedural_assertion_statement: $ => choice(
-    $.concurrent_assertion_statement,
-    $.immediate_assertion_statement,
+  _procedural_assertion_statement: $ => choice(
+    $._concurrent_assertion_statement,
+    $._immediate_assertion_statement,
     $.checker_instantiation
   ),
 
-  immediate_assertion_statement: $ => choice(
-    $.simple_immediate_assertion_statement,
-    $.deferred_immediate_assertion_statement
+  _immediate_assertion_statement: $ => choice(
+    $._simple_immediate_assertion_statement,
+    $._deferred_immediate_assertion_statement
   ),
 
-  simple_immediate_assertion_statement: $ => choice(
+  _simple_immediate_assertion_statement: $ => choice(
     $.simple_immediate_assert_statement,
     $.simple_immediate_assume_statement,
     $.simple_immediate_cover_statement
@@ -3224,7 +3225,7 @@ const rules = {
     'cover', '(', $.expression, ')', $.statement_or_null
   ),
 
-  deferred_immediate_assertion_statement: $ => choice(
+  _deferred_immediate_assertion_statement: $ => choice(
     $.deferred_immediate_assert_statement,
     $.deferred_immediate_assume_statement,
     $.deferred_immediate_cover_statement
@@ -3265,7 +3266,7 @@ const rules = {
   // clocking_item =
   // default default_skew ;
   // | clocking_direction list_of_clocking_decl_assign ;
-  // | ( attribute_instance __ )* assertion_item_declaration
+  // | ( attribute_instance __ )* _assertion_item_declaration
   // default_skew =
   // input clocking_skew
   // | output clocking_skew
@@ -3333,14 +3334,14 @@ const rules = {
 
   // A.7.1 Specify block declaration
 
-  specify_block: $ => seq('specify', repeat($.specify_item), 'endspecify'),
+  specify_block: $ => seq('specify', repeat($._specify_item), 'endspecify'),
 
-  specify_item: $ => choice(
+  _specify_item: $ => choice(
     $.specparam_declaration,
     $.pulsestyle_declaration,
     $.showcancelled_declaration,
     $.path_declaration,
-    $.system_timing_check
+    $._system_timing_check
   ),
 
   pulsestyle_declaration: $ => seq(
@@ -3401,11 +3402,11 @@ const rules = {
   // A.7.3 Specify block terminals
 
   specify_input_terminal_descriptor: $ => seq(
-    $.input_identifier, optseq('[', $.constant_range_expression, ']')
+    $.input_identifier, optseq('[', $._constant_range_expression, ']')
   ),
 
   specify_output_terminal_descriptor: $ => seq(
-    $.output_identifier, optseq('[', $.constant_range_expression, ']')
+    $.output_identifier, optseq('[', $._constant_range_expression, ']')
   ),
 
   input_identifier: $ => choice(
@@ -3524,7 +3525,7 @@ const rules = {
 
   /* A.7.5.1 System timing check commands */
 
-  system_timing_check: $ => choice(
+  _system_timing_check: $ => choice(
     $.$setup_timing_check,
     $.$hold_timing_check,
     $.$setuphold_timing_check,
@@ -3703,13 +3704,13 @@ const rules = {
 
   timing_check_event: $ => seq(
     optional($.timing_check_event_control),
-    $.specify_terminal_descriptor,
+    $._specify_terminal_descriptor,
     optseq('&&&', $.timing_check_condition)
   ),
 
   controlled_timing_check_event: $ => seq(
     $.timing_check_event_control,
-    $.specify_terminal_descriptor,
+    $._specify_terminal_descriptor,
     optseq('&&&', $.timing_check_condition)
   ),
 
@@ -3717,7 +3718,7 @@ const rules = {
     'posedge', 'negedge', 'edge', $.edge_control_specifier
   ),
 
-  specify_terminal_descriptor: $ => choice(
+  _specify_terminal_descriptor: $ => choice(
     $.specify_input_terminal_descriptor,
     $.specify_output_terminal_descriptor
   ),
@@ -3726,16 +3727,13 @@ const rules = {
     'edge', '[', sep1(',', $.edge_descriptor), ']'
   ),
 
+  // Note: Embedded spaces are illegal.
   edge_descriptor: $ => choice(
     '01',
     '10',
-    seq($.z_or_x, $.zero_or_one),
-    seq($.zero_or_one, $.z_or_x)
+    /[xXzZ][01]/,
+    /[01][xXzZ]/
   ),
-
-  zero_or_one: $ => choice('0', '1'),
-
-  z_or_x: $ => choice('x', 'X', 'z', 'Z'),
 
   timing_check_condition: $ => choice(
     $.scalar_timing_check_condition,
@@ -3798,7 +3796,7 @@ const rules = {
 
   stream_operator: $ => choice('>>', '<<'),
 
-  slice_size: $ => choice($.simple_type, $.constant_expression),
+  slice_size: $ => choice($._simple_type, $.constant_expression),
 
   stream_concatenation: $ => prec.left(PREC.CONCAT, seq(
     '{', sep1(',', $.stream_expression), '}'
@@ -3876,7 +3874,7 @@ const rules = {
     ')'
   ),
 
-  method_call: $ => seq($.method_call_root, '.', $.method_call_body),
+  method_call: $ => seq($._method_call_root, '.', $.method_call_body),
 
   method_call_body: $ => choice(
     prec.left(seq(
@@ -3884,10 +3882,10 @@ const rules = {
       repeat($.attribute_instance),
       optional($.list_of_arguments_parent)
     )),
-    $.built_in_method_call
+    $._built_in_method_call
   ),
 
-  built_in_method_call: $ => choice(
+  _built_in_method_call: $ => choice(
     $.array_manipulation_call,
     $.randomize_call
   ),
@@ -3921,7 +3919,7 @@ const rules = {
     )
   )),
 
-  method_call_root: $ => choice($.primary, $.implicit_class_handle),
+  _method_call_root: $ => choice($.primary, $.implicit_class_handle),
 
   array_method_name: $ => choice(
     $.method_identifier, 'unique', 'and', 'or', 'xor'
@@ -3988,12 +3986,12 @@ const rules = {
     '$'
   ),
 
-  constant_range_expression: $ => choice(
+  _constant_range_expression: $ => choice(
     $.constant_expression,
-    $.constant_part_select_range
+    $._constant_part_select_range
   ),
 
-  constant_part_select_range: $ => choice(
+  _constant_part_select_range: $ => choice(
     $.constant_range,
     $.constant_indexed_range
   ),
@@ -4108,7 +4106,7 @@ const rules = {
     )),
     seq(
       $.specparam_identifier,
-      optseq('[', $.constant_range_expression, ']')
+      optseq('[', $._constant_range_expression, ']')
     ),
     $.genvar_identifier,
     seq(
@@ -4121,11 +4119,11 @@ const rules = {
     ),
     seq(
       $.constant_concatenation,
-      optseq('[', $.constant_range_expression, ']')
+      optseq('[', $._constant_range_expression, ']')
     ),
     seq(
       $.constant_multiple_concatenation,
-      optseq('[', $.constant_range_expression, ']')
+      optseq('[', $._constant_range_expression, ']')
     ),
     $.constant_function_call,
     $.constant_let_expression,
@@ -4263,7 +4261,7 @@ const rules = {
     seq(
       '[',
       repseq($.constant_expression, ']', '['),
-      choice($.constant_expression, $.constant_part_select_range),
+      choice($.constant_expression, $._constant_part_select_range),
       ']'
     )
   ),
@@ -4273,13 +4271,13 @@ const rules = {
   //   //   repseq('.', $.member_identifier, optional($.constant_bit_select1))),
   //   //   '.', $.member_identifier,
   //   //   optional($.constant_bit_select1),
-  //   //   optseq('[', $.constant_part_select_range, ']')
+  //   //   optseq('[', $._constant_part_select_range, ']')
   //   // ),
   //   seq(
   //     $.constant_bit_select1,
-  //     optseq('[', $.constant_part_select_range, ']')
+  //     optseq('[', $._constant_part_select_range, ']')
   //   ),
-  //   seq('[', $.constant_part_select_range, ']'),
+  //   seq('[', $._constant_part_select_range, ']'),
   // ),
 
   constant_cast: $ => seq($.casting_type, '\'', '(', $.constant_expression, ')'),
@@ -4297,7 +4295,7 @@ const rules = {
     ),
     seq('{', sep1(',', $.net_lvalue), '}'),
     seq(
-      optional($.assignment_pattern_expression_type),
+      optional($._assignment_pattern_expression_type),
       $.assignment_pattern_net_lvalue
     )
   ),
@@ -4313,7 +4311,7 @@ const rules = {
     ),
     seq('{', sep1(',', $.variable_lvalue), '}'),
     seq(
-      optional($.assignment_pattern_expression_type),
+      optional($._assignment_pattern_expression_type),
       $.assignment_pattern_variable_lvalue
     ),
     $.streaming_concatenation
@@ -4384,7 +4382,8 @@ const rules = {
 
   unsigned_number: $ => token(/[0-9][0-9_]*/),
 
-  unbased_unsized_literal: $ => choice('\'0', '\'1', seq('\'', $.z_or_x)),
+  // The apostrophe ( ' ) in unbased_unsized_literal shall not be followed by white_space.
+  unbased_unsized_literal: $ => choice('\'0', '\'1', /'[xXzZ]/),
 
   /* A.9 General */
 
@@ -4568,10 +4567,15 @@ const rules = {
 
   // signal_identifier = identifier
 
+  // A simple_identifier or c_identifier shall
+  // start with an alpha or underscore ( _ ) character,
+  // shall have at least one character, and shall not have any spaces.
   simple_identifier: $ => /[a-zA-Z_][a-zA-Z0-9_$]*/,
 
   specparam_identifier: $ => alias($.identifier, $.specparam_identifier),
 
+  // The $ character in a system_tf_identifier shall
+  // not be followed by white_space. A system_tf_identifier shall not be escaped.
   system_tf_identifier: $ => /\$[a-zA-Z0-9_$]+/,
 
   task_identifier: $ => alias($.identifier, $.task_identifier),
@@ -4660,8 +4664,8 @@ module.exports = grammar({
     [$.primary, $.constant_let_expression],
     [$.primary, $.variable_lvalue],
 
-    [$._module_common_item, $.checker_or_generate_item],
-    [$._module_common_item, $.checker_generate_item],
+    [$._module_common_item, $._checker_or_generate_item],
+    [$._module_common_item, $._checker_generate_item],
     [$.dpi_function_import_property, $.dpi_task_import_property],
     // [$.class_method, $.constraint_prototype_qualifier],
     [$._package_or_generate_item_declaration, $.checker_or_generate_item_declaration],
@@ -4669,17 +4673,17 @@ module.exports = grammar({
     // [$.class_method, $.method_qualifier],
     [$.unsigned_number, $.integral_number],
     [$.method_call_body, $.array_method_name],
-    [$.class_qualifier, $.method_call_root],
-    [$.structure_pattern_key, $.array_pattern_key],
-    [$.pattern, $.structure_pattern_key],
+    [$.class_qualifier, $._method_call_root],
+    [$._structure_pattern_key, $._array_pattern_key],
+    [$.pattern, $._structure_pattern_key],
     [$.constraint_set, $.empty_unpacked_array_concatenation],
-    [$.interface_declaration, $.non_port_interface_item],
+    [$.interface_declaration, $._non_port_interface_item],
     [$.program_declaration, $.non_port_program_item],
     [$.list_of_ports, $.list_of_port_declarations],
     [$.mintypmax_expression, $.expression_or_dist],
     [$.class_constructor_declaration, $.implicit_class_handle],
     [$.statement_or_null, $.action_block],
-    [$.sequence_actual_arg, $.event_expression],
+    [$._sequence_actual_arg, $.event_expression],
     [$.expression_or_dist,                   $.event_expression],
     [$.expression_or_dist, $.let_actual_arg, $.event_expression],
     [$.expression_or_dist, $.let_actual_arg],
@@ -4687,14 +4691,14 @@ module.exports = grammar({
     [$.port_reference, $.ansi_port_declaration],
     [$.net_port_header1, $.variable_port_header],
     [$.ansi_port_declaration, $._variable_dimension],
-    [$.unpacked_dimension, $.constant_part_select_range],
+    [$.unpacked_dimension, $._constant_part_select_range],
     [$.unpacked_dimension, $.constant_select1],
     [$.port, $.ansi_port_declaration],
     [$.module_ansi_header, $.module_declaration],
 
     [$.module_declaration, $._non_port_module_item],
     [$._module_or_generate_item_declaration, $.checker_or_generate_item_declaration],
-    [$.expression_or_cond_pattern, $.tagged_union_expression],
+    [$._expression_or_cond_pattern, $.tagged_union_expression],
     [$.pattern, $.tagged_union_expression],
     [$.covergroup_expression, $.cond_pattern],
     [$.mintypmax_expression, $.covergroup_expression],
@@ -4704,7 +4708,7 @@ module.exports = grammar({
     [$.property_spec, $.property_expr],
     [$.property_expr, $.sequence_expr],
 
-    [$.variable_lvalue, $.method_call_root, $.class_qualifier],
+    [$.variable_lvalue, $._method_call_root, $.class_qualifier],
     [$.variable_lvalue, $.class_qualifier],
 
     [$.class_method, $.constraint_prototype_qualifier],
@@ -4735,13 +4739,13 @@ module.exports = grammar({
     [$.net_port_type1, $.data_type, $.class_type],
 
     [$.constant_primary, $.data_type],
-    [$.constant_primary, $.simple_type],
-    [$.constant_primary, $.simple_type, $.data_type, $.assignment_pattern_expression_type, $.class_qualifier],
-    [$.constant_primary, $.simple_type, $.let_expression, $.tf_call],
-    [$.constant_primary, $.simple_type, $.assignment_pattern_expression_type, $.class_qualifier],
+    [$.constant_primary, $._simple_type],
+    [$.constant_primary, $._simple_type, $.data_type, $._assignment_pattern_expression_type, $.class_qualifier],
+    [$.constant_primary, $._simple_type, $.let_expression, $.tf_call],
+    [$.constant_primary, $._simple_type, $._assignment_pattern_expression_type, $.class_qualifier],
     [$.constant_primary, $.let_expression, $.tf_call],
-    [$.constant_primary, $.simple_type, $.let_expression, $.structure_pattern_key, $.tf_call],
-    [$.statement, $.assignment_pattern_expression_type],
+    [$.constant_primary, $._simple_type, $.let_expression, $._structure_pattern_key, $.tf_call],
+    [$.statement, $._assignment_pattern_expression_type],
     [$.data_type_or_implicit1, $._var_data_type],
     [$.list_of_port_identifiers, $.list_of_variable_identifiers],
     [$.list_of_port_identifiers, $.list_of_variable_port_identifiers],
@@ -4757,8 +4761,8 @@ module.exports = grammar({
 
 
     [$.sequence_instance, $.let_expression],
-    [$.variable_lvalue, $.assignment_pattern_expression_type],
-    [$.unpacked_dimension, $.packed_dimension, $.constant_part_select_range],
+    [$.variable_lvalue, $._assignment_pattern_expression_type],
+    [$.unpacked_dimension, $.packed_dimension, $._constant_part_select_range],
     [$.property_instance, $.sequence_instance, $.let_expression],
     [$.hierarchical_instance, $.checker_instantiation],
     [$.named_port_connection, $.checker_instantiation],
@@ -4766,20 +4770,20 @@ module.exports = grammar({
     [$.primary, $.queue_dimension],
 
     [$.packed_dimension, $._variable_dimension],
-    [$.constant_range_expression, $.constant_select1],
-    [$.constant_range_expression, $.constant_bit_select1, $.constant_select1],
-    [$.packed_dimension, $.constant_part_select_range, $.part_select_range],
-    [$.constant_part_select_range, $.part_select_range],
-    [$.constant_part_select_range, $.packed_dimension],
+    [$._constant_range_expression, $.constant_select1],
+    [$._constant_range_expression, $.constant_bit_select1, $.constant_select1],
+    [$.packed_dimension, $._constant_part_select_range, $.part_select_range],
+    [$._constant_part_select_range, $.part_select_range],
+    [$._constant_part_select_range, $.packed_dimension],
     [$.constant_bit_select1, $.constant_select1],
-    [$.constant_range_expression, $.unpacked_dimension, $.constant_bit_select1, $.constant_select1],
-    [$.unpacked_dimension, $.packed_dimension, $.constant_part_select_range, $.part_select_range],
-    [$.unpacked_dimension, $.constant_part_select_range, $.part_select_range],
+    [$._constant_range_expression, $.unpacked_dimension, $.constant_bit_select1, $.constant_select1],
+    [$.unpacked_dimension, $.packed_dimension, $._constant_part_select_range, $.part_select_range],
+    [$.unpacked_dimension, $._constant_part_select_range, $.part_select_range],
     [$.constant_bit_select1, $.constant_select1, $.unpacked_dimension],
     [$.packed_dimension, $.part_select_range],
 
     [$.property_instance, $.sequence_instance],
-    [$.simple_type, $.structure_pattern_key],
+    [$._simple_type, $._structure_pattern_key],
 
     [$.sequence_list_of_arguments, $.let_list_of_arguments],
     [$.named_port_connection, $.expression_or_dist],
@@ -4799,12 +4803,12 @@ module.exports = grammar({
     [$.mintypmax_expression, $.scalar_timing_check_condition],
 
     [$.sequence_instance, $.let_expression, $.terminal_identifier],
-    [$.assignment_pattern_expression_type, $.terminal_identifier],
+    [$._assignment_pattern_expression_type, $.terminal_identifier],
 
     [$.delayed_data, $.delayed_reference],
     [$.system_tf_call, $.list_of_arguments_parent],
     [$.class_item_qualifier, $.lifetime],
-    [$.property_qualifier, $.method_qualifier],
+    [$._property_qualifier, $.method_qualifier],
     [$.class_property, $.data_type_or_implicit1],
 
     [$.list_of_arguments_parent, $.mintypmax_expression],

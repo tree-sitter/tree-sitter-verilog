@@ -307,12 +307,12 @@ endmodule
         (net_lvalue (identifier (simple_identifier)))
         (expression
           (conditional_expression
-            (cond_predicate (expression_or_cond_pattern
+            (cond_predicate
               (expression
                 (expression (primary (identifier (simple_identifier))))
                 (expression (primary (identifier (simple_identifier))))
               )
-            ))
+            )
             (expression (primary (identifier (simple_identifier))))
             (expression (primary (identifier (simple_identifier))))
           )

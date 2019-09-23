@@ -171,8 +171,8 @@ endmodule
   (module_or_generate_item
     (always_construct (always_keyword)
       (statement (statement_item (conditional_statement
-        (cond_predicate (expression_or_cond_pattern
-          (expression (primary (identifier (simple_identifier))))))
+        (cond_predicate
+          (expression (primary (identifier (simple_identifier)))))
         (statement_or_null (statement (statement_item
             (seq_block
               (statement_or_null (statement (statement_item
@@ -201,7 +201,7 @@ endmodule
   (module_or_generate_item
     (always_construct (always_keyword)
       (statement (statement_item (conditional_statement
-        (cond_predicate (expression_or_cond_pattern (expression (primary (identifier (simple_identifier))))))
+        (cond_predicate (expression (primary (identifier (simple_identifier)))))
         (statement_or_null (statement
           (statement_item (blocking_assignment (operator_assignment
             (variable_lvalue (identifier (simple_identifier)))
