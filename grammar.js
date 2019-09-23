@@ -4355,8 +4355,6 @@ const rules = {
 
   number: $ => choice($.integral_number, $.real_number),
 
-  // integral_number: $ => token(/\d+/),
-
   integral_number: $ => choice(
     $.decimal_number,
     $.octal_number,
@@ -4364,83 +4362,27 @@ const rules = {
     $.hex_number
   ),
 
-  // decimal_number: $ => choice(
-  //   $.unsigned_number,
-  //   seq(optional($.size), $.decimal_base, $.unsigned_number),
-  //   seq(optional($.size), $.decimal_base, $.x_digit, repeat('_')),
-  //   seq(optional($.size), $.decimal_base, $.z_digit, repeat('_')),
-  // ),
-
-  // binary_number: $ => seq(optional($.size), $.binary_base, $.binary_value),
-  //
-  // octal_number: $ => seq(optional($.size), $.octal_base, $.octal_value),
-  //
-  // hex_number: $ => seq(optional($.size), $.hex_base, $.hex_value),
-
   decimal_number: $ => choice(
     $.unsigned_number,
-    token(/[0-9]*\s*'[sS]?[dD]\s*[0-9_]+/)
+    token(/([1-9][0-9_]*)?\s*'[sS]?[dD]\s*[0-9][0-9_]*/),
+    token(/([1-9][0-9_]*)?\s*'[sS]?[dD]\s*[xXzZ?][_]*/)
   ),
 
-  binary_number: $ => token(/[0-9]*\s*'[sS]?[bB]\s*[01_xXzZ?]+/),
+  binary_number: $ => token(/([1-9][0-9_]*)?\s*'[sS]?[bB]\s*[01_xXzZ?]+/),
+  octal_number:  $ => token(/([1-9][0-9_]*)?\s*'[sS]?[oO]\s*[0-7_xXzZ?]+/),
+  hex_number:    $ => token(/([1-9][0-9_]*)?\s*'[sS]?[hH]\s*[0-9a-fA-F_xXzZ?]+/),
 
-  octal_number: $ => token(/[0-9]*\s*'[sS]?[oO]\s*[0-7_xXzZ?]+/),
-
-  hex_number: $ => token(/[0-9]*\s*'[sS]?[hH]\s*[0-9a-fA-f_xXzZ?]+/),
-
-  sign: $ => choice('+', '-'),
-
-  // size: $ => $.non_zero_unsigned_number,
-
-  non_zero_unsigned_number: $ => seq(
-    $.non_zero_decimal_digit, repeat(choice('_', $.decimal_digit))
-  ),
+  // NOTE: Embedded spaces are illegal.
+  non_zero_unsigned_number: $ => token(/[1-9][0-9_]*/),
 
   real_number: $ => choice(
     $.fixed_point_number,
-    seq(
-      $.unsigned_number,
-      optseq('.', $.unsigned_number),
-      $.exp,
-      optional($.sign),
-      $.unsigned_number
-    )
+    token(/[0-9][0-9_]*(\.[0-9][0-9_]*)?[eE][+-]?[0-9][0-9_]*/)
   ),
 
-  // FIXME spec no space between dot and digits?
-  fixed_point_number: $ => seq($.unsigned_number, '.', $.unsigned_number),
+  fixed_point_number: $ => token(/[0-9][0-9_]*\.[0-9][0-9_]*/),
 
-  exp: $ => choice('e', 'E'),
-
-  unsigned_number: $ => token(/[0-9]+/), // prec.left(seq($.decimal_digit, repeat(choice('_', $.decimal_digit)))),
-
-  // binary_value: $ => prec.left(seq($.binary_digit, repeat(choice('_', $.binary_digit)))),
-
-  // octal_value: $ => prec.left(seq($.octal_digit, repeat(choice('_', $.octal_digit)))),
-
-  // hex_value: $ => prec.left(seq($.hex_digit, repeat(choice('_', $.hex_digit)))),
-
-  // decimal_base: $ => seq('\'', optional(choice('s', 'S')), choice('d', 'D')),
-
-  // binary_base: $ => seq('\'', optional(choice('s', 'S')), choice('b', 'B')),
-
-  // octal_base: $ => seq('\'', optional(choice('s', 'S')), choice('o', 'O')),
-
-  // hex_base: $ => seq('\'', optional(choice('s', 'S')), choice('h', 'H')),
-
-  non_zero_decimal_digit: $ => /[1-9]/,
-
-  decimal_digit: $ => /[0-9]/,
-
-  // binary_digit: $ => choice($.x_digit, $.z_digit, '0', '1'),
-
-  // octal_digit: $ => choice($.x_digit, $.z_digit, /[0-7]/),
-
-  // hex_digit: $ => choice($.x_digit, $.z_digit, /[0-9a-fA-F]/),
-
-  // x_digit: $ => /[xX]/,
-
-  // z_digit: $ => choice('z', 'Z', '?'),
+  unsigned_number: $ => token(/[0-9][0-9_]*/),
 
   unbased_unsized_literal: $ => choice('\'0', '\'1', seq('\'', $.z_or_x)),
 
