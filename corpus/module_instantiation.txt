@@ -16,10 +16,16 @@ endmodule
     (module_identifier (simple_identifier))
   )
   (module_nonansi_header (list_of_ports))
-  (module_or_generate_item (module_instantiation
-    (module_identifier (simple_identifier))
-    (hierarchical_instance (name_of_instance (instance_identifier (simple_identifier))))
-  ))
+  (module_or_generate_item
+    (assertion_item
+      (concurrent_assertion_item
+        (checker_instantiation
+          (checker_identifier (simple_identifier))
+          (name_of_instance (instance_identifier (simple_identifier)))
+        )
+      )
+    )
+  )
 ))
 
 ============================================
