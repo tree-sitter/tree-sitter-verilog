@@ -4630,7 +4630,7 @@ const rules = {
 
   specparam_identifier: $ => alias($.identifier, $.specparam_identifier),
 
-  system_tf_identifier: $ => seq('$', /[a-zA-Z0-9_$]+/),
+  system_tf_identifier: $ => /\$[a-zA-Z0-9_$]+/,
 
   task_identifier: $ => alias($.identifier, $.task_identifier),
   tf_identifier: $ => alias($.identifier, $.tf_identifier),
