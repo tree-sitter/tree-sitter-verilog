@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-verilog",
-  "version": "0.18.0",
+  "version": "0.18.1",
   "description": "Verilog grammar for tree-sitter",
   "license": "MIT",
   "author": "Aliaksei Chapyzhenka",
