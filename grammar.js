@@ -4363,35 +4363,34 @@ const rules = {
   decimal_number: $ => choice(
     $.unsigned_number,
     token(seq(
-        optional(/[1-9][0-9_]*/),
-        /'[sS]?[dD]/,
-        /[0-9][0-9_]*/
+      optional(/[1-9][0-9_]*/),
+      /'[sS]?[dD]/,
+      /[0-9][0-9_]*/
     )),
     token(seq(
-        optional(/[1-9][0-9_]*/),
-        /'[sS]?[dD]/,
-        /[xXzZ?][_]*/
+      optional(/[1-9][0-9_]*/),
+      /'[sS]?[dD]/,
+      /[xXzZ?][_]*/
     ))
   ),
 
-  binary_number: $ =>
-    token(seq(
-        optional(/[1-9][0-9_]*/),
-        /'[sS]?[bB]/,
-        /[01_xXzZ?]+/
-    )),
-  octal_number:  $ =>
-    token(seq(
-        optional(/[1-9][0-9_]*/),
-        /'[sS]?[oO]/,
-        /[0-7_xXzZ?]+/
-    )),
-  hex_number:    $ =>
-    token(seq(
-        optional(/[1-9][0-9_]*/),
-        /'[sS]?[hH]/,
-        /[0-9a-fA-F_xXzZ?]+/
-    )),
+  binary_number: $ => token(seq(
+    optional(/[1-9][0-9_]*/),
+    /'[sS]?[bB]/,
+    /[01_xXzZ?]+/
+  )),
+
+  octal_number: $ => token(seq(
+    optional(/[1-9][0-9_]*/),
+    /'[sS]?[oO]/,
+    /[0-7_xXzZ?]+/
+  )),
+
+  hex_number: $ => token(seq(
+    optional(/[1-9][0-9_]*/),
+    /'[sS]?[hH]/,
+    /[0-9a-fA-F_xXzZ?]+/
+  )),
 
   // NOTE: Embedded spaces are illegal.
   non_zero_unsigned_number: $ => token(/[1-9][0-9_]*/),
