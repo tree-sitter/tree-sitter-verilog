@@ -4377,19 +4377,19 @@ const rules = {
   binary_number: $ => token(seq(
     optional(/[1-9][0-9_]*/),
     /'[sS]?[bB]/,
-    /[01_xXzZ?]+/
+    /[01xXzZ?][01xXzZ?_]*/
   )),
 
   octal_number: $ => token(seq(
     optional(/[1-9][0-9_]*/),
     /'[sS]?[oO]/,
-    /[0-7_xXzZ?]+/
+    /[0-7xXzZ?][0-7xXzZ?_]*/
   )),
 
   hex_number: $ => token(seq(
     optional(/[1-9][0-9_]*/),
     /'[sS]?[hH]/,
-    /[0-9a-fA-F_xXzZ?]+/
+    /[0-9a-fA-FxXzZ?][0-9a-fA-FxXzZ?_]*/
   )),
 
   // NOTE: Embedded spaces are illegal.
