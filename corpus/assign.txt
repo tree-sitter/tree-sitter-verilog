@@ -9,11 +9,11 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
     (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
-      (net_lvalue (identifier (simple_identifier)))
-      (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
+      (net_lvalue (simple_identifier))
+      (expression (primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
     ))))
 ))
 
@@ -28,11 +28,11 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
     (module_or_generate_item
       (continuous_assign (list_of_net_assignments (net_assignment
-        (net_lvalue (identifier (simple_identifier)))
+        (net_lvalue (simple_identifier))
         (expression (primary (primary_literal (unbased_unsized_literal))))
       )))
     )
@@ -54,20 +54,20 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
-    (net_lvalue (identifier (simple_identifier)))
-    (expression (primary (primary_literal (number (integral_number (hex_number))))))))))
+    (net_lvalue (simple_identifier))
+    (expression (primary (primary_literal (integral_number (hex_number)))))))))
   (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
-    (net_lvalue (identifier (simple_identifier)))
-    (expression (primary (primary_literal (number (integral_number (octal_number))))))))))
+    (net_lvalue (simple_identifier))
+    (expression (primary (primary_literal (integral_number (octal_number)))))))))
   (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
-    (net_lvalue (identifier (simple_identifier)))
-    (expression (primary (primary_literal (number (integral_number (binary_number))))))))))
+    (net_lvalue (simple_identifier))
+    (expression (primary (primary_literal (integral_number (binary_number)))))))))
   (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
-    (net_lvalue (identifier (simple_identifier)))
-    (expression (primary (primary_literal (number (integral_number (decimal_number))))))))))))
+    (net_lvalue (simple_identifier))
+    (expression (primary (primary_literal (integral_number (decimal_number)))))))))))
 
 ============================================
 net
@@ -80,11 +80,11 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
     (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
-      (net_lvalue (identifier (simple_identifier)))
-      (expression (primary (identifier (simple_identifier))))
+      (net_lvalue (simple_identifier))
+      (expression (primary (simple_identifier)))
     ))))
   )
 )
@@ -100,13 +100,13 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
     (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
-      (net_lvalue (identifier (simple_identifier)))
+      (net_lvalue (simple_identifier))
       (expression
-        (expression (primary (identifier (simple_identifier))))
-        (expression (primary (identifier (simple_identifier))))
+        (expression (primary (simple_identifier)))
+        (expression (primary (simple_identifier)))
       )
     ))))
   )
@@ -124,13 +124,13 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
-    (net_lvalue (identifier (simple_identifier)))
+    (net_lvalue (simple_identifier))
     (expression
       (unary_operator)
-      (primary (identifier (simple_identifier)))
+      (primary (simple_identifier))
     )
   )))))
 )
@@ -149,23 +149,23 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
-    (net_lvalue (identifier (simple_identifier)))
+    (net_lvalue (simple_identifier))
     (expression
       (expression (primary (mintypmax_expression
         (expression
-          (expression (primary (identifier (simple_identifier))))
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (simple_identifier)))
+          (expression (primary (simple_identifier)))
         )
       )))
       (expression
         (unary_operator)
         (primary (mintypmax_expression
           (expression
-            (expression (primary (identifier (simple_identifier))))
-            (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
+            (expression (primary (simple_identifier)))
+            (expression (primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
           )
         ))
       )
@@ -184,18 +184,18 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (continuous_assign
     (list_of_net_assignments (net_assignment
       (net_lvalue
-        (net_lvalue (identifier (simple_identifier)))
-        (net_lvalue (identifier (simple_identifier)))
+        (net_lvalue (simple_identifier))
+        (net_lvalue (simple_identifier))
       )
       (expression (primary (concatenation
-        (expression (primary (identifier (simple_identifier))))
-        (expression (primary (identifier (simple_identifier))))
-        (expression (primary (identifier (simple_identifier))))
+        (expression (primary (simple_identifier)))
+        (expression (primary (simple_identifier)))
+        (expression (primary (simple_identifier)))
       )))
     ))
   ))
@@ -212,15 +212,15 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (continuous_assign
     (list_of_net_assignments (net_assignment
-      (net_lvalue (identifier (simple_identifier)))
+      (net_lvalue (simple_identifier))
       (expression (primary
-        (identifier (simple_identifier))
+        (simple_identifier)
         (select1
-          (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
+          (expression (primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
         )
       ))
     ))
@@ -238,17 +238,17 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (continuous_assign
     (list_of_net_assignments (net_assignment
-      (net_lvalue (identifier (simple_identifier)))
+      (net_lvalue (simple_identifier))
       (expression (primary
-        (identifier (simple_identifier))
-        (select1 (part_select_range (constant_range
-          (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
-          (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
-        )))
+        (simple_identifier)
+        (select1 (constant_range
+          (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
+          (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
+        ))
       ))
     ))
   ))
@@ -265,22 +265,22 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (continuous_assign (list_of_net_assignments (net_assignment
-    (net_lvalue (identifier (simple_identifier)))
+    (net_lvalue (simple_identifier))
     (expression
-      (expression (primary (identifier (simple_identifier))))
+      (expression (primary (simple_identifier)))
       (expression
-        (expression (primary (identifier (simple_identifier))))
+        (expression (primary (simple_identifier)))
         (expression
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (simple_identifier)))
           (expression
             (expression
               (unary_operator)
-              (primary (identifier (simple_identifier)))
+              (primary (simple_identifier))
             )
-            (expression (primary (identifier (simple_identifier))))
+            (expression (primary (simple_identifier)))
           )
         )
       )
@@ -299,22 +299,22 @@ endmodule
 ----
 
 (source_file (module_declaration
-  (module_header (module_keyword) (module_identifier (simple_identifier)))
+  (module_header (module_keyword) (simple_identifier))
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (continuous_assign
     (list_of_net_assignments
       (net_assignment
-        (net_lvalue (identifier (simple_identifier)))
+        (net_lvalue (simple_identifier))
         (expression
           (conditional_expression
             (cond_predicate
               (expression
-                (expression (primary (identifier (simple_identifier))))
-                (expression (primary (identifier (simple_identifier))))
+                (expression (primary (simple_identifier)))
+                (expression (primary (simple_identifier)))
               )
             )
-            (expression (primary (identifier (simple_identifier))))
-            (expression (primary (identifier (simple_identifier))))
+            (expression (primary (simple_identifier)))
+            (expression (primary (simple_identifier)))
           )
         )
       )

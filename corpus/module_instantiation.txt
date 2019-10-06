@@ -12,8 +12,7 @@ endmodule
 
 (source_file (module_declaration
   (module_header
-    (module_keyword)
-    (module_identifier (simple_identifier))
+    (module_keyword) (simple_identifier)
   )
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item
@@ -43,22 +42,21 @@ endmodule
 
 (source_file (module_declaration
   (module_header
-    (module_keyword)
-    (module_identifier (simple_identifier))
+    (module_keyword) (simple_identifier)
   )
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (module_instantiation
-    (module_identifier (simple_identifier))
+    (simple_identifier)
     (hierarchical_instance
       (name_of_instance (instance_identifier (simple_identifier)))
       (list_of_port_connections
         (named_port_connection
           (port_identifier (simple_identifier))
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (simple_identifier)))
         )
         (named_port_connection
           (port_identifier (simple_identifier))
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (simple_identifier)))
         )
       )
     )
@@ -80,19 +78,19 @@ endmodule
 (source_file (module_declaration
   (module_header
     (module_keyword)
-    (module_identifier (simple_identifier))
+    (simple_identifier)
   )
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (module_instantiation
-    (module_identifier (simple_identifier))
+    (simple_identifier)
     (hierarchical_instance
       (name_of_instance (instance_identifier (simple_identifier)))
       (list_of_port_connections
         (ordered_port_connection
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (simple_identifier)))
         )
         (ordered_port_connection
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (simple_identifier)))
         )
       )
     )
@@ -113,19 +111,18 @@ endmodule
 
 (source_file (module_declaration
   (module_header
-    (module_keyword)
-    (module_identifier (simple_identifier))
+    (module_keyword) (simple_identifier)
   )
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item (module_instantiation
-    (module_identifier (simple_identifier))
+    (simple_identifier)
     (hierarchical_instance
       (name_of_instance (instance_identifier (simple_identifier)))
       (list_of_port_connections
         (ordered_port_connection
           (expression (primary (concatenation
-            (expression (primary (identifier (simple_identifier))))
-            (expression (primary (identifier (simple_identifier))))
+            (expression (primary (simple_identifier)))
+            (expression (primary (simple_identifier)))
           )))
         )
       )
@@ -150,15 +147,13 @@ endmodule
 
 (source_file (module_declaration
   (module_header
-    (module_keyword)
-    (module_identifier (simple_identifier))
+    (module_keyword) (simple_identifier)
   )
   (module_nonansi_header (list_of_ports))
-  (module_or_generate_item (module_instantiation
-    (module_identifier (simple_identifier))
+  (module_or_generate_item (module_instantiation (simple_identifier)
     (parameter_value_assignment (list_of_parameter_assignments
       (ordered_parameter_assignment (_ordered_parameter_assignment
-        (mintypmax_expression (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))))
+        (mintypmax_expression (expression (primary (primary_literal (integral_number (decimal_number (unsigned_number)))))))
       ))
     ))
     (hierarchical_instance
@@ -166,11 +161,11 @@ endmodule
       (list_of_port_connections
         (named_port_connection
           (port_identifier (simple_identifier))
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (simple_identifier)))
         )
         (named_port_connection
           (port_identifier (simple_identifier))
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (simple_identifier)))
         )
       )
     )
@@ -193,23 +188,21 @@ endmodule
 
 (source_file (module_declaration
   (module_header
-    (module_keyword)
-    (module_identifier (simple_identifier))
+    (module_keyword) (simple_identifier)
   )
   (module_nonansi_header (list_of_ports))
-  (module_or_generate_item (module_instantiation
-    (module_identifier (simple_identifier))
+  (module_or_generate_item (module_instantiation (simple_identifier)
     (parameter_value_assignment (list_of_parameter_assignments
       (named_parameter_assignment
         (parameter_identifier (simple_identifier))
         (param_expression
-          (mintypmax_expression (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))))
+          (mintypmax_expression (expression (primary (primary_literal (integral_number (decimal_number (unsigned_number)))))))
         )
       )
       (named_parameter_assignment
         (parameter_identifier (simple_identifier))
         (param_expression
-          (mintypmax_expression (expression (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))))
+          (mintypmax_expression (expression (primary (primary_literal (integral_number (decimal_number (unsigned_number)))))))
         )
       )
     ))
@@ -218,7 +211,7 @@ endmodule
       (list_of_port_connections
         (named_port_connection
           (port_identifier (simple_identifier))
-          (expression (primary (identifier (simple_identifier))))
+          (expression (primary (simple_identifier)))
         )
       )
     )

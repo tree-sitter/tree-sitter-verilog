@@ -11,14 +11,13 @@ endmodule
 (source_file
   (module_declaration
     (module_header
-      (module_keyword)
-      (module_identifier (simple_identifier))
+      (module_keyword) (simple_identifier)
     )
     (module_nonansi_header (list_of_ports))
-    (module_or_generate_item (net_declaration
+    (module_or_generate_item (package_or_generate_item_declaration (net_declaration
       (net_type)
       (list_of_net_decl_assignments (net_decl_assignment (net_identifier (simple_identifier))))
-    ))
+    )))
   )
 )
 
@@ -35,24 +34,23 @@ endmodule
 (source_file
   (module_declaration
     (module_header
-      (module_keyword)
-      (module_identifier (simple_identifier))
+      (module_keyword) (simple_identifier)
     )
     (module_nonansi_header (list_of_ports))
-    (module_or_generate_item (net_declaration
+    (module_or_generate_item (package_or_generate_item_declaration (net_declaration
       (net_type)
       (data_type_or_implicit1
         (implicit_data_type1
           (packed_dimension
             (constant_range
-              (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
-              (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
+              (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
+              (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
             )
           )
         )
       )
       (list_of_net_decl_assignments (net_decl_assignment (net_identifier (simple_identifier))))
-    ))
+    )))
   )
 )
 
@@ -69,11 +67,10 @@ endmodule
 (source_file
   (module_declaration
     (module_header
-      (module_keyword)
-      (module_identifier (simple_identifier))
+      (module_keyword) (simple_identifier)
     )
     (module_nonansi_header (list_of_ports))
-    (module_or_generate_item (net_declaration
+    (module_or_generate_item (package_or_generate_item_declaration (net_declaration
       (net_type)
       (data_type_or_implicit1
         (implicit_data_type1
@@ -87,13 +84,13 @@ endmodule
                 )
                 (constant_expression
                   (constant_primary
-                    (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
+                    (primary_literal (integral_number (decimal_number (unsigned_number))))
                   )
                 )
               )
               (constant_expression
                 (constant_primary
-                  (primary_literal (number (integral_number (decimal_number (unsigned_number)))))
+                  (primary_literal (integral_number (decimal_number (unsigned_number))))
                 )
               )
             )
@@ -101,7 +98,7 @@ endmodule
         )
       )
       (list_of_net_decl_assignments (net_decl_assignment (net_identifier (simple_identifier))))
-    ))
+    )))
   )
 )
 
@@ -122,32 +119,31 @@ endmodule
 (source_file
   (module_declaration
     (module_header
-      (module_keyword)
-      (module_identifier (simple_identifier)))
+      (module_keyword) (simple_identifier))
     (module_nonansi_header (list_of_ports))
-    (module_or_generate_item (net_declaration
+    (module_or_generate_item (package_or_generate_item_declaration (net_declaration
       (net_type)
       (list_of_net_decl_assignments
         (net_decl_assignment (net_identifier (simple_identifier)))
         (net_decl_assignment (net_identifier (simple_identifier)))
-        (net_decl_assignment (net_identifier (simple_identifier))))))
-    (module_or_generate_item (net_declaration
+        (net_decl_assignment (net_identifier (simple_identifier)))))))
+    (module_or_generate_item (package_or_generate_item_declaration (net_declaration
       (net_type)
       (list_of_net_decl_assignments
-        (net_decl_assignment (net_identifier (simple_identifier))))))
-    (module_or_generate_item (data_declaration
+        (net_decl_assignment (net_identifier (simple_identifier)))))))
+    (module_or_generate_item (package_or_generate_item_declaration (data_declaration
       (data_type_or_implicit1 (data_type (integer_vector_type)))
       (list_of_variable_decl_assignments
-        (variable_decl_assignment (variable_identifier (simple_identifier))))))
-    (module_or_generate_item (data_declaration
+        (variable_decl_assignment (variable_identifier (simple_identifier)))))))
+    (module_or_generate_item (package_or_generate_item_declaration (data_declaration
       (data_type_or_implicit1
         (data_type
           (integer_vector_type)
           (packed_dimension (constant_range
-            (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))
-            (constant_expression (constant_primary (primary_literal (number (integral_number (decimal_number (unsigned_number)))))))))))
+            (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
+            (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))))))
       (list_of_variable_decl_assignments
-        (variable_decl_assignment (variable_identifier (simple_identifier))))))
+        (variable_decl_assignment (variable_identifier (simple_identifier)))))))
     (port_declaration (interface_port_declaration
       (interface_identifier (simple_identifier))
       (list_of_interface_identifiers

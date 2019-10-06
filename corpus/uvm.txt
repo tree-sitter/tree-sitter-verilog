@@ -12,7 +12,7 @@ endclass
 
 ----
 
-(source_file (package_item (class_declaration (class_identifier (simple_identifier))
+(source_file (package_or_generate_item_declaration (class_declaration (class_identifier (simple_identifier))
   (class_type (class_identifier (simple_identifier)))
   (class_item (class_method (method_qualifier)
     (function_declaration
@@ -32,7 +32,7 @@ endclass
         (function_statement_or_null
           (function_statement
             (statement (statement_item (jump_statement (expression
-              (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))
+              (primary (primary_literal (integral_number (decimal_number (unsigned_number)))))
             ))))
           )
         )

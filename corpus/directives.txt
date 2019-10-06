@@ -7,6 +7,7 @@ include ""
 ----
 
 (source_file (include_compiler_directive (include_compiler_directive_relative)))
+
 ============================================
 include <>
 ============================================
@@ -28,7 +29,7 @@ define
 (source_file
   (text_macro_definition
     (text_macro_name
-      (text_macro_identifier (identifier (simple_identifier)))
+      (text_macro_identifier (simple_identifier))
     )
     (macro_text)
   )
@@ -44,7 +45,7 @@ usage
 
 (source_file
   (text_macro_usage
-    (text_macro_identifier (identifier (simple_identifier)))
+    (text_macro_identifier (simple_identifier))
   )
 )
 
@@ -58,16 +59,16 @@ usage args
 
 (source_file
   (text_macro_usage
-    (text_macro_identifier (identifier (simple_identifier)))
+    (text_macro_identifier (simple_identifier))
     (list_of_actual_arguments
       (actual_argument
         (expression
-          (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))
+          (primary (primary_literal (integral_number (decimal_number (unsigned_number)))))
         )
       )
       (actual_argument
         (expression
-          (primary (primary_literal (number (integral_number (decimal_number (unsigned_number))))))
+          (primary (primary_literal (integral_number (decimal_number (unsigned_number)))))
         )
       )
     )
@@ -84,7 +85,7 @@ undef
 
 (source_file
   (id_directive
-    (text_macro_identifier (identifier (simple_identifier)))
+    (text_macro_identifier (simple_identifier))
   )
 )
 
