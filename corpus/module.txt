@@ -310,7 +310,7 @@ endmodule
       (ansi_port_declaration
         (net_port_header1
           (port_direction)
-          (net_port_type1 (net_type_identifier (simple_identifier))))
+          (net_port_type1 (simple_identifier)))
         (port_identifier (simple_identifier)))
 
       (ansi_port_declaration

@@ -1155,7 +1155,7 @@ const rules = {
       ';'
     ),
     seq(
-      $.net_type_identifier,
+      $._net_type_identifier,
       optional($.delay_control),
       $.list_of_net_decl_assignments,
       ';'
@@ -1164,7 +1164,7 @@ const rules = {
       'interconnect',
       optional($.implicit_data_type1),
       optseq('#', $.delay_value),
-      sep1(',', seq($.net_identifier, repeat($.unpacked_dimension))),
+      sep1(',', seq($._net_identifier, repeat($.unpacked_dimension))),
       ';'
     )
   ),
@@ -1192,7 +1192,7 @@ const rules = {
     choice(
       seq(
         $.data_type,
-        $.net_type_identifier,
+        $._net_type_identifier,
         optseq(
           'with',
           optional(choice($.package_scope, $.class_scope)),
@@ -1201,8 +1201,8 @@ const rules = {
       ),
       seq(
         optional(choice($.package_scope, $.class_scope)),
-        $.net_type_identifier,
-        $.net_type_identifier
+        $._net_type_identifier,
+        $._net_type_identifier
       )
     ),
     ';'
@@ -1318,7 +1318,7 @@ const rules = {
     $.net_type,
     $.data_type_or_implicit1,
 
-    $.net_type_identifier,
+    $._net_type_identifier,
     seq('interconnect', optional($.implicit_data_type1))
   ),
 
@@ -1466,7 +1466,7 @@ const rules = {
   ),
 
   net_decl_assignment: $ => seq(
-    $.net_identifier,
+    $._net_identifier,
     repeat($.unpacked_dimension),
     optseq('=', $.expression)
   ),
@@ -4493,8 +4493,8 @@ const rules = {
   method_identifier: $ => alias($._identifier, $.method_identifier),
   modport_identifier: $ => alias($._identifier, $.modport_identifier),
   _module_identifier: $ => $._identifier,
-  net_identifier: $ => alias($._identifier, $.net_identifier),
-  net_type_identifier: $ => alias($._identifier, $.net_type_identifier),
+  _net_identifier: $ => $._identifier,
+  _net_type_identifier: $ => $._identifier,
   output_port_identifier: $ => alias($._identifier, $.output_port_identifier),
   package_identifier: $ => alias($._identifier, $.package_identifier),
 
@@ -4535,7 +4535,7 @@ const rules = {
   ),
 
   ps_or_hierarchical_net_identifier: $ => choice(
-    // seq(optional($.package_scope), $.net_identifier),
+    // seq(optional($.package_scope), $._net_identifier),
     $._hierarchical_net_identifier
   ),
 
@@ -4645,7 +4645,7 @@ module.exports = grammar({
     $.specparam_identifier,
     $.tf_identifier,
     $.type_identifier,
-    $.net_type_identifier,
+    $._net_type_identifier,
     $.variable_identifier,
     $.package_identifier,
     $.dynamic_array_variable_identifier,
@@ -4655,7 +4655,7 @@ module.exports = grammar({
     $._module_identifier,
     $.let_identifier,
     $.sequence_identifier,
-    $.net_identifier,
+    $._net_identifier,
     $.program_identifier,
     $.checker_identifier,
     $.member_identifier,
