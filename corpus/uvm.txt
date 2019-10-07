@@ -1,5 +1,5 @@
 ============================================
-virtual function
+uvm - virtual function
 ============================================
 
 class uvm_callbacks_base extends uvm_object;
@@ -24,7 +24,7 @@ endclass
         (tf_port_list
           (tf_port_item1
             (data_type_or_implicit1
-              (data_type (covergroup_identifier (simple_identifier)))
+              (data_type (simple_identifier))
             )
             (port_identifier (simple_identifier))
           )

@@ -557,7 +557,7 @@ const rules = {
 
   variable_port_header: $ => seq(
     optional($.port_direction),
-    $.variable_port_type
+    $._variable_port_type
   ),
 
   interface_port_header: $ => seq(
@@ -1090,7 +1090,7 @@ const rules = {
     'input',
     choice(
       seq(optional($.net_port_type1), $.list_of_port_identifiers),
-      seq(optional($.variable_port_type), $.list_of_variable_identifiers)
+      seq(optional($._variable_port_type), $.list_of_variable_identifiers)
     )
   ),
 
@@ -1098,7 +1098,7 @@ const rules = {
     'output',
     choice(
       seq(optional($.net_port_type1), $.list_of_port_identifiers),
-      seq(optional($.variable_port_type), $.list_of_variable_port_identifiers)
+      seq(optional($._variable_port_type), $.list_of_variable_port_identifiers)
     )
   ),
 
@@ -1109,7 +1109,7 @@ const rules = {
   ),
 
   ref_declaration: $ => seq(
-    'ref', $.variable_port_type, $.list_of_variable_identifiers
+    'ref', $._variable_port_type, $.list_of_variable_identifiers
   ),
 
   // A.2.1.3 Type declarations
@@ -1172,16 +1172,16 @@ const rules = {
   type_declaration: $ => seq(
     'typedef',
     choice(
-      seq($.data_type, $.type_identifier, repeat($._variable_dimension)),
+      seq($.data_type, $._type_identifier, repeat($._variable_dimension)),
       seq(
         $.interface_instance_identifier, optional($.constant_bit_select1),
-        '.', $.type_identifier, $.type_identifier
+        '.', $._type_identifier, $._type_identifier
       ),
       seq(
         optional(choice(
           'enum', 'struct', 'union', 'class', seq('interface', 'class')
         )),
-        $.type_identifier
+        $._type_identifier
       )
     ),
     ';'
@@ -1248,7 +1248,7 @@ const rules = {
     )),
     seq(
       optional(choice($.class_scope, $.package_scope)),
-      $.type_identifier,
+      $._type_identifier,
       repeat($.packed_dimension)
     ),
     $.class_type,
@@ -1275,7 +1275,7 @@ const rules = {
       $.integer_vector_type, optional($._signing), optional($.packed_dimension)
     ),
     seq(
-      $.type_identifier, optional($.packed_dimension)
+      $._type_identifier, optional($.packed_dimension)
     )
   ),
 
@@ -1322,7 +1322,7 @@ const rules = {
     seq('interconnect', optional($.implicit_data_type1))
   ),
 
-  variable_port_type: $ => alias($._var_data_type, $._variable_port_type),
+  _variable_port_type: $ => $._var_data_type,
 
   _var_data_type: $ => prec.left(choice(
     $.data_type,
@@ -1447,7 +1447,7 @@ const rules = {
   list_of_variable_decl_assignments: $ => sep1(',', $.variable_decl_assignment),
 
   list_of_variable_identifiers: $ => sep1(',', seq(
-    $.variable_identifier,
+    $._variable_identifier,
     repeat($._variable_dimension)
   )),
 
@@ -1483,7 +1483,7 @@ const rules = {
   ),
 
   type_assignment: $ => seq(
-    $.type_identifier,
+    $._type_identifier,
     optseq('=', $.data_type)
   ),
 
@@ -1512,7 +1512,7 @@ const rules = {
 
   variable_decl_assignment: $ => choice(
     seq(
-      $.variable_identifier,
+      $._variable_identifier,
       repeat($._variable_dimension),
       optseq('=', $.expression)
     ),
@@ -1811,7 +1811,7 @@ const rules = {
 
   concurrent_assertion_item: $ => choice(
     seq(
-      optseq($.block_identifier, ':'),
+      optseq($._block_identifier, ':'),
       $._concurrent_assertion_statement
     ),
     $.checker_instantiation
@@ -2172,7 +2172,7 @@ const rules = {
     seq(
       'wildcard',
       $.bins_keyword,
-      $.bin_identifier,
+      $._bin_identifier,
       optseq('[', optional($._covergroup_expression), ']'),
       '=',
       '{', $.covergroup_range_list, '}',
@@ -2182,7 +2182,7 @@ const rules = {
     seq(
       'wildcard',
       $.bins_keyword,
-      $.bin_identifier,
+      $._bin_identifier,
       optseq('[', optional($._covergroup_expression), ']'),
       '=',
       $.cover_point_identifier,
@@ -2192,7 +2192,7 @@ const rules = {
     seq(
       'wildcard',
       $.bins_keyword,
-      $.bin_identifier,
+      $._bin_identifier,
       optseq('[', optional($._covergroup_expression), ']'),
       '=',
       $._set_covergroup_expression,
@@ -2201,7 +2201,7 @@ const rules = {
     seq(
       'wildcard',
       $.bins_keyword,
-      $.bin_identifier,
+      $._bin_identifier,
       optseq('[', ']'),
       '=',
       $.trans_list,
@@ -2209,7 +2209,7 @@ const rules = {
     ),
     seq(
       $.bins_keyword,
-      $.bin_identifier,
+      $._bin_identifier,
       optseq('[', optional($._covergroup_expression), ']'),
       '=',
       'default',
@@ -2217,7 +2217,7 @@ const rules = {
     ),
     seq(
       $.bins_keyword,
-      $.bin_identifier,
+      $._bin_identifier,
       '=',
       'default',
       'sequence',
@@ -2256,7 +2256,7 @@ const rules = {
 
   _cross_item: $ => choice(
     $.cover_point_identifier
-    // $.variable_identifier
+    // $._variable_identifier
   ),
 
   cross_body: $ => choice(
@@ -2275,7 +2275,7 @@ const rules = {
   ),
 
   bins_selection: $ => seq(
-    $.bins_keyword, $.bin_identifier, '=', $.select_expression,
+    $.bins_keyword, $._bin_identifier, '=', $.select_expression,
     optional(prec.right(PREC.iff, seq('iff', '(', $.expression, ')')))
   ),
 
@@ -2302,8 +2302,8 @@ const rules = {
   ),
 
   bins_expression: $ => choice(
-    $.variable_identifier,
-    prec.left(PREC.PARENT, seq($.cover_point_identifier, optseq('.', $.bin_identifier)))
+    $._variable_identifier,
+    prec.left(PREC.PARENT, seq($.cover_point_identifier, optseq('.', $._bin_identifier)))
   ),
 
   covergroup_range_list: $ => sep1(',', $.covergroup_value_range),
@@ -2852,17 +2852,17 @@ const rules = {
   ),
 
   seq_block: $ => seq(
-    'begin', optseq(':', $.block_identifier),
+    'begin', optseq(':', $._block_identifier),
     repeat($.block_item_declaration),
     repeat($.statement_or_null),
-    'end', optseq(':', $.block_identifier)
+    'end', optseq(':', $._block_identifier)
   ),
 
   par_block: $ => seq(
-    'fork', optseq(':', $.block_identifier),
+    'fork', optseq(':', $._block_identifier),
     repeat($.block_item_declaration),
     repeat($.statement_or_null),
-    $.join_keyword, optseq(':', $.block_identifier)
+    $.join_keyword, optseq(':', $._block_identifier)
   ),
 
   join_keyword: $ => choice('join', 'join_any', 'join_none'),
@@ -2875,7 +2875,7 @@ const rules = {
   ),
 
   statement: $ => seq(
-    optseq($.block_identifier, ':'),
+    optseq($._block_identifier, ':'),
     repeat($.attribute_instance),
     $.statement_item
   ),
@@ -2910,7 +2910,7 @@ const rules = {
     seq(repeat($.attribute_instance), ';')
   ),
 
-  variable_identifier_list: $ => sep1(',', $.variable_identifier),
+  variable_identifier_list: $ => sep1(',', $._variable_identifier),
 
 
   // A.6.5 Timing control statements
@@ -3069,7 +3069,7 @@ const rules = {
   // A.6.7.1 Patterns
 
   pattern: $ => choice(
-    seq('.', $.variable_identifier),
+    seq('.', $._variable_identifier),
     '.*',
     $.constant_expression,
     seq('tagged', $.member_identifier, optional($.pattern)),
@@ -3158,7 +3158,7 @@ const rules = {
   for_variable_declaration: $ => seq(
     optional('var'), $.data_type,
     sep1(',', seq(
-      $.variable_identifier, '=', $.expression
+      $._variable_identifier, '=', $.expression
     ))
   ),
 
@@ -3191,7 +3191,7 @@ const rules = {
 
   deferred_immediate_assertion_item: $ => seq(
     optseq(
-      $.block_identifier, ':'
+      $._block_identifier, ':'
     ),
     $._deferred_immediate_assertion_statement
   ),
@@ -3686,7 +3686,7 @@ const rules = {
 
   event_based_flag: $ => $.constant_expression,
 
-  notifier: $ => $.variable_identifier,
+  notifier: $ => $._variable_identifier,
 
   reference_event: $ => $.timing_check_event,
 
@@ -4433,14 +4433,14 @@ const rules = {
 
   /* A.9.3 Identifiers */
 
-  block_identifier: $ => alias($._identifier, $.block_identifier),
-  array_identifier: $ => alias($._identifier, $.array_identifier),
-  bin_identifier: $ => alias($._identifier, $.bin_identifier),
+  _array_identifier: $ => $._identifier,
+  _block_identifier: $ => $._identifier,
+  _bin_identifier: $ => $._identifier,
   c_identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
   cell_identifier: $ => alias($._identifier, $.cell_identifier),
   checker_identifier: $ => alias($._identifier, $.checker_identifier),
   class_identifier: $ => alias($._identifier, $.class_identifier),
-  class_variable_identifier: $ => $.variable_identifier,
+  class_variable_identifier: $ => $._variable_identifier,
   clocking_identifier: $ => alias($._identifier, $.clocking_identifier),
   config_identifier: $ => alias($._identifier, $.config_identifier),
   const_identifier: $ => alias($._identifier, $.const_identifier),
@@ -4448,10 +4448,10 @@ const rules = {
 
   covergroup_identifier: $ => alias($._identifier, $.covergroup_identifier),
 
-  // covergroup_variable_identifier = variable_identifier
+  // covergroup_variable_identifier = _variable_identifier
   cover_point_identifier: $ => alias($._identifier, $.cover_point_identifier),
   cross_identifier: $ => alias($._identifier, $.cross_identifier),
-  dynamic_array_variable_identifier: $ => alias($.variable_identifier, $.dynamic_array_variable_identifier),
+  dynamic_array_variable_identifier: $ => alias($._variable_identifier, $.dynamic_array_variable_identifier),
   enum_identifier: $ => alias($._identifier, $.enum_identifier),
   escaped_identifier: $ => seq('\\', /[^\s]*/),
   formal_identifier: $ => alias($._identifier, $.formal_identifier),
@@ -4578,7 +4578,7 @@ const rules = {
       $.package_scope,
       $.class_scope
     )),
-    $.type_identifier
+    $._type_identifier
   ),
 
   _sequence_identifier: $ => $._identifier,
@@ -4600,9 +4600,9 @@ const rules = {
   tf_identifier: $ => alias($._identifier, $.tf_identifier),
   terminal_identifier: $ => alias($._identifier, $.terminal_identifier),
   topmodule_identifier: $ => alias($._identifier, $.topmodule_identifier),
-  type_identifier: $ => alias($._identifier, $.type_identifier),
-  udp_identifier: $ => alias($._identifier, $.udp_identifier),
-  variable_identifier: $ => alias($._identifier, $.variable_identifier)
+  _type_identifier: $ => $._identifier,
+  // udp_identifier: $ => alias($._identifier, $.udp_identifier),
+  _variable_identifier: $ => $._identifier
 
   /* A.9.4 White space */
 
@@ -4644,9 +4644,9 @@ module.exports = grammar({
     $.genvar_identifier,
     $.specparam_identifier,
     $.tf_identifier,
-    $.type_identifier,
+    $._type_identifier,
     $._net_type_identifier,
-    $.variable_identifier,
+    $._variable_identifier,
     $.package_identifier,
     $.dynamic_array_variable_identifier,
     $.class_variable_identifier,
@@ -4660,7 +4660,7 @@ module.exports = grammar({
     $.checker_identifier,
     $.member_identifier,
     $.port_identifier,
-    $.block_identifier,
+    $._block_identifier,
     $.instance_identifier,
     $.property_identifier,
     // $.input_port_identifier,

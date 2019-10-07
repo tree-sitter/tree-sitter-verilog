@@ -1,5 +1,5 @@
 ============================================
-wire
+net_declaration - wire
 ============================================
 
 module mod ();
@@ -22,7 +22,7 @@ endmodule
 )
 
 ============================================
-wire [31:0]
+net_declaration - wire [31:0]
 ============================================
 
 module mod ();
@@ -55,7 +55,7 @@ endmodule
 )
 
 ============================================
-wire [W-1:0]
+net_declaration - wire [W-1:0]
 ============================================
 
 module mod ();
@@ -103,7 +103,7 @@ endmodule
 )
 
 ============================================
-wire, reg, logic
+net_declaration - wire, reg, logic
 ============================================
 
 module mod ();
@@ -134,7 +134,7 @@ endmodule
     (module_or_generate_item (package_or_generate_item_declaration (data_declaration
       (data_type_or_implicit1 (data_type (integer_vector_type)))
       (list_of_variable_decl_assignments
-        (variable_decl_assignment (variable_identifier (simple_identifier)))))))
+        (variable_decl_assignment (simple_identifier))))))
     (module_or_generate_item (package_or_generate_item_declaration (data_declaration
       (data_type_or_implicit1
         (data_type
@@ -143,7 +143,7 @@ endmodule
             (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
             (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))))))
       (list_of_variable_decl_assignments
-        (variable_decl_assignment (variable_identifier (simple_identifier)))))))
+        (variable_decl_assignment (simple_identifier))))))
     (port_declaration (interface_port_declaration
       (interface_identifier (simple_identifier))
       (list_of_interface_identifiers
