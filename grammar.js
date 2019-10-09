@@ -3963,7 +3963,7 @@ const rules = {
     prec.right(PREC.CONDITIONAL, seq(
       $.constant_expression,
       '?',
-      repeat($.attribute_instance),
+      repeat($.attribute_instance), $.constant_expression,
       ':',
       $.constant_expression
     ))
