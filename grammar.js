@@ -4359,32 +4359,37 @@ const rules = {
   decimal_number: $ => choice(
     $.unsigned_number,
     token(seq(
-      optional(/[1-9][0-9_]*/),
+      optseq(/[1-9][0-9_]*/, /\s*/),
       /'[sS]?[dD]/,
+      /\s*/,
       /[0-9][0-9_]*/
     )),
     token(seq(
-      optional(/[1-9][0-9_]*/),
+      optseq(/[1-9][0-9_]*/, /\s*/),
       /'[sS]?[dD]/,
+      /\s*/,
       /[xXzZ?][_]*/
     ))
   ),
 
   binary_number: $ => token(seq(
-    optional(/[1-9][0-9_]*/),
+    optseq(/[1-9][0-9_]*/, /\s*/),
     /'[sS]?[bB]/,
+    /\s*/,
     /[01xXzZ?][01xXzZ?_]*/
   )),
 
   octal_number: $ => token(seq(
-    optional(/[1-9][0-9_]*/),
+    optseq(/[1-9][0-9_]*/, /\s*/),
     /'[sS]?[oO]/,
+    /\s*/,
     /[0-7xXzZ?][0-7xXzZ?_]*/
   )),
 
   hex_number: $ => token(seq(
-    optional(/[1-9][0-9_]*/),
+    optseq(/[1-9][0-9_]*/, /\s*/),
     /'[sS]?[hH]/,
+    /\s*/,
     /[0-9a-fA-FxXzZ?][0-9a-fA-FxXzZ?_]*/
   )),
 
