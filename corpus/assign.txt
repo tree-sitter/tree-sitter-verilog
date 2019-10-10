@@ -1,5 +1,5 @@
 ============================================
-constant decimal
+assign - constant decimal
 ============================================
 
 module mod ();
@@ -18,7 +18,7 @@ endmodule
 ))
 
 ============================================
-constant '0
+assign - constant '0
 ============================================
 
 module mod ();
@@ -39,7 +39,7 @@ endmodule
 ))
 
 ============================================
-constants: bin oct dec hex
+assign - constants: bin oct dec hex
 ============================================
 
 module mod ();
@@ -70,7 +70,7 @@ endmodule
     (expression (primary (primary_literal (integral_number (decimal_number)))))))))))
 
 ============================================
-net
+assign - net
 ============================================
 
 module mod ();
@@ -90,7 +90,7 @@ endmodule
 )
 
 ============================================
-binary_operator
+assign - binary_operator
 ============================================
 
 module mod ();
@@ -114,7 +114,7 @@ endmodule
 
 
 ============================================
-unary_operator
+assign - unary_operator
 ============================================
 
 module mod ();
@@ -136,7 +136,7 @@ endmodule
 )
 
 ============================================
-parenthesized expression
+assign - parenthesized expression
 ============================================
 
 module mod ();
@@ -174,7 +174,7 @@ endmodule
 ))
 
 ============================================
-concatenation
+assign - concatenation
 ============================================
 
 module mod ();
@@ -202,11 +202,11 @@ endmodule
 ))
 
 ============================================
-bit_select
+assign - bit_select
 ============================================
 
 module mod ();
-  assign a = b[3];
+  assign a = b[1];
 endmodule
 
 ----
@@ -228,7 +228,7 @@ endmodule
 ))
 
 ============================================
-part_select_range
+assign - constant_range
 ============================================
 
 module mod ();
@@ -289,7 +289,7 @@ endmodule
 ))
 
 ============================================
-conditional_expression
+assign - conditional_expression
 ============================================
 
 module mod ();
