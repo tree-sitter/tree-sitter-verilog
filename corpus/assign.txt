@@ -255,7 +255,41 @@ endmodule
 ))
 
 ============================================
-precedence or, xor, and, eq
+assign - constant_range expression
+============================================
+
+module mod ();
+  assign a = b[1+Param:0];
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (simple_identifier))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (continuous_assign
+    (list_of_net_assignments (net_assignment
+      (net_lvalue (simple_identifier))
+      (expression (primary
+        (simple_identifier)
+        (select1
+          (constant_range
+            (constant_expression
+              (constant_expression
+                (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number)))))
+              )
+              (constant_expression (constant_primary (parameter_identifier (simple_identifier))))
+            )
+            (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
+          )
+        )
+      ))
+    ))
+  ))
+))
+
+============================================
+assign - precedence or, xor, and, eq
 ============================================
 
 module mod ();
