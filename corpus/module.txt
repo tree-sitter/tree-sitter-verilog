@@ -374,3 +374,83 @@ endmodule
     )
   )
 ))
+
+============================================
+module - with parameter expression
+============================================
+
+module mod #(
+  parameter P1 = 32,
+  parameter P2 = P1,
+  parameter P3 = (1 * P1)
+)();
+
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header (module_keyword) (simple_identifier))
+    (module_nonansi_header
+      (parameter_port_list
+        (parameter_port_declaration (parameter_declaration (list_of_param_assignments
+          (param_assignment
+            (parameter_identifier (simple_identifier))
+            (constant_param_expression
+              (constant_mintypmax_expression
+                (constant_expression (constant_primary
+
+                  (primary_literal (integral_number (decimal_number (unsigned_number))))
+
+                ))
+              )
+            )
+          )
+        )))
+        (parameter_port_declaration (parameter_declaration (list_of_param_assignments
+          (param_assignment
+            (parameter_identifier (simple_identifier))
+            (constant_param_expression
+              (constant_mintypmax_expression
+                (constant_expression (constant_primary
+
+                  (parameter_identifier (simple_identifier))
+
+                ))
+              )
+            )
+          )
+        )))
+        (parameter_port_declaration (parameter_declaration (list_of_param_assignments
+          (param_assignment
+            (parameter_identifier (simple_identifier))
+            (constant_param_expression
+              (constant_mintypmax_expression
+                (constant_expression (constant_primary
+
+                  (constant_mintypmax_expression
+                    (constant_expression
+                      (constant_expression (constant_primary
+
+                        (primary_literal (integral_number (decimal_number (unsigned_number))))
+
+                      ))
+                      (constant_expression (constant_primary
+
+                        (parameter_identifier (simple_identifier))
+
+                      ))
+                    )
+                  )
+
+                ))
+              )
+            )
+          )
+        )))
+      )
+      (list_of_ports)
+    )
+  )
+)
