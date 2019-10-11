@@ -6,7 +6,7 @@ include ""
 
 ----
 
-(source_file (include_compiler_directive (include_compiler_directive_relative)))
+(source_file (include_compiler_directive (double_quoted_string)))
 
 ============================================
 include <>
@@ -147,5 +147,5 @@ line
 (source_file
   (line_compiler_directive
     (unsigned_number)
-    (include_compiler_directive_relative)
+    (double_quoted_string)
     (unsigned_number)))
