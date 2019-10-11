@@ -3263,7 +3263,7 @@ const rules = {
 
   clocking_event: $ => seq('@', choice(
     $._identifier,
-    seq('@', '(', $.event_expression, ')')
+    seq('(', $.event_expression, ')')
   )),
 
   // clocking_item =
