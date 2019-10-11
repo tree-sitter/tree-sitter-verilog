@@ -360,10 +360,8 @@ const rules = {
     optional($.lifetime),
     $.interface_identifier,
     repeat($.package_import_declaration),
-    choice(
-      seq($.parameter_port_list, optional($.list_of_port_declarations)),
-      $.list_of_port_declarations
-    ),
+    optional($.parameter_port_list),
+    optional($.list_of_port_declarations),
     ';'
   ),
 
@@ -410,10 +408,8 @@ const rules = {
     optional($.lifetime),
     $.program_identifier,
     repeat($.package_import_declaration),
-    choice(
-      seq($.parameter_port_list, optional($.list_of_port_declarations)),
-      $.list_of_port_declarations
-    ),
+    optional($.parameter_port_list),
+    optional($.list_of_port_declarations),
     ';'
   ),
 
@@ -4849,6 +4845,9 @@ module.exports = grammar({
     [$.let_expression, $._sequence_identifier],
 
     [$.module_path_primary, $.tf_call],
+
+    [$.package_declaration, $._package_item],
+    [$.program_nonansi_header, $.program_ansi_header],
 
     [$.concatenation, $.stream_expression],
     [$.concurrent_assertion_item, $.deferred_immediate_assertion_item, $.generate_block_identifier],
