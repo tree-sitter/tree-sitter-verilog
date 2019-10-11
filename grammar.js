@@ -168,7 +168,6 @@ const rules = {
     directive('undefineall'), /* 22-5-3 */
     directive('endif'),
     directive('else'),
-    directive('unconnected_drive'), /* 22-9 */
     directive('nounconnected_drive'),
     directive('celldefine'), /* 22-10 */
     directive('endcelldefine')
@@ -194,6 +193,13 @@ const rules = {
 
   default_nettype_value: $ => choice('wire', 'tri', 'tri0', 'tri1', 'wand', 'triand', 'wor', 'trior', 'trireg', 'uwire', 'none'),
 
+  /* 22-9 */
+
+  unconnected_drive: $ => seq(
+    directive('unconnected_drive'),
+    choice('pull0', 'pull1'),
+    '\n'
+  ),
 
   /* 22-12 */
 
@@ -213,7 +219,8 @@ const rules = {
     $.id_directive,
     $.zero_directive,
     $.timescale_compiler_directive,
-    $.default_nettype_compiler_directive
+    $.default_nettype_compiler_directive,
+    $.unconnected_drive
   ),
 
   // TODO missing arguments, empty list of arguments
