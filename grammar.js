@@ -93,7 +93,7 @@ const rules = {
 
   /* 22-1 `include */
 
-  include_compiler_directive_relative: $ => seq(
+  double_quoted_string: $ => seq(
     '"', token.immediate(prec(1, /[^\\"\n]+/)), '"'
   ),
 
@@ -104,7 +104,7 @@ const rules = {
   include_compiler_directive: $ => seq(
     directive('include'),
     choice(
-      $.include_compiler_directive_relative,
+      $.double_quoted_string,
       $.include_compiler_directive_standard
     )
   ),
@@ -170,7 +170,8 @@ const rules = {
     directive('else'),
     directive('nounconnected_drive'),
     directive('celldefine'), /* 22-10 */
-    directive('endcelldefine')
+    directive('endcelldefine'),
+    directive('end_keywords') /* 22.14 */
   ),
 
   /* 22-7 timescale */
@@ -206,9 +207,18 @@ const rules = {
   line_compiler_directive: $ => seq(
     directive('line'),
     $.unsigned_number,
-    $.include_compiler_directive_relative,
+    $.double_quoted_string,
     $.unsigned_number,
     '\n'
+  ),
+
+  /* 22.13 */
+  /* `__FILE__ and `__LINE__ */
+
+  /* 22.14 */
+  begin_keywords: $ => seq(
+    directive('begin_keywords'),
+    $.double_quoted_string
   ),
 
   _directives: $ => choice(
@@ -220,7 +230,8 @@ const rules = {
     $.zero_directive,
     $.timescale_compiler_directive,
     $.default_nettype_compiler_directive,
-    $.unconnected_drive
+    $.unconnected_drive,
+    $.begin_keywords
   ),
 
   // TODO missing arguments, empty list of arguments
