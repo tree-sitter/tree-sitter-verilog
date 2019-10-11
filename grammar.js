@@ -2785,7 +2785,9 @@ const rules = {
     'alias', $.net_lvalue, '=', sep1(',', seq('=', $.net_lvalue)), ';'
   ),
 
-  net_assignment: $ => seq($.net_lvalue, '=', $.expression),
+  net_assignment: $ => prec.left(PREC.ASSIGN,
+    seq($.net_lvalue, '=', $.expression)
+  ),
 
   // A.6.2 Procedural blocks and assignments
 
@@ -2800,8 +2802,8 @@ const rules = {
   final_construct: $ => seq('final', $.function_statement),
 
   blocking_assignment: $ => choice(
-    seq(
-      $.variable_lvalue, '=', $.delay_or_event_control, $.expression
+    prec.left(PREC.ASSIGN,
+      seq($.variable_lvalue, '=', $.delay_or_event_control, $.expression)
     ),
     // seq(
     //   $.nonrange_variable_lvalue, '=', $.dynamic_array_new
@@ -2820,16 +2822,16 @@ const rules = {
     $.operator_assignment
   ),
 
-  operator_assignment: $ => seq(
-    $.variable_lvalue, $.assignment_operator, $.expression
+  operator_assignment: $ => prec.left(PREC.ASSIGN,
+    seq($.variable_lvalue, $.assignment_operator, $.expression)
   ),
 
   assignment_operator: $ => choice(
     '=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<=', '>>=', '<<<=', '>>>='
   ),
 
-  nonblocking_assignment: $ => seq(
-    $.variable_lvalue, '<=', optional($.delay_or_event_control), $.expression
+  nonblocking_assignment: $ => prec.left(PREC.ASSIGN,
+    seq($.variable_lvalue, '<=', optional($.delay_or_event_control), $.expression)
   ),
 
   procedural_continuous_assignment: $ => choice(
