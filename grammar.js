@@ -266,7 +266,7 @@ const rules = {
   _description: $ => choice(
     $._directives,
     $.module_declaration,
-    // $.udp_declaration,
+    $.udp_declaration,
     $.interface_declaration,
     $.program_declaration,
     $.package_declaration,
@@ -2704,69 +2704,133 @@ const rules = {
     $._checker_or_generate_item
   ),
 
-  /* 5. Lexical conventions */
+  /* A.5 UDP declaration and instantiation */
 
-  // SourceCharacter = .
+  /* A.5.1 UDP declaration */
 
-  /*Letter
-    = Lu
-    / Ll
-    / Lt
-    / Lm
-    / Lo
-    / Nl*/
+  udp_nonansi_declaration: $ => seq(
+    repeat($.attribute_instance), 'primitive', $._udp_identifier, '(', $.udp_port_list, ')', ';'
+  ),
 
-  /*Digit
-    = Nd*/
+  udp_ansi_declaration: $ => seq(
+    repeat($.attribute_instance), 'primitive', $._udp_identifier, '(', $.udp_declaration_port_list, ')', ';'
+  ),
 
-  /* 5.5 Operators */
+  udp_declaration: $ => choice(
+    seq(
+      $.udp_nonansi_declaration, $.udp_port_declaration, repeat($.udp_port_declaration),
+      $._udp_body,
+      'endprimitive', optseq(':', $._udp_identifier)
+    ),
+    seq($.udp_ansi_declaration, $._udp_body, 'endprimitive', optseq(':', $._udp_identifier)),
+    seq('extern', $.udp_nonansi_declaration),
+    seq('extern', $.udp_ansi_declaration),
+    seq(
+      repeat($.attribute_instance), 'primitive', $._udp_identifier, '(', '.*', ')', ';',
+      repeat($.udp_port_declaration),
+      $._udp_body,
+      'endprimitive', optseq(':', $._udp_identifier)
+    )
+  ),
 
-  /* 5.6 Identifiers, keywords, and system names */
+  /* A.5.2 UDP ports */
 
-  /* 5.6.1 Escaped identifiers */
+  udp_port_list: $ => seq(
+    $.output_port_identifier, ',', sep1(',', $.input_port_identifier)
+  ),
 
-  /* 5.6.2 Keywords
+  udp_declaration_port_list: $ => seq(
+    $.udp_output_declaration, ',', sep1(',', $.udp_input_declaration)
+  ),
 
-  Keywords are predefined nonescaped identifiers that are used to define the
-  language constructs. A SystemVerilog keyword preceded by an escape character is
-  not interpreted as a keyword. All keywords are defined in lowercase only. Annex
-  B gives a list of all defined keywords. Subclause 22.14 discusses compatibility
-  of reserved keywords with previous versions of IEEE Std 1364 and IEEE Std 1800.
-  */
+  udp_port_declaration: $ => seq(
+    choice(
+      $.udp_output_declaration,
+      $.udp_input_declaration,
+      $.udp_reg_declaration
+    ),
+    ';'
+  ),
 
+  udp_output_declaration: $ => seq(
+    repeat($.attribute_instance),
+    'output',
+    choice(
+      $.port_identifier,
+      seq('reg', $.port_identifier, optseq('=', $.constant_expression))
+    )
+  ),
 
-  /* 5.6.3 System tasks and system functions
+  udp_input_declaration: $ => seq(
+    repeat($.attribute_instance), 'input', $.list_of_udp_port_identifiers
+  ),
 
-  The dollar sign ($) introduces a language construct that enables development of
-  user-defined system tasks and system functions. System constructs are not design
-  semantics, but refer to simulator functionality. A name following the $ is
-  interpreted as a system task or a system function.
-  */
+  udp_reg_declaration: $ => seq(
+    repeat($.attribute_instance), 'reg', $._variable_identifier
+  ),
 
-  /* 5.6.4 Compiler directives
+  /* A.5.3 UDP body */
 
-  The ` character (the ASCII value 0x60, called grave accent) introduces a
-  language construct used to implement compiler directives. The compiler behavior
-  dictated by a compiler directive shall take effect as soon as the compiler reads
-  the directive. The directive shall remain in effect for the rest of the
-  compilation unless a different compiler directive specifies otherwise. A
-  compiler directive in one description file can, therefore, control compilation
-  behavior in multiple description files. The effects of a compiler directive are
-  limited to a compilation unit (see 3.12.1) and shall not affect other
-  compilation units.
-  */
+  _udp_body: $ => choice($.combinational_body, $.sequential_body),
 
-  /* 5.7 Numbers
+  combinational_body: $ => seq(
+    'table', repeat1($.combinational_entry), 'endtable'
+  ),
 
-  Constant numbers can be specified as integer constants (see 5.7.1) or real
-  constants (see 5.7.2). The formal syntax for numbers is listed in Syntax 5-2.
-  */
+  combinational_entry: $ => seq($.level_input_list, ':', $.output_symbol, ';'),
 
+  sequential_body: $ => seq(
+    optional($.udp_initial_statement),
+    'table', repeat1($.sequential_entry), 'endtable'
+  ),
 
+  udp_initial_statement: $ => seq(
+    'initial', $.output_port_identifier, '=', $.init_val, ';'
+  ),
 
+  init_val: $ => choice(
+    "1'b0", "1'b1", "1'bx", "1'bX", "1'B0", "1'B1", "1'Bx", "1'BX", "1", "0"
+  ),
 
+  sequential_entry: $ => seq(
+    $._seq_input_list, ':', $._current_state, ':', $.next_state, ';'
+  ),
 
+  _seq_input_list: $ => choice($.level_input_list, $.edge_input_list),
 
+  level_input_list: $ => repeat1($.level_symbol),
+
+  edge_input_list: $ => seq(repeat($.level_symbol), $.edge_indicator, repeat($.level_symbol)),
+
+  edge_indicator: $ => choice(
+    seq('(', $.level_symbol, $.level_symbol, ')'),
+    $.edge_symbol
+  ),
+
+  _current_state: $ => $.level_symbol,
+
+  next_state: $ => choice($.output_symbol, '-'),
+
+  output_symbol: $ => /[01xX]/,
+
+  level_symbol: $ => /[01xX?bB]/,
+
+  edge_symbol: $ => /[rRfFpPnN*]/,
+
+  /* A.5.4 UDP instantiation */
+
+  udp_instantiation: $ => seq(
+    $._udp_identifier,
+    optional($.drive_strength),
+    optional($.delay2),
+    sep1(',', $.udp_instance),
+    ';'
+  ),
+
+  udp_instance: $ => seq(
+    optional($.name_of_instance),
+    '(', $.output_terminal, ',', sep1(',', $.input_terminal), ')'
+  ),
 
   // A.6 Behavioral statements
 
@@ -4622,7 +4686,7 @@ const rules = {
   terminal_identifier: $ => alias($._identifier, $.terminal_identifier),
   topmodule_identifier: $ => alias($._identifier, $.topmodule_identifier),
   _type_identifier: $ => $._identifier,
-  // udp_identifier: $ => alias($._identifier, $.udp_identifier),
+  _udp_identifier: $ => $._identifier,
   _variable_identifier: $ => $._identifier
 
   /* A.9.4 White space */
@@ -4872,7 +4936,9 @@ module.exports = grammar({
     [$.concatenation, $.stream_expression],
     [$.concurrent_assertion_item, $.deferred_immediate_assertion_item, $.generate_block_identifier],
 
-    [$.constant_expression, $.expression]
+    [$.constant_expression, $.expression],
+
+    [$.combinational_entry, $._seq_input_list]
 
   ]
 });
