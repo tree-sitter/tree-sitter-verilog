@@ -3011,10 +3011,11 @@ const rules = {
   )),
 
   event_control: $ => choice(
-    // seq('@', $._hierarchical_event_identifier),
-    seq('@', '(', choice($.event_expression, '*'), ')'),
-    '@*'
-    // seq('@', $.ps_or_hierarchical_sequence_identifier)
+    seq('@', $._hierarchical_event_identifier),
+    seq('@', '(', $.event_expression, ')'),
+    '@*',
+    seq('@', '(', '*', ')'),
+    seq('@', $.ps_or_hierarchical_sequence_identifier)
   ),
 
   event_expression: $ => choice( // reordered : brake recursion
@@ -4871,6 +4872,9 @@ module.exports = grammar({
     [$.named_port_connection, $.checker_instantiation],
     [$.ordered_port_connection, $.expression_or_dist],
     [$.primary, $.queue_dimension],
+
+    [$.event_control, $._hierarchical_event_identifier, $._sequence_identifier],
+    [$.event_control, $._hierarchical_event_identifier],
 
     [$.packed_dimension, $._variable_dimension],
     [$._constant_range_expression, $.constant_select1],
