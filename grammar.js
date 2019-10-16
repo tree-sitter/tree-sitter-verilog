@@ -1872,9 +1872,7 @@ const rules = {
 
   property_instance: $ => seq(
     $.ps_or_hierarchical_property_identifier,
-    optseq(
-      '(', optional($.property_list_of_arguments), ')'
-    )
+    optseq('(', optional($.property_list_of_arguments), ')')
   ),
 
   property_list_of_arguments: $ => choice(
@@ -1903,9 +1901,7 @@ const rules = {
   property_declaration: $ => seq(
     'property',
     $.property_identifier,
-    optseq(
-      '(', optional($.property_port_list), ')'
-    ),
+    optseq('(', optional($.property_port_list), ')'),
     ';',
     repeat($.assertion_variable_declaration),
     $.property_spec,
@@ -1968,6 +1964,7 @@ const rules = {
     prec.left(PREC.nexttime, seq('nexttime', '[', $.constant_expression, ']', $.property_expr)), // FIXME spec bug constant _expression with the space
     prec.left(PREC.nexttime, seq('s_nexttime', $.property_expr)),
     prec.left(PREC.nexttime, seq('s_nexttime', '[', $.constant_expression, ']', $.property_expr)),
+
     prec.left(PREC.always, seq('always', $.property_expr)),
     prec.left(PREC.always, seq('always', '[', $.cycle_delay_const_range_expression, ']', $.property_expr)),
     prec.left(PREC.always, seq('s_always', '[', $.constant_range, ']', $.property_expr)),
@@ -1975,19 +1972,18 @@ const rules = {
     prec.left(PREC.always, seq('eventually', '[', $.constant_range, ']', $.property_expr)),
     prec.left(PREC.always, seq('s_eventually', '[', $.cycle_delay_const_range_expression, ']', $.property_expr)),
 
-    prec.right(PREC.until, seq($.property_expr, 'until', $.property_expr)),
-    prec.right(PREC.until, seq($.property_expr, 's_until', $.property_expr)),
-    prec.right(PREC.until, seq($.property_expr, 'until_with', $.property_expr)),
-    prec.right(PREC.until, seq($.property_expr, 's_until_with', $.property_expr)),
-    prec.right(PREC.until, seq($.property_expr, 'implies', $.property_expr)),
+    prec.right(PREC.until, seq($.property_expr,
+      choice('until', 's_until', 'until_with', 's_until_with', 'implies'),
+      $.property_expr
+    )),
+
     prec.right(PREC.iff,   seq($.property_expr, 'iff', $.property_expr)),
 
     // FIXME no assosiativity rules per spec
-    prec.left(PREC.always, seq('accept_on', '(', $.expression_or_dist, ')', $.property_expr)),
-    prec.left(PREC.always, seq('reject_on', '(', $.expression_or_dist, ')', $.property_expr)),
-    prec.left(PREC.always, seq('sync_accept_on', '(', $.expression_or_dist, ')', $.property_expr)),
-    prec.left(PREC.always, seq('sync_reject_on', '(', $.expression_or_dist, ')', $.property_expr)),
-
+    prec.left(PREC.always, seq(
+      choice('accept_on', 'reject_on', 'sync_accept_on', 'sync_reject_on'),
+      '(', $.expression_or_dist, ')', $.property_expr
+    )),
     // $.property_instance,
     prec.left(seq($.clocking_event, $.property_expr)) // FIXME no assosiativity rules per spec
   ),
