@@ -2036,7 +2036,7 @@ const rules = {
 
   sequence_expr: $ => choice(
     prec.left(sep1(',', $.cycle_delay_range, $.sequence_expr)), // FIXME precedence?
-    // prec.left(seq($.sequence_expr, repeat1(seq($.cycle_delay_range, $.sequence_expr)))), // FIXME precedence?
+    prec.left(PREC.SHARP2, seq($.sequence_expr, repeat1(seq($.cycle_delay_range, $.sequence_expr)))),
     seq($.expression_or_dist, optional($._boolean_abbrev)),
     seq($.sequence_instance, optional($.sequence_abbrev)),
     prec.left(seq('(', $.sequence_expr, repseq(',', $._sequence_match_item), ')', optional($.sequence_abbrev))),
