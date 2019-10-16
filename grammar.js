@@ -654,10 +654,10 @@ const rules = {
 
   _module_or_generate_item_declaration: $ => choice(
     $.package_or_generate_item_declaration,
-    $.genvar_declaration
-    //  $.clocking_declaration
-    //  seq('default' __ 'clocking' __ clocking_identifier __ ';')
-    //  seq('default' __ 'disable' __ 'iff' __ expression_or_dist __ ';')
+    $.genvar_declaration,
+    $.clocking_declaration,
+    seq('default', 'clocking', $.clocking_identifier, ';'),
+    seq('default', 'disable', 'iff', $.expression_or_dist, ';')
   ),
 
   _non_port_module_item: $ => choice(
@@ -842,7 +842,7 @@ const rules = {
     $._assertion_item_declaration,
     $.covergroup_declaration,
     $.genvar_declaration,
-    // $.clocking_declaration,
+    $.clocking_declaration,
     seq('default', 'clocking', $.clocking_identifier, ';'),
     prec.right(PREC.iff, seq('default', 'disable', 'iff', $.expression_or_dist, ';')),
     ';'
@@ -3330,41 +3330,56 @@ const rules = {
     '(', $.expression, ')', $.statement_or_null
   ),
 
-  // A.6.11 Clocking block
+  /* A.6.11 Clocking block */
 
-  // clocking_declaration
-  // = [ default ] clocking [ clocking_identifier ] clocking_event ;
-  // { clocking_item }
-  // endclocking [ : clocking_identifier ]
-  // | global clocking [ clocking_identifier ] clocking_event ;
-  //   endclocking [ : clocking_identifier ]
+  clocking_declaration: $ => choice(
+    seq(
+      optional('default'),
+      'clocking', optional($.clocking_identifier), $.clocking_event, ';',
+      repeat($.clocking_item),
+      'endclocking', optseq(':', $.clocking_identifier)
+    ),
+    seq(
+      'global',
+      'clocking', optional($.clocking_identifier), $.clocking_event, ';',
+      'endclocking', optseq(':', $.clocking_identifier)
+    )
+  ),
 
   clocking_event: $ => seq('@', choice(
     $._identifier,
     seq('(', $.event_expression, ')')
   )),
 
-  // clocking_item =
-  // default default_skew ;
-  // | clocking_direction list_of_clocking_decl_assign ;
-  // | ( attribute_instance __ )* _assertion_item_declaration
-  // default_skew =
-  // input clocking_skew
-  // | output clocking_skew
-  // | input clocking_skew output clocking_skew
-  // clocking_direction =
-  // input [ clocking_skew ]
-  // | output [ clocking_skew ]
-  // | input [ clocking_skew ] output [ clocking_skew ]
-  // | inout
-  // list_of_clocking_decl_assign
-  //   = clocking_decl_assign { , clocking_decl_assign }
-  // clocking_decl_assign = signal_identifier [ = expression ]
-  // clocking_skew =
-  // edge_identifier [ delay_control ]
-  // | delay_control
-  // clocking_drive =
-  // clockvar_expression <= [ cycle_delay ] expression
+  clocking_item: $ => choice(
+    seq('default', $.default_skew, ';'),
+    seq($.clocking_direction, $.list_of_clocking_decl_assign, ';'),
+    seq(repeat($.attribute_instance), $._assertion_item_declaration)
+  ),
+
+  default_skew: $ => choice(
+    seq('input', $.clocking_skew),
+    seq('output', $.clocking_skew),
+    seq('input', $.clocking_skew, 'output', $.clocking_skew)
+  ),
+
+  clocking_direction: $ => choice(
+    seq('input', optional($.clocking_skew)),
+    seq('output', optional($.clocking_skew)),
+    seq('input', optional($.clocking_skew), 'output', optional($.clocking_skew)),
+    seq('inout')
+  ),
+
+  list_of_clocking_decl_assign: $ => sep1(',', $.clocking_decl_assign),
+
+  clocking_decl_assign: $ => seq($._signal_identifier, optseq('=', $.expression)),
+
+  clocking_skew: $ => choice(
+    seq($.edge_identifier, optional($.delay_control)),
+    $.delay_control
+  ),
+
+  clocking_drive: $ => seq($.clockvar_expression, '<=', optional($.cycle_delay), $.expression),
 
   cycle_delay: $ => prec.left(seq('##', choice(
     $.integral_number,
@@ -4669,7 +4684,7 @@ const rules = {
 
   _sequence_identifier: $ => $._identifier,
 
-  // signal_identifier = _identifier
+  _signal_identifier: $ => $._identifier,
 
   // A simple_identifier or c_identifier shall
   // start with an alpha or underscore ( _ ) character,
