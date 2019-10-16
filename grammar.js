@@ -646,7 +646,7 @@ const rules = {
     choice(
       $.parameter_override,
       $.gate_instantiation,
-      // $.udp_instantiation,
+      $.udp_instantiation,
       $.module_instantiation,
       $._module_common_item
     )
