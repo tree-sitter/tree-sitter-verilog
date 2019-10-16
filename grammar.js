@@ -1035,7 +1035,7 @@ const rules = {
     $.interface_class_declaration, // not in spec
     $.class_constructor_declaration,
     seq($._any_parameter_declaration, ';'),
-    // $.covergroup_declaration,
+    $.covergroup_declaration,
     $.overload_declaration,
     $._assertion_item_declaration,
     ';'
@@ -1888,8 +1888,8 @@ const rules = {
   ),
 
   _property_actual_arg: $ => choice(
-    $.property_expr
-    // $._sequence_actual_arg
+    $.property_expr,
+    $._sequence_actual_arg
   ),
 
   _assertion_item_declaration: $ => choice(
@@ -2973,7 +2973,7 @@ const rules = {
     $.procedural_timing_control_statement,
     $.wait_statement,
     $._procedural_assertion_statement,
-    // seq($.clocking_drive, ';'),
+    seq($.clocking_drive, ';'),
     // $.randsequence_statement,
     $.randcase_statement,
     $.expect_property_statement
@@ -4848,6 +4848,10 @@ module.exports = grammar({
     [$.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
     [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
 
+    [$.net_declaration,              $.class_type, $.module_instantiation, $.interface_instantiation, $.program_instantiation,                          $._udp_identifier],
+    [$.net_declaration, $.data_type, $.class_type, $.module_instantiation, $.interface_instantiation, $.program_instantiation, $.checker_instantiation, $._udp_identifier],
+    [$.net_declaration, $.data_type, $.class_type, $.module_instantiation, $.interface_instantiation, $.program_instantiation, $.checker_instantiation, $._udp_identifier, $.interface_port_declaration],
+
     [$.data_type, $.class_type],
     [$.net_type_declaration, $.data_type, $.class_type],
     [$.net_type_declaration, $.data_type],
@@ -4860,6 +4864,9 @@ module.exports = grammar({
     [$.constant_primary, $._simple_type, $._assignment_pattern_expression_type, $.class_qualifier],
     [$.constant_primary, $.let_expression, $.tf_call],
     [$.constant_primary, $._simple_type, $.let_expression, $._structure_pattern_key, $.tf_call],
+
+    [$.constant_primary, $._assignment_pattern_expression_type],
+
     [$.statement, $._assignment_pattern_expression_type],
     [$.data_type_or_implicit1, $._var_data_type],
     [$.list_of_port_identifiers, $.list_of_variable_identifiers],
@@ -4874,11 +4881,22 @@ module.exports = grammar({
     [$.unpacked_dimension, $.packed_dimension],
     [$.delay_control, $.param_expression],
 
-
     [$.sequence_instance, $.let_expression],
     [$.variable_lvalue, $._assignment_pattern_expression_type],
     [$.unpacked_dimension, $.packed_dimension, $._constant_part_select_range],
+
+    [$.expression_or_dist,                            $.event_expression, $.list_of_arguments_parent],
+    [$.expression_or_dist, $.ordered_port_connection, $.event_expression],
+
+    [$.property_instance, $.sequence_instance],
     [$.property_instance, $.sequence_instance, $.let_expression],
+    [$.property_instance, $.sequence_instance, $.let_expression, $.list_of_arguments_parent],
+    [$.property_instance, $.sequence_instance, $.let_expression, $.tf_call, $._sequence_identifier],
+    [$.property_instance, $.let_expression, $._sequence_identifier],
+
+    [$.property_list_of_arguments, $.list_of_arguments_parent],
+    [$.property_expr, $._sequence_actual_arg],
+
     [$.hierarchical_instance, $.checker_instantiation],
     [$.named_port_connection, $.checker_instantiation],
     [$.ordered_port_connection, $.expression_or_dist],
@@ -4900,7 +4918,6 @@ module.exports = grammar({
     [$.constant_bit_select1, $.constant_select1, $.unpacked_dimension],
     [$.packed_dimension, $._part_select_range],
 
-    [$.property_instance, $.sequence_instance],
     [$._simple_type, $._structure_pattern_key],
 
     [$.sequence_list_of_arguments, $.let_list_of_arguments],
@@ -4930,6 +4947,8 @@ module.exports = grammar({
     [$.class_property, $.data_type_or_implicit1],
 
     [$.list_of_arguments_parent, $.mintypmax_expression],
+    [$.expression_or_dist, $.list_of_arguments_parent],
+    [$.named_port_connection, $.expression_or_dist, $.event_expression],
 
     [$.terminal_identifier, $.list_of_arguments_parent, $.sequence_instance, $.let_expression, $.tf_call],
     [$.terminal_identifier, $.sequence_instance, $.let_expression, $.tf_call],
@@ -4952,6 +4971,7 @@ module.exports = grammar({
     [$.concurrent_assertion_item, $.deferred_immediate_assertion_item, $.generate_block_identifier],
 
     [$.constant_expression, $.expression],
+    [$.variable_lvalue, $.clockvar],
 
     [$.combinational_entry, $._seq_input_list]
 
