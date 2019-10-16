@@ -1921,7 +1921,7 @@ const rules = {
       'local',
       optional($.property_lvar_port_direction)
     ),
-    $.property_formal_type1,
+    optional($.property_formal_type1),
     $.formal_port_identifier,
     repeat($._variable_dimension),
     optseq('=', $._property_actual_arg)
