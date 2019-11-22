@@ -30,6 +30,7 @@
   "scripts": {
     "install": "node bin/install.js",
     "prepare": "node bin/install.js",
+    "wasm": "tree-sitter generate --next-abi && tree-sitter build-wasm",
     "test": "tree-sitter test"
   },
   "dependencies": {
@@ -39,8 +40,8 @@
     "@drom/eslint-config": "^0.10.0",
     "eslint": "^5.16.0",
     "fs-extra": "^8.1.0",
-    "tree-sitter": "^0.15.8",
-    "tree-sitter-cli": "^0.15.9"
+    "tree-sitter": "^0.15.14",
+    "tree-sitter-cli": "^0.15.14"
   },
   "eslintConfig": {
     "extends": "@drom/eslint-config/eslint4/node4",
