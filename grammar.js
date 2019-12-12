@@ -236,9 +236,9 @@ const rules = {
 
   // TODO missing arguments, empty list of arguments
 
-  list_of_actual_arguments: $ => sep1(',', $.actual_argument),
+  list_of_actual_arguments: $ => sep1(',', $._actual_argument),
 
-  actual_argument: $ => $.expression,
+  _actual_argument: $ => $.expression,
 
   /* A.1.1 Library source text */
 
@@ -4848,9 +4848,9 @@ module.exports = grammar({
     [$.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
     [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
 
-    [$.net_declaration,              $.class_type, $.module_instantiation, $.interface_instantiation, $.program_instantiation,                          $._udp_identifier],
-    [$.net_declaration, $.data_type, $.class_type, $.module_instantiation, $.interface_instantiation, $.program_instantiation, $.checker_instantiation, $._udp_identifier],
-    [$.net_declaration, $.data_type, $.class_type, $.module_instantiation, $.interface_instantiation, $.program_instantiation, $.checker_instantiation, $._udp_identifier, $.interface_port_declaration],
+    [$.module_instantiation, $.net_declaration,              $.class_type, $.interface_instantiation, $.program_instantiation, $._udp_identifier],
+    [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $._udp_identifier, $.checker_instantiation],
+    [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $._udp_identifier, $.interface_port_declaration, $.checker_instantiation],
 
     [$.data_type, $.class_type],
     [$.net_type_declaration, $.data_type, $.class_type],
@@ -4885,8 +4885,8 @@ module.exports = grammar({
     [$.variable_lvalue, $._assignment_pattern_expression_type],
     [$.unpacked_dimension, $.packed_dimension, $._constant_part_select_range],
 
-    [$.expression_or_dist,                            $.event_expression, $.list_of_arguments_parent],
-    [$.expression_or_dist, $.ordered_port_connection, $.event_expression],
+    [$.expression_or_dist, $.list_of_arguments_parent, $.event_expression],
+    [$.ordered_port_connection, $.expression_or_dist, $.event_expression],
 
     [$.property_instance, $.sequence_instance],
     [$.property_instance, $.sequence_instance, $.let_expression],
@@ -4968,7 +4968,7 @@ module.exports = grammar({
     [$.program_nonansi_header, $.program_ansi_header],
 
     [$.concatenation, $.stream_expression],
-    [$.concurrent_assertion_item, $.deferred_immediate_assertion_item, $.generate_block_identifier],
+    [$.deferred_immediate_assertion_item, $.generate_block_identifier, $.concurrent_assertion_item],
 
     [$.constant_expression, $.expression],
     [$.variable_lvalue, $.clockvar],

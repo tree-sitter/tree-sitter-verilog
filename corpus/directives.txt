@@ -61,15 +61,11 @@ usage args
   (text_macro_usage
     (text_macro_identifier (simple_identifier))
     (list_of_actual_arguments
-      (actual_argument
-        (expression
-          (primary (primary_literal (integral_number (decimal_number (unsigned_number)))))
-        )
+      (expression
+        (primary (primary_literal (integral_number (decimal_number (unsigned_number)))))
       )
-      (actual_argument
-        (expression
-          (primary (primary_literal (integral_number (decimal_number (unsigned_number)))))
-        )
+      (expression
+        (primary (primary_literal (integral_number (decimal_number (unsigned_number)))))
       )
     )
   )

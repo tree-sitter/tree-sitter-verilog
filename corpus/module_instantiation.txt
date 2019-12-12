@@ -81,20 +81,20 @@ endmodule
     (simple_identifier)
   )
   (module_nonansi_header (list_of_ports))
-  (module_or_generate_item (module_instantiation
-    (simple_identifier)
-    (hierarchical_instance
-      (name_of_instance (instance_identifier (simple_identifier)))
-      (list_of_port_connections
-        (ordered_port_connection
-          (expression (primary (simple_identifier)))
-        )
-        (ordered_port_connection
-          (expression (primary (simple_identifier)))
+  (module_or_generate_item
+    (concurrent_assertion_item
+      (checker_instantiation
+        (checker_identifier (simple_identifier))
+        (name_of_instance (instance_identifier (simple_identifier)))
+        (event_expression
+          (event_expression
+            (expression (primary (simple_identifier)))
+          )
+          (event_expression (expression (primary (simple_identifier))))
         )
       )
     )
-  ))
+  )
 ))
 
 ============================================
@@ -114,20 +114,28 @@ endmodule
     (module_keyword) (simple_identifier)
   )
   (module_nonansi_header (list_of_ports))
-  (module_or_generate_item (module_instantiation
-    (simple_identifier)
-    (hierarchical_instance
-      (name_of_instance (instance_identifier (simple_identifier)))
-      (list_of_port_connections
-        (ordered_port_connection
-          (expression (primary (concatenation
-            (expression (primary (simple_identifier)))
-            (expression (primary (simple_identifier)))
-          )))
+  (module_or_generate_item
+    (concurrent_assertion_item
+      (checker_instantiation
+        (checker_identifier (simple_identifier))
+        (name_of_instance (instance_identifier (simple_identifier)))
+        (property_expr
+          (sequence_expr
+            (expression_or_dist
+              (expression
+                (primary
+                  (concatenation
+                    (expression (primary (simple_identifier)))
+                    (expression (primary (simple_identifier)))
+                  )
+                )
+              )
+            )
+          )
         )
       )
     )
-  ))
+  )
 ))
 
 ============================================
