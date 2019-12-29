@@ -131,6 +131,8 @@ module abc ();
 
 always_comb begin
   a = b;
+  b.c = d;
+  {e, f} = g;
 end
 
 endmodule
@@ -147,6 +149,18 @@ endmodule
           (statement_or_null (statement (statement_item
             (blocking_assignment (operator_assignment
               (variable_lvalue (simple_identifier))
+              (assignment_operator)
+              (expression (primary (simple_identifier))))))))
+          (statement_or_null (statement (statement_item
+            (blocking_assignment (operator_assignment
+              (variable_lvalue (simple_identifier) (simple_identifier))
+              (assignment_operator)
+              (expression (primary (simple_identifier))))))))
+          (statement_or_null (statement (statement_item
+            (blocking_assignment (operator_assignment
+              (variable_lvalue
+                (variable_lvalue (simple_identifier))
+                (variable_lvalue (simple_identifier)))
               (assignment_operator)
               (expression (primary (simple_identifier)))))))))))))))
 
@@ -278,3 +292,35 @@ endmodule
     )))
   )
 )))
+
+============================================
+never block
+============================================
+
+module foo ();
+
+always @(posedge 1'd0) begin end
+
+endmodule
+
+----
+
+(source_file
+  (module_declaration
+    (module_header (module_keyword) (simple_identifier))
+    (module_nonansi_header (list_of_ports))
+    (module_or_generate_item
+      (always_construct (always_keyword)
+        (statement (statement_item (procedural_timing_control_statement
+          (event_control
+            (event_expression
+              (edge_identifier)
+              (expression (primary (primary_literal (integral_number (decimal_number)))))
+            )
+          )
+          (statement_or_null (statement (statement_item (seq_block))))
+        )))
+      )
+    )
+  )
+)

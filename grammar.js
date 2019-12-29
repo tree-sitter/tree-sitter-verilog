@@ -2873,12 +2873,12 @@ const rules = {
   final_construct: $ => seq('final', $.function_statement),
 
   blocking_assignment: $ => choice(
-    prec.left(PREC.ASSIGN,
-      seq($.variable_lvalue, '=', $.delay_or_event_control, $.expression)
-    ),
-    // seq(
-    //   $.nonrange_variable_lvalue, '=', $.dynamic_array_new
-    // ),
+    prec.left(PREC.ASSIGN, seq(
+      $.variable_lvalue, '=', $.delay_or_event_control, $.expression
+    )),
+    prec.left(PREC.ASSIGN, seq(
+      $.nonrange_variable_lvalue, '=', $.dynamic_array_new
+    )),
     // seq(
     //   optional(choice(
     //     seq($.implicit_class_handle, '.'),
@@ -2901,9 +2901,12 @@ const rules = {
     '=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<=', '>>=', '<<<=', '>>>='
   ),
 
-  nonblocking_assignment: $ => prec.left(PREC.ASSIGN,
-    seq($.variable_lvalue, '<=', optional($.delay_or_event_control), $.expression)
-  ),
+  nonblocking_assignment: $ => prec.left(PREC.ASSIGN, seq(
+    $.variable_lvalue,
+    '<=',
+    optional($.delay_or_event_control),
+    $.expression
+  )),
 
   procedural_continuous_assignment: $ => choice(
     seq('assign', $.variable_assignment),
@@ -2914,11 +2917,11 @@ const rules = {
     seq('release', $.net_lvalue)
   ),
 
-  variable_assignment: $ => seq(
+  variable_assignment: $ => prec.left(PREC.ASSIGN, seq(
     $.variable_lvalue,
     '=',
     $.expression
-  ),
+  )),
 
   // A.6.3 Parallel and sequential blocks
 
@@ -2947,7 +2950,7 @@ const rules = {
 
   statement_or_null: $ => choice(
     $.statement,
-    seq(optional($.attribute_instance), ';')
+    seq(repeat($.attribute_instance), ';')
   ),
 
   statement: $ => seq(
@@ -2963,7 +2966,7 @@ const rules = {
     $.case_statement,
     $.conditional_statement,
     seq($.inc_or_dec_expression, ';'),
-    $.subroutine_call_statement,
+    // $.subroutine_call_statement,
     $.disable_statement,
     $.event_trigger,
     $.loop_statement,
@@ -3961,7 +3964,7 @@ const rules = {
       seq(
         repseq(',', '.', $._identifier, '(', optional($.expression), ')')
       ),
-      sep1(',', repseq(',', '.', $._identifier, '(', optional($.expression), ')'))
+      sep1(',', seq(',', '.', $._identifier, '(', optional($.expression), ')'))
     ),
     ')'
   ),
@@ -4314,12 +4317,12 @@ const rules = {
   //   seq('[', $._part_select_range, ']')
   // ),
 
-  // bit_select1: $ => repeat1(seq( // reordered -> non empty
-  //   '[', $.expression, ']')
-  // ),
+  bit_select1: $ => repeat1(seq( // reordered -> non empty
+    '[', $.expression, ']')
+  ),
 
   select1: $ => choice( // reordered -> non empty
-    seq(
+    prec.left(PREC.PARENT, seq(
       '[',
       repseq($.expression, ']', '['),
       choice(
@@ -4327,19 +4330,13 @@ const rules = {
         $._part_select_range
       ),
       ']'
-    )
+    ))
   ),
 
-  // nonrange_select1: $ => choice( // reordered -> non empty
-  //   seq(
-  //     seq(
-  //       repseq('.', $.member_identifier, optional($.bit_select1)),
-  //       '.', $.member_identifier
-  //     ),
-  //     optional($.bit_select1)
-  //   ),
-  //   $.bit_select1
-  // ),
+  nonrange_select1: $ => choice( // reordered -> non empty
+    repeat1(seq('.', $.member_identifier, optional($.bit_select1))),
+    $.bit_select1
+  ),
 
   constant_bit_select1: $ => repeat1(seq( // reordered -> non empty
     '[', $.constant_expression, ']'
@@ -4381,7 +4378,7 @@ const rules = {
       $.ps_or_hierarchical_net_identifier,
       optional($.constant_select1)
     ),
-    seq('{', sep1(',', $.net_lvalue), '}'),
+    prec.left(PREC.CONCAT, seq('{', sep1(',', $.net_lvalue), '}')),
     seq(
       optional($._assignment_pattern_expression_type),
       $.assignment_pattern_net_lvalue
@@ -4389,15 +4386,15 @@ const rules = {
   ),
 
   variable_lvalue: $ => choice(
-    seq(
+    prec.left(PREC.PARENT, seq(
       optional(choice(
         seq($.implicit_class_handle, '.'),
         $.package_scope
       )),
       $._hierarchical_variable_identifier,
       optional($.select1)
-    ),
-    seq('{', sep1(',', $.variable_lvalue), '}'),
+    )),
+    prec.left(PREC.CONCAT, seq('{', sep1(',', $.variable_lvalue), '}')),
     seq(
       optional($._assignment_pattern_expression_type),
       $.assignment_pattern_variable_lvalue
@@ -4405,9 +4402,14 @@ const rules = {
     $.streaming_concatenation
   ),
 
-  // nonrange_variable_lvalue
-  //   = ( implicit_class_handle __ '.' / package_scope )? __
-  //     _hierarchical_variable_identifier __ nonrange_select
+  nonrange_variable_lvalue: $ => prec.left(PREC.PARENT, seq(
+    optional(choice(
+      seq($.implicit_class_handle, '.'),
+      $.package_scope
+    )),
+    $._hierarchical_variable_identifier,
+    optional($.nonrange_select1)
+  )),
 
   // A.8.6 Operators
 
@@ -4632,7 +4634,7 @@ const rules = {
   ),
 
   ps_or_hierarchical_net_identifier: $ => choice(
-    // seq(optional($.package_scope), $._net_identifier),
+    prec.left(PREC.PARENT, seq(optional($.package_scope), $._net_identifier)),
     $._hierarchical_net_identifier
   ),
 
@@ -4823,8 +4825,13 @@ module.exports = grammar({
     [$.property_spec, $.property_expr],
     [$.property_expr, $.sequence_expr],
 
+    [$.variable_lvalue, $.nonrange_variable_lvalue, $._method_call_root, $.class_qualifier],
+    [$.variable_lvalue, $.nonrange_variable_lvalue, $.class_qualifier],
+    [$.variable_lvalue, $.nonrange_variable_lvalue],
     [$.variable_lvalue, $._method_call_root, $.class_qualifier],
     [$.variable_lvalue, $.class_qualifier],
+
+    [$.bit_select1, $.select1],
 
     [$.class_method, $.constraint_prototype_qualifier],
     [$.class_method, $.method_qualifier],
@@ -4913,9 +4920,11 @@ module.exports = grammar({
     [$._constant_part_select_range, $.packed_dimension],
     [$.constant_bit_select1, $.constant_select1],
     [$._constant_range_expression, $.unpacked_dimension, $.constant_bit_select1, $.constant_select1],
-    [$.unpacked_dimension, $.packed_dimension, $._constant_part_select_range, $._part_select_range],
+    [$.unpacked_dimension, $.packed_dimension, $._part_select_range],
+    // [$.unpacked_dimension, $.packed_dimension, $._constant_part_select_range, $._part_select_range],
     [$.unpacked_dimension, $._constant_part_select_range, $._part_select_range],
-    [$.constant_bit_select1, $.constant_select1, $.unpacked_dimension],
+    // [$.constant_bit_select1, $.constant_select1, $.unpacked_dimension],
+    [$.constant_bit_select1, $.unpacked_dimension],
     [$.packed_dimension, $._part_select_range],
 
     [$._simple_type, $._structure_pattern_key],
