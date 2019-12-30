@@ -131,8 +131,9 @@ module abc ();
 
 always_comb begin
   a = b;
-  b.c = d;
+  b.c.d = d;
   {e, f} = g;
+  b.c[i].d = d;
 end
 
 endmodule
@@ -153,7 +154,11 @@ endmodule
               (expression (primary (simple_identifier))))))))
           (statement_or_null (statement (statement_item
             (blocking_assignment (operator_assignment
-              (variable_lvalue (simple_identifier) (simple_identifier))
+              (variable_lvalue
+                (simple_identifier)
+                (select1
+                  (member_identifier (simple_identifier))
+                  (member_identifier (simple_identifier))))
               (assignment_operator)
               (expression (primary (simple_identifier))))))))
           (statement_or_null (statement (statement_item
@@ -161,6 +166,16 @@ endmodule
               (variable_lvalue
                 (variable_lvalue (simple_identifier))
                 (variable_lvalue (simple_identifier)))
+              (assignment_operator)
+              (expression (primary (simple_identifier))))))))
+          (statement_or_null (statement (statement_item
+            (blocking_assignment (operator_assignment
+              (variable_lvalue
+                (simple_identifier)
+                (select1
+                  (member_identifier (simple_identifier))
+                  (bit_select1 (expression (primary (simple_identifier))))
+                  (member_identifier (simple_identifier))))
               (assignment_operator)
               (expression (primary (simple_identifier)))))))))))))))
 

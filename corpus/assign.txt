@@ -219,9 +219,7 @@ endmodule
       (net_lvalue (simple_identifier))
       (expression (primary
         (simple_identifier)
-        (select1
-          (expression (primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
-        )
+        (select1 (bit_select1 (expression (primary (primary_literal (integral_number (decimal_number (unsigned_number))))))))
       ))
     ))
   ))

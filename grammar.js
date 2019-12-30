@@ -4303,44 +4303,36 @@ const rules = {
     'super'
   ),
 
-  // select1: $ => choice( // reordered -> non empty
-  //   seq(
-  //     repseq('.', $.member_identifier, optional($.bit_select1)),
-  //     '.', $.member_identifier,
-  //     optional($.bit_select1),
-  //     optseq('[', $._part_select_range, ']')
-  //   ),
-  //   seq(
-  //     $.bit_select1,
-  //     optseq('[', $._part_select_range, ']')
-  //   ),
-  //   seq('[', $._part_select_range, ']')
-  // ),
-
-  bit_select1: $ => repeat1(seq( // reordered -> non empty
+  bit_select1: $ => prec.left(PREC.PARENT, repeat1(seq( // reordered -> non empty
     '[', $.expression, ']')
-  ),
+  )),
 
   select1: $ => choice( // reordered -> non empty
-    prec.left(PREC.PARENT, seq(
-      '[',
-      repseq($.expression, ']', '['),
-      choice(
-        $.expression,
-        $._part_select_range
-      ),
-      ']'
+    prec.left(PREC.PARENT, seq( // 1xx
+      repseq('.', $.member_identifier, optional($.bit_select1)), '.', $.member_identifier,
+      optional($.bit_select1),
+      optseq('[', $._part_select_range, ']')
+    )),
+    prec.left(PREC.PARENT, seq( // 01x
+      $.bit_select1,
+      optseq('[', $._part_select_range, ']')
+    )),
+    prec.left(PREC.PARENT, seq( // 001
+      seq('[', $._part_select_range, ']')
     ))
   ),
 
   nonrange_select1: $ => choice( // reordered -> non empty
-    repeat1(seq('.', $.member_identifier, optional($.bit_select1))),
+    prec.left(PREC.PARENT, seq( // 1x
+      repseq('.', $.member_identifier, optional($.bit_select1)), '.', $.member_identifier,
+      optional($.bit_select1)
+    )),
     $.bit_select1
   ),
 
-  constant_bit_select1: $ => repeat1(seq( // reordered -> non empty
+  constant_bit_select1: $ => repeat1(prec.left(PREC.PARENT, seq( // reordered -> non empty
     '[', $.constant_expression, ']'
-  )),
+  ))),
 
   constant_select1: $ => choice( // reordered -> non empty
     seq(
@@ -4832,6 +4824,7 @@ module.exports = grammar({
     [$.variable_lvalue, $.class_qualifier],
 
     [$.bit_select1, $.select1],
+    [$.nonrange_select1, $.select1],
 
     [$.class_method, $.constraint_prototype_qualifier],
     [$.class_method, $.method_qualifier],
