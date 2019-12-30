@@ -174,7 +174,7 @@ input [W-1:0] inp;
 output [3:0] a, b;
 output foo, bar;
 output baz;
-
+input mytype bus1;
 
 endmodule
 
@@ -238,7 +238,11 @@ endmodule
     (port_declaration
       (output_declaration
         (list_of_port_identifiers
-          (port_identifier (simple_identifier)))))))
+          (port_identifier (simple_identifier)))))
+    (port_declaration
+      (input_declaration
+        (net_port_type1 (simple_identifier))
+        (list_of_port_identifiers (port_identifier (simple_identifier)))))))
 
 ============================================
 module - empty with ANSI io
