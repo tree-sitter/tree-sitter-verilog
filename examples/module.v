@@ -1,6 +1,7 @@
 /*
   zoo module
 */
+package mypkg;
 
 `resetall
 `undefineall
@@ -81,6 +82,8 @@ module foo #(
 )();
 
 always @ (posedge clk) begin
+  a.b <= b;
+  a.b(c);
   {x0, x1, x2} <= y; // deconcat
   x <= `DELAY y; // define delay
 end
@@ -88,5 +91,6 @@ end
 assign x[P1-1:0] = y; // vector slice assignment
 assign x = `WIDTH'b0; // define as vector size
 assign x = $random(seed); // system functions
+assign x = mypkg::add(1, 3);
 
 endmodule
