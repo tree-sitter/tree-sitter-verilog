@@ -22,5 +22,7 @@ jobs:
       run: |
         npm install
         npm test
+        bash bin/get-uvm.sh
+        node bin/test-uvm.js
       env:
         CI: true
