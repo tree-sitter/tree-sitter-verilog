@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
 
-const ext =  + (process.platform === 'win32' ? '.exe' : '');
+const ext = (process.platform === 'win32' ? '.exe' : '');
 
 const tspath = path.resolve(
   process.cwd(), './node_modules/tree-sitter-cli', 'tree-sitter' + ext
