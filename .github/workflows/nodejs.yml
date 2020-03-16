@@ -21,6 +21,7 @@ jobs:
     - name: npm install, build, and test
       run: |
         npm install
+        npm install --global --production windows-build-tools
         npm test
         bash bin/get-uvm.sh
         node bin/test-uvm.js
