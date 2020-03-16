@@ -21,14 +21,26 @@ fs.access('src/parser.c',
   err => {
     if (err) {
       const pat = path.resolve(process.cwd(), './node_modules/.bin/tree-sitter');
-      console.log('generate', pat);
-      const proc = cp.spawn(pat, ['generate']);
-      proc.stderr.on('data', data => {
-        console.error(data.toString());
+
+      console.log('tree-sitter path:', pat);
+      console.log('tree-sitter --version');
+      cp.execFile(pat, ['--version'], (error, stdout, stderr) => {
+        if (error) {
+          throw error;
+        }
+        console.log(stdout);
+        console.error(stderr);
+        console.log('tree-sytter generate');
+        cp.execFile(pat, ['generate'], (error, stdout, stderr) => {
+          if (error) {
+            throw error;
+          }
+          console.log(stdout);
+          console.error(stderr);
+          gyp();
+        });
       });
-      proc.on('close', () => {
-        gyp();
-      });
+
     } else {
       gyp();
     }
