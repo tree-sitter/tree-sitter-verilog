@@ -5,6 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
 
+const tspath = path.resolve(process.cwd(), './node_modules/tree-sitter-cli/cli.js');
+
 const gyp = cb => {
   console.log('build');
   const proc = cp.spawn('node-gyp', ['configure', 'build']);
@@ -20,18 +22,16 @@ fs.access('src/parser.c',
   (fs.constants.F_OK | fs.constants.R_OK),
   err => {
     if (err) {
-      const pat = path.resolve(process.cwd(), './node_modules/.bin/tree-sitter');
-
-      console.log('tree-sitter path:', pat);
+      console.log('tree-sitter path:', tspath);
       console.log('tree-sitter --version');
-      cp.execFile(pat, ['--version'], (error, stdout, stderr) => {
+      cp.execFile('node', [tspath, '--version'], (error, stdout, stderr) => {
         if (error) {
           throw error;
         }
         console.log(stdout);
         console.error(stderr);
         console.log('tree-sytter generate');
-        cp.execFile(pat, ['generate'], (error, stdout, stderr) => {
+        cp.execFile('node', [tspath, 'generate'], (error, stdout, stderr) => {
           if (error) {
             throw error;
           }
