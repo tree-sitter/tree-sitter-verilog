@@ -5,11 +5,15 @@ const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
 
-const tspath = path.resolve(process.cwd(), './node_modules/tree-sitter-cli/cli.js');
+const ext =  + (process.platform === 'win32' ? '.exe' : '');
+
+const tspath = path.resolve(
+  process.cwd(), './node_modules/tree-sitter-cli', 'tree-sitter' + ext
+);
 
 const gyp = cb => {
   console.log('build');
-  const proc = cp.spawn('node-gyp', ['configure', 'build']);
+  const proc = cp.spawn('node-gyp' + ext, ['configure', 'build']);
   proc.stderr.on('data', data => {
     console.error(data.toString());
   });
@@ -24,14 +28,14 @@ fs.access('src/parser.c',
     if (err) {
       console.log('tree-sitter path:', tspath);
       console.log('tree-sitter --version');
-      cp.execFile('node', [tspath, '--version'], (error, stdout, stderr) => {
+      cp.execFile(tspath, ['--version'], (error, stdout, stderr) => {
         if (error) {
           throw error;
         }
         console.log(stdout);
         console.error(stderr);
-        console.log('tree-sytter generate');
-        cp.execFile('node', [tspath, 'generate'], (error, stdout, stderr) => {
+        console.log('tree-sitter generate');
+        cp.execFile(tspath, ['generate'], (error, stdout, stderr) => {
           if (error) {
             throw error;
           }
@@ -40,7 +44,6 @@ fs.access('src/parser.c',
           gyp();
         });
       });
-
     } else {
       gyp();
     }
