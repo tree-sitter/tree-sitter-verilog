@@ -1,6 +1,8 @@
 [![NPM version](https://img.shields.io/npm/v/tree-sitter-verilog.svg)](https://www.npmjs.org/package/tree-sitter-verilog)
 [![Travis Status](https://travis-ci.org/tree-sitter/tree-sitter-verilog.svg?branch=master)](https://travis-ci.org/tree-sitter/tree-sitter-verilog)
-[![Actions Status](https://github.com/tree-sitter/tree-sitter-verilog/workflows/Tests/badge.svg)](https://github.com/tree-sitter/tree-sitter-verilog/actions)
+[![Linux Status](https://github.com/tree-sitter/tree-sitter-verilog/workflows/Linux/badge.svg)](https://github.com/tree-sitter/tree-sitter-verilog/actions)
+[![Windows Status](https://github.com/tree-sitter/tree-sitter-verilog/workflows/Windows/badge.svg)](https://github.com/tree-sitter/tree-sitter-verilog/actions)
+[![MacOS Status](https://github.com/tree-sitter/tree-sitter-verilog/workflows/MacOS/badge.svg)](https://github.com/tree-sitter/tree-sitter-verilog/actions)
 
 # tree-sitter-verilog
 
