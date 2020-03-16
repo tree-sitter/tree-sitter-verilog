@@ -26,11 +26,16 @@ fs.access('src/parser.c',
   err => {
     if (err) {
       console.log('generate');
-      const p1 = cp.spawn('tree-sitter', ['generate']);
-      p1.stderr.on('data', data => {
+      let proc;
+      try {
+        proc = cp.spawn('tree-sitter', ['generate']);
+      } catch (err) {
+        proc = cp.spawn('tree-sitter.exe', ['generate']);
+      }
+      proc.stderr.on('data', data => {
         console.error(data.toString());
       });
-      p1.on('close', () => {
+      proc.on('close', () => {
         gyp();
       });
     } else {
