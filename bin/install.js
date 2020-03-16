@@ -6,13 +6,7 @@ const cp = require('child_process');
 
 const gyp = cb => {
   console.log('build');
-  let proc;
-  try {
-    proc = cp.spawn('node-gyp', ['configure', 'build']);
-  } catch (err) {
-    console.error('error spawning node-gyp');
-    return;
-  }
+  const proc = cp.spawn('node-gyp', ['configure', 'build']);
   proc.stderr.on('data', data => {
     console.error(data.toString());
   });
@@ -26,12 +20,7 @@ fs.access('src/parser.c',
   err => {
     if (err) {
       console.log('generate');
-      let proc;
-      try {
-        proc = cp.spawn('tree-sitter', ['generate']);
-      } catch (err) {
-        proc = cp.spawn('tree-sitter.exe', ['generate']);
-      }
+      const proc = cp.spawn('tree-sitter', ['generate']);
       proc.stderr.on('data', data => {
         console.error(data.toString());
       });
