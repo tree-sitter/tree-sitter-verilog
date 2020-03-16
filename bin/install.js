@@ -6,7 +6,13 @@ const cp = require('child_process');
 
 const gyp = cb => {
   console.log('build');
-  const proc = cp.spawn('node-gyp', ['configure', 'build']);
+  let proc;
+  try {
+    proc = cp.spawn('node-gyp', ['configure', 'build']);
+  } catch (err) {
+    console.error('error spawning node-gyp');
+    return;
+  }
   proc.stderr.on('data', data => {
     console.error(data.toString());
   });
