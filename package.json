@@ -31,6 +31,7 @@
     "install": "node bin/install.js",
     "prepare": "node bin/install.js",
     "wasm": "tree-sitter generate --next-abi && tree-sitter build-wasm",
+    "generate": "tree-sitter generate",
     "test": "tree-sitter test"
   },
   "dependencies": {
