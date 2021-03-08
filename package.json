@@ -42,7 +42,7 @@
     "eslint": "^5.16.0",
     "fs-extra": "^8.1.0",
     "tree-sitter": "^0.17.1",
-    "tree-sitter-cli": "^0.17.1"
+    "tree-sitter-cli": "^0.19.2"
   },
   "eslintConfig": {
     "extends": "@drom/eslint-config/eslint4/node4",
