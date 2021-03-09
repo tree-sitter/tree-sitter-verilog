@@ -82,16 +82,11 @@ endmodule
   )
   (module_nonansi_header (list_of_ports))
   (module_or_generate_item
-    (concurrent_assertion_item
-      (checker_instantiation
-        (checker_identifier (simple_identifier))
+    (udp_instantiation (simple_identifier)
+      (udp_instance
         (name_of_instance (instance_identifier (simple_identifier)))
-        (event_expression
-          (event_expression
-            (expression (primary (simple_identifier)))
-          )
-          (event_expression (expression (primary (simple_identifier))))
-        )
+        (output_terminal (net_lvalue (simple_identifier)))
+        (input_terminal (expression (primary (simple_identifier))))
       )
     )
   )
@@ -114,28 +109,6 @@ endmodule
     (module_keyword) (simple_identifier)
   )
   (module_nonansi_header (list_of_ports))
-  (module_or_generate_item
-    (concurrent_assertion_item
-      (checker_instantiation
-        (checker_identifier (simple_identifier))
-        (name_of_instance (instance_identifier (simple_identifier)))
-        (property_expr
-          (sequence_expr
-            (expression_or_dist
-              (expression
-                (primary
-                  (concatenation
-                    (expression (primary (simple_identifier)))
-                    (expression (primary (simple_identifier)))
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  )
 ))
 
 ============================================

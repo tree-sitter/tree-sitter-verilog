@@ -118,34 +118,47 @@ endmodule
 
 (source_file
   (module_declaration
-    (module_header
-      (module_keyword) (simple_identifier))
+    (module_header (module_keyword) (simple_identifier))
     (module_nonansi_header (list_of_ports))
     (module_or_generate_item (package_or_generate_item_declaration (net_declaration
       (net_type)
       (list_of_net_decl_assignments
         (net_decl_assignment (simple_identifier))
         (net_decl_assignment (simple_identifier))
-        (net_decl_assignment (simple_identifier))))))
+        (net_decl_assignment (simple_identifier))
+      )
+    )))
     (module_or_generate_item (package_or_generate_item_declaration (net_declaration
       (net_type)
       (list_of_net_decl_assignments
-        (net_decl_assignment (simple_identifier))))))
+        (net_decl_assignment (simple_identifier))
+      )
+    )))
     (module_or_generate_item (package_or_generate_item_declaration (data_declaration
       (data_type_or_implicit1 (data_type (integer_vector_type)))
       (list_of_variable_decl_assignments
-        (variable_decl_assignment (simple_identifier))))))
+        (variable_decl_assignment (simple_identifier))
+      )
+    )))
     (module_or_generate_item (package_or_generate_item_declaration (data_declaration
       (data_type_or_implicit1
         (data_type
           (integer_vector_type)
           (packed_dimension (constant_range
             (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
-            (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))))))
-      (list_of_variable_decl_assignments
-        (variable_decl_assignment (simple_identifier))))))
-    (port_declaration (interface_port_declaration
-      (interface_identifier (simple_identifier))
-      (list_of_interface_identifiers
-        (interface_identifier (simple_identifier))
-        (interface_identifier (simple_identifier)))))))
+            (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
+          ))
+        )
+      )
+      (list_of_variable_decl_assignments (variable_decl_assignment (simple_identifier)))
+    )))
+    (module_or_generate_item (package_or_generate_item_declaration
+      (net_declaration (simple_identifier)
+        (list_of_net_decl_assignments
+          (net_decl_assignment (simple_identifier))
+          (net_decl_assignment (simple_identifier))
+        )
+      )
+    ))
+  )
+)

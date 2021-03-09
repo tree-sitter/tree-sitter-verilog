@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/tree-sitter/tree-sitter-verilog/issues"
   },
-  "main": "index.js",
+  "main": "bindings/node",
   "files": [
     "grammar.js",
     "binding.gyp",
@@ -39,18 +39,12 @@
   },
   "devDependencies": {
     "@drom/eslint-config": "^0.10.0",
-    "eslint": "^5.16.0",
-    "fs-extra": "^8.1.0",
-    "tree-sitter": "^0.17.1",
-    "tree-sitter-cli": "^0.17.1"
+    "eslint": "^7.21.0",
+    "fs-extra": "^9.1.0",
+    "tree-sitter": "^0.19.0",
+    "tree-sitter-cli": "^0.19.3"
   },
   "eslintConfig": {
-    "extends": "@drom/eslint-config/eslint4/node4",
-    "rules": {
-      "indent": [
-        1,
-        2
-      ]
-    }
+    "extends": "@drom/eslint-config/eslint4/node8"
   }
 }

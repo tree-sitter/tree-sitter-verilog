@@ -15,6 +15,7 @@ package mypkg;
 module add_sub (x, y, z, sign);
 
   parameter WIDTH = 8;
+  parameter W2 = 8 * WIDTH;
 
   input [WIDTH-1:0] x, y;
   output carry;
@@ -81,6 +82,10 @@ module foo #(
   parameter P3 = P1 ? P2 : 64 // trinary
 )();
 
+module mod ();
+  always_comb foo = bar.baz[7:0];
+endmodule
+
 always @ (posedge clk) begin
   a.b <= b;
   a.b(c);
@@ -88,9 +93,14 @@ always @ (posedge clk) begin
   x <= `DELAY y; // define delay
 end
 
+assign x = -(8 * W);
 assign x[P1-1:0] = y; // vector slice assignment
 assign x = `WIDTH'b0; // define as vector size
 assign x = $random(seed); // system functions
 assign x = mypkg::add(1, 3);
 
+endmodule
+
+module mod ();
+always_comb foo = bar.baz[7:0];
 endmodule

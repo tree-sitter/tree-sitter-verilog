@@ -82,6 +82,23 @@ function directive (command) {
   return alias(new RegExp('`' + command), 'directive_' + command);
 }
 
+
+function combi (arr) {
+  const len = arr.length;
+  const len2 = Math.pow(2, len);
+  const res = [];
+  for (let i = 3; i <= len2; i++) {
+    const e = [];
+    for (let j = 0; j < len; j++) {
+      if ((i >> j) & 1) {
+        e.push(arr[j]);
+      }
+    }
+    res.push(e);
+  }
+  return res;
+}
+
 /*
     Verilog parser grammar based on IEEE Std 1800-2017.
 */
@@ -1479,11 +1496,11 @@ const rules = {
     $.constant_mintypmax_expression
   ),
 
-  net_decl_assignment: $ => seq(
+  net_decl_assignment: $ => prec.left(PREC.ASSIGN, seq(
     $._net_identifier,
     repeat($.unpacked_dimension),
     optseq('=', $.expression)
-  ),
+  )),
 
   param_assignment: $ => seq(
     $.parameter_identifier,
@@ -2852,9 +2869,9 @@ const rules = {
 
   list_of_variable_assignments: $ => sep1(',', $.variable_assignment),
 
-  net_alias: $ => seq(
+  net_alias: $ => prec.left(PREC.ASSIGN, seq(
     'alias', $.net_lvalue, '=', sep1(',', seq('=', $.net_lvalue)), ';'
-  ),
+  )),
 
   net_assignment: $ => prec.left(PREC.ASSIGN,
     seq($.net_lvalue, '=', $.expression)
@@ -3378,7 +3395,9 @@ const rules = {
     $.delay_control
   ),
 
-  clocking_drive: $ => seq($.clockvar_expression, '<=', optional($.cycle_delay), $.expression),
+  clocking_drive: $ => prec.left(PREC.ASSIGN,
+    seq($.clockvar_expression, '<=', optional($.cycle_delay), $.expression)
+  ),
 
   cycle_delay: $ => prec.left(seq('##', choice(
     $.integral_number,
@@ -4191,7 +4210,7 @@ const rules = {
 
   constant_primary: $ => choice(
     $.primary_literal,
-    prec.left(10, seq(
+    prec.left(1, seq(
       $.ps_parameter_identifier,
       optional($.constant_select1)
     )),
@@ -4278,7 +4297,6 @@ const rules = {
     $.string_literal,
     $.simple_text_macro_usage
   ),
-
 
   time_literal: $ => choice(
     seq($.unsigned_number, $.time_unit),
@@ -4738,6 +4756,7 @@ module.exports = grammar({
     $._type_identifier,
     $._net_type_identifier,
     $._variable_identifier,
+    $._udp_identifier,
     $.package_identifier,
     $.dynamic_array_variable_identifier,
     $.class_variable_identifier,
@@ -4762,185 +4781,94 @@ module.exports = grammar({
     $.cover_point_identifier,
     $.cross_identifier
   ],
-  conflicts: $ => [
-    [$.module_instantiation, $.interface_instantiation, $.program_instantiation],
 
-    [$.net_lvalue, $.variable_lvalue],
+  conflicts: $ => [
+
+    [$.constant_primary, $.primary],
     [$.primary, $.implicit_class_handle],
     [$.primary, $.constant_function_call],
     [$.primary, $.param_expression],
-    [$.primary, $.constant_primary],
     [$.primary, $._constant_let_expression],
-    [$.primary, $.variable_lvalue],
+    [$.primary, $.queue_dimension],
 
     [$._module_common_item, $._checker_or_generate_item],
     [$._module_common_item, $._checker_generate_item],
+
     [$.dpi_function_import_property, $.dpi_task_import_property],
-    // [$.class_method, $.constraint_prototype_qualifier],
+
     [$.package_or_generate_item_declaration, $.checker_or_generate_item_declaration],
+    [$._module_or_generate_item_declaration, $.checker_or_generate_item_declaration],
+
     [$.module_or_generate_item, $.interface_or_generate_item],
-    // [$.class_method, $.method_qualifier],
-    [$.unsigned_number, $.integral_number],
     [$.method_call_body, $.array_method_name],
-    [$.class_qualifier, $._method_call_root],
-    [$._structure_pattern_key, $._array_pattern_key],
-    [$.pattern, $._structure_pattern_key],
     [$.constraint_set, $.empty_unpacked_array_concatenation],
     [$.interface_declaration, $._non_port_interface_item],
     [$.program_declaration, $.non_port_program_item],
     [$.list_of_ports, $.list_of_port_declarations],
+
     [$.mintypmax_expression, $.expression_or_dist],
+
     [$.class_constructor_declaration, $.implicit_class_handle],
     [$.statement_or_null, $.action_block],
-    [$._sequence_actual_arg, $.event_expression],
-    [$.expression_or_dist,                   $.event_expression],
-    [$.expression_or_dist, $.let_actual_arg, $.event_expression],
-    [$.expression_or_dist, $.let_actual_arg],
 
+    //
     [$.port_reference, $.ansi_port_declaration],
+    [$.port, $.ansi_port_declaration],
     [$.net_port_header1, $.variable_port_header],
     [$.ansi_port_declaration, $._variable_dimension],
-    [$.unpacked_dimension, $._constant_part_select_range],
-    [$.unpacked_dimension, $.constant_select1],
-    [$.port, $.ansi_port_declaration],
-    [$.module_ansi_header, $.module_declaration],
 
     [$.module_declaration, $._non_port_module_item],
-    [$._module_or_generate_item_declaration, $.checker_or_generate_item_declaration],
     [$._expression_or_cond_pattern, $.tagged_union_expression],
     [$.pattern, $.tagged_union_expression],
-    [$._covergroup_expression, $.cond_pattern],
+
     [$.mintypmax_expression, $._covergroup_expression],
     [$.concatenation, $._covergroup_expression],
-    [$.decimal_number, $.real_number, $.fixed_point_number],
+
+    [$.concatenation, $.stream_expression],
+
+    [$.delay2, $.delay_control],
     [$.delay3, $.delay_control],
+    [$.delay_control, $.param_expression],
+    [$.delay2, $.delay_control, $.param_expression],
+
     [$.property_spec, $.property_expr],
     [$.property_expr, $.sequence_expr],
 
-    [$.variable_lvalue, $.nonrange_variable_lvalue, $._method_call_root, $.class_qualifier],
-    [$.variable_lvalue, $.nonrange_variable_lvalue, $.class_qualifier],
-    [$.variable_lvalue, $.nonrange_variable_lvalue],
-    [$.variable_lvalue, $._method_call_root, $.class_qualifier],
-    [$.variable_lvalue, $.class_qualifier],
-
     [$.bit_select1, $.select1],
     [$.nonrange_select1, $.select1],
-
+    //
     [$.class_method, $.constraint_prototype_qualifier],
     [$.class_method, $.method_qualifier],
-    [$.data_type, $.class_type, $.statement, $.checker_instantiation],
-
+    //
     [$.bind_target_scope, $.bind_target_instance],
     [$.class_type, $.package_scope],
-    [$.variable_decl_assignment, $.packed_dimension, $._variable_dimension],
-    [$.variable_decl_assignment, $._variable_dimension],
 
-    [$.net_declaration, $.data_type, $.class_type],
-    [$.net_declaration, $.data_type, $.interface_port_declaration, $.class_type, $.interface_instantiation, $.program_instantiation],
-    [$.net_declaration, $.data_type, $.interface_port_declaration, $.class_type, $.checker_instantiation],
-    [$.net_declaration, $.data_type, $.class_type, $.checker_instantiation],
-    [$.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation],
-    [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation],
-    [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_port_declaration, $.interface_instantiation, $.program_instantiation],
-
-    [$.module_instantiation, $.interface_port_declaration, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
-    [$.interface_port_declaration, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
-    [$.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
-    [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $.checker_instantiation],
-
-    [$.module_instantiation, $.net_declaration,              $.class_type, $.interface_instantiation, $.program_instantiation, $._udp_identifier],
-    [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $._udp_identifier, $.checker_instantiation],
-    [$.module_instantiation, $.net_declaration, $.data_type, $.class_type, $.interface_instantiation, $.program_instantiation, $._udp_identifier, $.interface_port_declaration, $.checker_instantiation],
-
-    [$.data_type, $.class_type],
-    [$.net_type_declaration, $.data_type, $.class_type],
-    [$.net_type_declaration, $.data_type],
-    [$.net_port_type1, $.data_type, $.class_type],
-
-    [$.constant_primary, $.data_type],
-    [$.constant_primary, $._simple_type],
-    [$.constant_primary, $._simple_type, $.data_type, $._assignment_pattern_expression_type, $.class_qualifier],
-    [$.constant_primary, $._simple_type, $.let_expression, $.tf_call],
-    [$.constant_primary, $._simple_type, $._assignment_pattern_expression_type, $.class_qualifier],
-    [$.constant_primary, $.let_expression, $.tf_call],
-    [$.constant_primary, $._simple_type, $.let_expression, $._structure_pattern_key, $.tf_call],
-
-    [$.constant_primary, $._assignment_pattern_expression_type],
-
-    [$.statement, $._assignment_pattern_expression_type],
     [$.data_type_or_implicit1, $._var_data_type],
     [$.list_of_port_identifiers, $.list_of_variable_identifiers],
     [$.list_of_port_identifiers, $.list_of_variable_port_identifiers],
-    [$.program_instantiation, $.interface_instantiation],
+
     [$.list_of_interface_identifiers, $.net_decl_assignment],
-    [$.data_type, $.class_type, $.checker_instantiation],
+
     [$.data_type, $.class_type, $.tf_port_item1],
+
     [$.net_port_type1, $.interface_port_header, $.data_type, $.class_type],
-    [$.name_of_instance, $.sequence_instance, $.let_expression],
+    [$.net_port_type1, $.data_type, $.class_type],
+
     [$.list_of_port_identifiers, $._variable_dimension],
-    [$.unpacked_dimension, $.packed_dimension],
-    [$.delay_control, $.param_expression],
 
-    [$.sequence_instance, $.let_expression],
-    [$.variable_lvalue, $._assignment_pattern_expression_type],
-    [$.unpacked_dimension, $.packed_dimension, $._constant_part_select_range],
 
-    [$.expression_or_dist, $.list_of_arguments_parent, $.event_expression],
-    [$.ordered_port_connection, $.expression_or_dist, $.event_expression],
-
-    [$.property_instance, $.sequence_instance],
-    [$.property_instance, $.sequence_instance, $.let_expression],
-    [$.property_instance, $.sequence_instance, $.let_expression, $.list_of_arguments_parent],
-    [$.property_instance, $.sequence_instance, $.let_expression, $.tf_call, $._sequence_identifier],
-    [$.property_instance, $.let_expression, $._sequence_identifier],
-
-    [$.property_list_of_arguments, $.list_of_arguments_parent],
     [$.property_expr, $._sequence_actual_arg],
-
-    [$.hierarchical_instance, $.checker_instantiation],
-    [$.named_port_connection, $.checker_instantiation],
-    [$.ordered_port_connection, $.expression_or_dist],
-    [$.primary, $.queue_dimension],
 
     [$.event_control, $._hierarchical_event_identifier, $._sequence_identifier],
     [$.event_control, $._hierarchical_event_identifier],
 
-    [$.packed_dimension, $._variable_dimension],
-    [$._constant_range_expression, $.constant_select1],
-    [$._constant_range_expression, $.constant_bit_select1, $.constant_select1],
-    [$.packed_dimension, $._constant_part_select_range, $._part_select_range],
-    [$._constant_part_select_range, $._part_select_range],
-    [$._constant_part_select_range, $.packed_dimension],
-    [$.constant_bit_select1, $.constant_select1],
-    [$._constant_range_expression, $.unpacked_dimension, $.constant_bit_select1, $.constant_select1],
-    [$.unpacked_dimension, $.packed_dimension, $._part_select_range],
-    // [$.unpacked_dimension, $.packed_dimension, $._constant_part_select_range, $._part_select_range],
-    [$.unpacked_dimension, $._constant_part_select_range, $._part_select_range],
-    // [$.constant_bit_select1, $.constant_select1, $.unpacked_dimension],
-    [$.constant_bit_select1, $.unpacked_dimension],
-    [$.packed_dimension, $._part_select_range],
-
-    [$._simple_type, $._structure_pattern_key],
-
     [$.sequence_list_of_arguments, $.let_list_of_arguments],
-    [$.named_port_connection, $.expression_or_dist],
-
-    [$.output_port_identifier, $.inout_port_identifier],
-    [$.input_port_identifier, $.inout_port_identifier],
-    [$.input_port_identifier, $.output_port_identifier, $.inout_port_identifier],
 
     [$.input_identifier, $.output_identifier],
-
-    [$.primary_literal, $.module_path_primary],
-    [$.primary, $.module_path_primary, $.constant_function_call],
-    [$.module_path_primary, $.constant_function_call],
 
     [$.constant_primary, $.path_delay_expression],
     [$.unary_operator, $.scalar_timing_check_condition],
     [$.mintypmax_expression, $.scalar_timing_check_condition],
-
-    [$.sequence_instance, $.let_expression, $.terminal_identifier],
-    [$._assignment_pattern_expression_type, $.terminal_identifier],
 
     [$.delayed_data, $.delayed_reference],
     [$.system_tf_call, $.list_of_arguments_parent],
@@ -4948,36 +4876,102 @@ module.exports = grammar({
     [$._property_qualifier, $.method_qualifier],
     [$.class_property, $.data_type_or_implicit1],
 
-    [$.list_of_arguments_parent, $.mintypmax_expression],
-    [$.expression_or_dist, $.list_of_arguments_parent],
-    [$.named_port_connection, $.expression_or_dist, $.event_expression],
-
-    [$.terminal_identifier, $.list_of_arguments_parent, $.sequence_instance, $.let_expression, $.tf_call],
-    [$.terminal_identifier, $.sequence_instance, $.let_expression, $.tf_call],
-    [$.terminal_identifier, $.list_of_arguments_parent, $.sequence_instance, $.let_expression],
-    [$.list_of_arguments_parent, $.sequence_instance, $.let_expression],
-    [$.list_of_arguments_parent, $.sequence_instance],
-    [$.list_of_arguments_parent, $.let_expression],
-    [$.variable_decl_assignment, $.tf_call],
-
-    [$.sequence_instance, $.let_expression, $.tf_call, $._sequence_identifier],
-    [$.terminal_identifier, $.sequence_instance, $.let_expression, $.tf_call, $._sequence_identifier],
-    [$.let_expression, $._sequence_identifier],
+    [$.mintypmax_expression, $.list_of_arguments_parent],
 
     [$.module_path_primary, $.tf_call],
 
     [$.package_declaration, $._package_item],
-    [$.program_nonansi_header, $.program_ansi_header],
 
-    [$.concatenation, $.stream_expression],
     [$.deferred_immediate_assertion_item, $.generate_block_identifier, $.concurrent_assertion_item],
 
-    [$.constant_expression, $.expression],
     [$.variable_lvalue, $.clockvar],
-
     [$.combinational_entry, $._seq_input_list]
 
   ]
+    .concat(combi([
+      $.constant_primary,
+      $._simple_type,
+      $.primary,
+      $.variable_lvalue,
+      $.net_lvalue,
+      $.data_type,
+      $.port_reference,
+      $.class_type,
+      $.sequence_instance,
+      $.let_expression,
+      $.tf_call,
+      $.terminal_identifier,
+      $.select_expression,
+      $.generate_block_identifier,
+      $._sequence_identifier,
+      $._assignment_pattern_expression_type,
+      $.list_of_arguments_parent,
+    ]))
+    .concat(combi([
+      $.module_instantiation,
+      $.net_declaration,
+      $.data_type,
+      $.net_type_declaration,
+      $.class_type,
+      $.interface_port_declaration,
+      $.interface_instantiation,
+      $.program_instantiation,
+      $.udp_instantiation,
+      $.checker_instantiation,
+    ]))
+    .concat(combi([
+      $.variable_lvalue,
+      $.nonrange_variable_lvalue,
+      $._method_call_root,
+      $.class_qualifier
+    ]))
+    .concat(combi([
+      $.variable_decl_assignment,
+      $.packed_dimension,
+      $._variable_dimension
+    ]))
+    .concat(combi([
+      $.constant_primary,
+      $.data_type,
+      $._simple_type,
+      $._assignment_pattern_expression_type,
+      $.class_qualifier
+    ]))
+    .concat(combi([
+      $._constant_range_expression,
+      // $.constant_bit_select1,
+      $.constant_select1,
+      $.unpacked_dimension,
+    ]))
+    .concat(combi([
+      $.packed_dimension,
+      $.unpacked_dimension,
+      $._constant_part_select_range,
+      $._part_select_range
+    ]))
+    .concat(combi([
+      $.inout_port_identifier, $.input_port_identifier, $.output_port_identifier
+    ]))
+    .concat(combi([
+      $.named_port_connection,
+      $.hierarchical_instance,
+      $.checker_instantiation
+    ]))
+    .concat(combi([
+      $.named_port_connection,
+      $.ordered_port_connection,
+      $._sequence_actual_arg,
+      $.expression_or_dist,
+      $.let_actual_arg,
+      $.list_of_arguments_parent,
+      $.event_expression,
+    ]))
+    .concat(combi([
+      $.primary,
+      $.primary_literal,
+      $.module_path_primary,
+      $.constant_function_call
+    ]))
 });
 
 /* eslint camelcase: 0 */

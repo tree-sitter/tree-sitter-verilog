@@ -1,5 +1,5 @@
 ============================================
-seq_block
+always -- seq_block
 ============================================
 
 module a_l ();
@@ -19,7 +19,7 @@ endmodule
 ))
 
 ============================================
-@*
+always -- @*
 ============================================
 
 module a ();
@@ -45,7 +45,7 @@ endmodule
 ))
 
 ============================================
-@(*)
+always -- @(*)
 ============================================
 
 module a ();
@@ -71,7 +71,7 @@ endmodule
 ))
 
 ============================================
-@(posedge clk)
+always -- @(posedge clk)
 ============================================
 
 module a ();
@@ -100,7 +100,7 @@ endmodule
 ))
 
 ============================================
-all
+always -- all
 ============================================
 
 module abc ();
@@ -124,7 +124,7 @@ endmodule
 ))
 
 ============================================
-expr
+always -- comb expr
 ============================================
 
 module abc ();
@@ -151,23 +151,31 @@ endmodule
             (blocking_assignment (operator_assignment
               (variable_lvalue (simple_identifier))
               (assignment_operator)
-              (expression (primary (simple_identifier))))))))
+              (expression (primary (simple_identifier)))
+            ))
+          )))
           (statement_or_null (statement (statement_item
             (blocking_assignment (operator_assignment
-              (variable_lvalue
-                (simple_identifier)
+              (variable_lvalue (simple_identifier)
                 (select1
                   (member_identifier (simple_identifier))
-                  (member_identifier (simple_identifier))))
+                  (member_identifier (simple_identifier))
+                )
+              )
               (assignment_operator)
-              (expression (primary (simple_identifier))))))))
+              (expression (primary (simple_identifier)))
+            ))
+          )))
           (statement_or_null (statement (statement_item
             (blocking_assignment (operator_assignment
               (variable_lvalue
                 (variable_lvalue (simple_identifier))
-                (variable_lvalue (simple_identifier)))
+                (variable_lvalue (simple_identifier))
+              )
               (assignment_operator)
-              (expression (primary (simple_identifier))))))))
+              (expression (primary (simple_identifier)))
+            ))
+          )))
           (statement_or_null (statement (statement_item
             (blocking_assignment (operator_assignment
               (variable_lvalue
@@ -175,12 +183,21 @@ endmodule
                 (select1
                   (member_identifier (simple_identifier))
                   (bit_select1 (expression (primary (simple_identifier))))
-                  (member_identifier (simple_identifier))))
+                  (member_identifier (simple_identifier))
+                )
+              )
               (assignment_operator)
-              (expression (primary (simple_identifier)))))))))))))))
+              (expression (primary (simple_identifier)))
+            ))
+          )))
+        )
+      ))
+    )
+  )
+))
 
 ============================================
-if begin end
+always -- if begin end
 ============================================
 
 module abc ();
@@ -211,7 +228,7 @@ endmodule
                   (expression (primary (simple_identifier)))))))))))))))))))
 
 ============================================
-if
+always -- if
 ============================================
 
 module abc ();
@@ -238,7 +255,7 @@ endmodule
             (expression (primary (simple_identifier)))))))))))))))
 
 ============================================
-case
+always -- case
 ============================================
 
 module abc ();
@@ -276,7 +293,7 @@ endmodule
                 (expression (primary (primary_literal (integral_number (decimal_number (unsigned_number))))))))))))))))))
 
 ============================================
-seq_block
+always -- seq_block
 ============================================
 
 module a_l ();
@@ -309,7 +326,7 @@ endmodule
 )))
 
 ============================================
-never block
+always -- never block
 ============================================
 
 module foo ();
@@ -339,3 +356,58 @@ endmodule
     )
   )
 )
+
+============================================
+always -- member
+============================================
+
+module mod ();
+  always_comb foo = bar.baz;
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (simple_identifier))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (always_construct (always_keyword)
+    (statement (statement_item (blocking_assignment (operator_assignment
+      (variable_lvalue (simple_identifier))
+      (assignment_operator)
+      (expression (primary (simple_identifier) (select1 (member_identifier (simple_identifier)))))
+    ))))
+  ))
+))
+
+============================================
+always -- member slice
+============================================
+
+module mod ();
+  always_comb foo = bar.baz[7:0];
+endmodule
+
+----
+
+(source_file (module_declaration
+  (module_header (module_keyword) (simple_identifier))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (always_construct (always_keyword) (statement
+    (statement_item (blocking_assignment
+      (operator_assignment
+        (variable_lvalue (simple_identifier))
+        (assignment_operator)
+        (expression (primary
+          (simple_identifier)
+          (select1
+            (member_identifier (simple_identifier))
+            (constant_range
+              (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
+              (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
+            )
+          )
+        ))
+      )
+    ))
+  )))
+))

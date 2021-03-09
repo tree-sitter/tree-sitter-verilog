@@ -4,7 +4,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const Parser = require('tree-sitter');
-const verilog = require('../index.js');
+const verilog = require('../bindings/node/index.js');
 
 function walker (cb, root) {
   return function rec (dir) {
