@@ -15,9 +15,10 @@
   "main": "bindings/node",
   "files": [
     "grammar.js",
+    "bindings",
     "binding.gyp",
-    "src/*",
-    "bin/*"
+    "src",
+    "bin"
   ],
   "keywords": [
     "parser",
