@@ -93,25 +93,6 @@ endmodule
 ))
 
 ============================================
-module_instantiation - ordered_port_connection - concatenation
-============================================
-
-module mod ();
-
-  modA instA ({clk, inp});
-
-endmodule
-
-----
-
-(source_file (module_declaration
-  (module_header
-    (module_keyword) (simple_identifier)
-  )
-  (module_nonansi_header (list_of_ports))
-))
-
-============================================
 module_instantiation - ordered_parameter_assignment
 ============================================
 

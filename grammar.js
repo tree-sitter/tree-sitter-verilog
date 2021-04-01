@@ -4210,36 +4210,18 @@ const rules = {
 
   constant_primary: $ => choice(
     $.primary_literal,
-    prec.left(1, seq(
-      $.ps_parameter_identifier,
-      optional($.constant_select1)
-    )),
-    seq(
-      $.specparam_identifier,
-      optseq('[', $._constant_range_expression, ']')
-    ),
-    $.genvar_identifier,
-    seq(
-      $.formal_port_identifier,
-      optional($.constant_select1)
-    ),
-    seq(
-      optional(choice($.package_scope, $.class_scope)),
-      $.enum_identifier
-    ),
-    seq(
-      $.constant_concatenation,
-      optseq('[', $._constant_range_expression, ']')
-    ),
-    seq(
-      $.constant_multiple_concatenation,
-      optseq('[', $._constant_range_expression, ']')
-    ),
-    $.constant_function_call,
-    $._constant_let_expression,
+    seq($.ps_parameter_identifier, optional($.constant_select1)),
+    // seq($.specparam_identifier, optseq('[', $._constant_range_expression, ']')),
+    // $.genvar_identifier,
+    // seq($.formal_port_identifier, optional($.constant_select1)),
+    // seq(optional(choice($.package_scope, $.class_scope)), $.enum_identifier),
+    seq($.constant_concatenation, optseq('[', $._constant_range_expression, ']')),
+    seq($.constant_multiple_concatenation, optseq('[', $._constant_range_expression, ']')),
+    // $.constant_function_call,
+    // $._constant_let_expression,
     seq('(', $.constant_mintypmax_expression, ')'),
-    $.constant_cast,
-    // $.constant_assignment_pattern_expression,
+    // $.constant_cast,
+    // // $.constant_assignment_pattern_expression,
     $.type_reference,
     'null'
   ),
@@ -4255,11 +4237,11 @@ const rules = {
 
   primary: $ => choice(
     $.primary_literal,
-    prec.left(100, seq(
+    seq(
       optional(choice($.class_qualifier, $.package_scope)),
       $.hierarchical_identifier,
       optional($.select1)
-    )),
+    ),
     $.empty_unpacked_array_concatenation,
     seq($.concatenation, optseq('[', $.range_expression, ']')),
     seq($.multiple_concatenation, optseq('[', $.range_expression, ']')),
@@ -4332,10 +4314,13 @@ const rules = {
       optseq('[', $._part_select_range, ']')
     )),
     prec.left(PREC.PARENT, seq( // 01x
+      //
       $.bit_select1,
       optseq('[', $._part_select_range, ']')
     )),
     prec.left(PREC.PARENT, seq( // 001
+      //
+      //
       seq('[', $._part_select_range, ']')
     ))
   ),
@@ -4405,10 +4390,10 @@ const rules = {
       optional($.select1)
     )),
     prec.left(PREC.CONCAT, seq('{', sep1(',', $.variable_lvalue), '}')),
-    seq(
+    prec.left(PREC.ASSIGN, seq(
       optional($._assignment_pattern_expression_type),
       $.assignment_pattern_variable_lvalue
-    ),
+    )),
     $.streaming_concatenation
   ),
 
@@ -4834,8 +4819,8 @@ module.exports = grammar({
     [$.property_spec, $.property_expr],
     [$.property_expr, $.sequence_expr],
 
-    [$.bit_select1, $.select1],
-    [$.nonrange_select1, $.select1],
+    [$.select1, $.bit_select1],
+    [$.select1, $.nonrange_select1],
     //
     [$.class_method, $.constraint_prototype_qualifier],
     [$.class_method, $.method_qualifier],
@@ -4849,7 +4834,7 @@ module.exports = grammar({
 
     [$.list_of_interface_identifiers, $.net_decl_assignment],
 
-    [$.data_type, $.class_type, $.tf_port_item1],
+    [$.class_type, $.tf_port_item1, $.data_type],
 
     [$.net_port_type1, $.interface_port_header, $.data_type, $.class_type],
     [$.net_port_type1, $.data_type, $.class_type],
@@ -4885,39 +4870,65 @@ module.exports = grammar({
     [$.deferred_immediate_assertion_item, $.generate_block_identifier, $.concurrent_assertion_item],
 
     [$.variable_lvalue, $.clockvar],
-    [$.combinational_entry, $._seq_input_list]
-
+    [$.combinational_entry, $._seq_input_list],
   ]
     .concat(combi([
       $.constant_primary,
-      $._simple_type,
+      $.primary,
+      $.let_expression,
+      $.tf_call,
+      $.select_expression,
+    ]))
+    .concat(combi([
+      $.constant_primary,
+      // $._simple_type,
       $.primary,
       $.variable_lvalue,
       $.net_lvalue,
-      $.data_type,
       $.port_reference,
-      $.class_type,
       $.sequence_instance,
       $.let_expression,
+      // $.pattern,
       $.tf_call,
-      $.terminal_identifier,
-      $.select_expression,
+      // $.terminal_identifier,
+      // $.select_expression,
       $.generate_block_identifier,
       $._sequence_identifier,
       $._assignment_pattern_expression_type,
       $.list_of_arguments_parent,
+      $.module_path_primary,
+      $.data_type,
+      $.class_type,
+    ]))
+    .concat(combi([
+      $.primary, // +
+      $.sequence_instance, // +
+      $.let_expression, // ++
+      $.tf_call, // ++
+      $.terminal_identifier, // ++
+      $._sequence_identifier, // +
+    ]))
+    .concat(combi([
+      $.variable_lvalue,
+      $.net_lvalue,
+    ]))
+    .concat(combi([
+      $.constant_primary,
+      $._simple_type,
+      $.primary,
+      $.generate_block_identifier,
     ]))
     .concat(combi([
       $.module_instantiation,
       $.net_declaration,
-      $.data_type,
       $.net_type_declaration,
-      $.class_type,
       $.interface_port_declaration,
       $.interface_instantiation,
       $.program_instantiation,
       $.udp_instantiation,
       $.checker_instantiation,
+      $.data_type,
+      $.class_type,
     ]))
     .concat(combi([
       $.variable_lvalue,
@@ -4932,10 +4943,10 @@ module.exports = grammar({
     ]))
     .concat(combi([
       $.constant_primary,
-      $.data_type,
       $._simple_type,
       $._assignment_pattern_expression_type,
-      $.class_qualifier
+      $.class_qualifier,
+      $.data_type,
     ]))
     .concat(combi([
       $._constant_range_expression,
@@ -4968,9 +4979,9 @@ module.exports = grammar({
     ]))
     .concat(combi([
       $.primary,
-      $.primary_literal,
       $.module_path_primary,
-      $.constant_function_call
+      $.constant_function_call,
+      $.primary_literal,
     ]))
 });
 

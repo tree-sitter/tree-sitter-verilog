@@ -2673,25 +2673,6 @@
     }
   },
   {
-    "type": "constant_cast",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "casting_type",
-          "named": true
-        },
-        {
-          "type": "constant_expression",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "constant_concatenation",
     "named": true,
     "fields": {},
@@ -2728,21 +2709,6 @@
         },
         {
           "type": "unary_operator",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "constant_function_call",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "function_subroutine_call",
           "named": true
         }
       ]
@@ -2829,19 +2795,11 @@
           "named": true
         },
         {
-          "type": "constant_cast",
-          "named": true
-        },
-        {
           "type": "constant_concatenation",
           "named": true
         },
         {
           "type": "constant_expression",
-          "named": true
-        },
-        {
-          "type": "constant_function_call",
           "named": true
         },
         {
@@ -2865,23 +2823,7 @@
           "named": true
         },
         {
-          "type": "enum_identifier",
-          "named": true
-        },
-        {
-          "type": "formal_port_identifier",
-          "named": true
-        },
-        {
           "type": "generate_block_identifier",
-          "named": true
-        },
-        {
-          "type": "genvar_identifier",
-          "named": true
-        },
-        {
-          "type": "let_expression",
           "named": true
         },
         {
@@ -2894,10 +2836,6 @@
         },
         {
           "type": "primary_literal",
-          "named": true
-        },
-        {
-          "type": "specparam_identifier",
           "named": true
         },
         {

@@ -202,25 +202,24 @@ assign - concatenation RHS
 ============================================
 
 module mod ();
-  assign a = {b,c , d};
+  assign a = {b,c , d };
 endmodule
 
 ----
 
 (source_file (module_declaration
- (module_header (module_keyword) (simple_identifier))
- (module_nonansi_header (list_of_ports))
- (module_or_generate_item (continuous_assign
-   (list_of_net_assignments (net_assignment
-       (net_lvalue (simple_identifier))
-     )
-     (expression (primary (concatenation
-       (expression (primary (simple_identifier)))
-       (expression (primary (simple_identifier)))
-       (expression (primary (simple_identifier)))
-     )))
-   ))
- ))
+  (module_header (module_keyword) (simple_identifier))
+  (module_nonansi_header (list_of_ports))
+  (module_or_generate_item (continuous_assign
+    (list_of_net_assignments (net_assignment
+      (net_lvalue (simple_identifier))
+      (expression (primary (concatenation
+        (expression (primary (simple_identifier)))
+        (expression (primary (simple_identifier)))
+        (expression (primary (simple_identifier)))
+      )))
+    ))
+  ))
 ))
 
 ============================================

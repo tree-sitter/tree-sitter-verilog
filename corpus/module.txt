@@ -416,13 +416,7 @@ endmodule
           (param_assignment
             (parameter_identifier (simple_identifier))
             (constant_param_expression
-              (constant_mintypmax_expression
-                (constant_expression (constant_primary
-
-                  (parameter_identifier (simple_identifier))
-
-                ))
-              )
+              (data_type (simple_identifier))
             )
           )
         )))
