@@ -11,9 +11,13 @@ const tspath = path.resolve(
   process.cwd(), './node_modules/tree-sitter-cli', 'tree-sitter' + ext
 );
 
+const gyppath = path.resolve(
+  process.cwd(), './node_modules/node-gyp/bin/node-gyp.js'
+);
+
 const gyp = cb => {
   console.log('build');
-  const proc = cp.spawn('node-gyp' + ext, ['configure', 'build']);
+  const proc = cp.spawn('node', [gyppath, 'configure', 'build']);
   proc.stderr.on('data', data => {
     console.error(data.toString());
   });
