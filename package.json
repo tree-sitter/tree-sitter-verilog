@@ -29,8 +29,7 @@
     "example": "examples"
   },
   "scripts": {
-    "install": "node bin/install.js",
-    "prepare": "node bin/install.js",
+    "build": "tree-sitter generate && node-gyp build",
     "wasm": "tree-sitter generate --next-abi && tree-sitter build-wasm",
     "generate": "tree-sitter generate",
     "test": "tree-sitter test"
@@ -43,8 +42,7 @@
     "eslint": "^7.21.0",
     "fs-extra": "^9.1.0",
     "tree-sitter": "^0.18.1",
-    "tree-sitter-cli": "^0.18.3",
-    "node-gyp": "^8.1.0"
+    "tree-sitter-cli": "^0.18.3"
   },
   "eslintConfig": {
     "extends": "@drom/eslint-config/eslint4/node8"
