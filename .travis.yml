@@ -7,7 +7,6 @@ node_js:
 os:
   - linux
   - osx
-dist: bionic
 sudo: false
 install:
   - g++ --version
