@@ -2980,6 +2980,7 @@ const rules = {
     seq($.blocking_assignment, ';'),
     seq($.nonblocking_assignment, ';'),
     seq($.procedural_continuous_assignment, ';'),
+    seq($.system_tf_call, ';'),
     $.case_statement,
     $.conditional_statement,
     seq($.inc_or_dec_expression, ';'),
