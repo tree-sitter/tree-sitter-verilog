@@ -53,7 +53,9 @@ function main () {
   const parser = new Parser();
   parser.setLanguage(verilog);
 
-  const root = path.resolve(process.cwd(), 'uvm', '1800.2-2017-1.0', 'src');
+  // const root = path.resolve(process.cwd(), 'uvm', '1800.2-2017-1.0', 'src');
+  const root = path.resolve(process.cwd(), 'uvm', '1800.2-2020-1.1', 'src');
+
   fs.pathExists(root).then(exists => {
     let idx = 0;
     let errors = 0;
