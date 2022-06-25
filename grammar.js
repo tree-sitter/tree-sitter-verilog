@@ -130,12 +130,7 @@ const rules = {
 
   default_text: $ => /\w+/,
 
-  macro_text: $ => /(\\(.|\r?\n)|[^\\\n])*/,
-
-  text_macro_name: $ => seq(
-    $.text_macro_identifier,
-    optseq('(', $.list_of_formal_arguments, ')')
-  ),
+  macro_text: $ => token(prec(-1, repeat1(/.|\\\r?\n/))),
 
   list_of_formal_arguments: $ => sep1(',', $.formal_argument),
 
@@ -146,13 +141,26 @@ const rules = {
 
   text_macro_identifier: $ => $._identifier,
 
-  /* 22-5 define */
+  text_macro_argument_definition: $ => seq(
+    directive('define'),
+    $.text_macro_identifier,
+    token.immediate('('),
+    $.list_of_formal_arguments,
+    ')',
+    optional($.macro_text),
+    '\n'
+  ),
 
   text_macro_definition: $ => seq(
     directive('define'),
-    $.text_macro_name,
+    $.text_macro_identifier,
     optional($.macro_text),
     '\n'
+  ),
+
+  define_compiler_directive: $ => choice(
+    $.text_macro_definition,
+    $.text_macro_argument_definition
   ),
 
   /* 22-3 usage */
@@ -241,7 +249,7 @@ const rules = {
   _directives: $ => choice(
     $.line_compiler_directive,
     $.include_compiler_directive,
-    $.text_macro_definition,
+    $.define_compiler_directive,
     $.text_macro_usage,
     $.id_directive,
     $.zero_directive,

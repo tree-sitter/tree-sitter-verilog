@@ -1914,6 +1914,10 @@
           "named": true
         },
         {
+          "type": "define_compiler_directive",
+          "named": true
+        },
+        {
           "type": "id_directive",
           "named": true
         },
@@ -1931,10 +1935,6 @@
         },
         {
           "type": "parameter_declaration",
-          "named": true
-        },
-        {
-          "type": "text_macro_definition",
           "named": true
         },
         {
@@ -3836,6 +3836,25 @@
         },
         {
           "type": "statement_or_null",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "define_compiler_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "text_macro_argument_definition",
+          "named": true
+        },
+        {
+          "type": "text_macro_definition",
           "named": true
         }
       ]
@@ -7651,6 +7670,10 @@
           "named": true
         },
         {
+          "type": "define_compiler_directive",
+          "named": true
+        },
+        {
           "type": "escaped_identifier",
           "named": true
         },
@@ -7712,10 +7735,6 @@
         },
         {
           "type": "specparam_declaration",
-          "named": true
-        },
-        {
-          "type": "text_macro_definition",
           "named": true
         },
         {
@@ -11273,6 +11292,10 @@
           "named": true
         },
         {
+          "type": "define_compiler_directive",
+          "named": true
+        },
+        {
           "type": "id_directive",
           "named": true
         },
@@ -11306,10 +11329,6 @@
         },
         {
           "type": "program_declaration",
-          "named": true
-        },
-        {
-          "type": "text_macro_definition",
           "named": true
         },
         {
@@ -11715,6 +11734,10 @@
           "named": true
         },
         {
+          "type": "system_tf_call",
+          "named": true
+        },
+        {
           "type": "wait_statement",
           "named": true
         }
@@ -12050,6 +12073,29 @@
     }
   },
   {
+    "type": "text_macro_argument_definition",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "list_of_formal_arguments",
+          "named": true
+        },
+        {
+          "type": "macro_text",
+          "named": true
+        },
+        {
+          "type": "text_macro_identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "text_macro_definition",
     "named": true,
     "fields": {},
@@ -12062,7 +12108,7 @@
           "named": true
         },
         {
-          "type": "text_macro_name",
+          "type": "text_macro_identifier",
           "named": true
         }
       ]
@@ -12082,25 +12128,6 @@
         },
         {
           "type": "simple_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "text_macro_name",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "list_of_formal_arguments",
-          "named": true
-        },
-        {
-          "type": "text_macro_identifier",
           "named": true
         }
       ]
