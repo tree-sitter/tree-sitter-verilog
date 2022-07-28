@@ -36,7 +36,7 @@
     "test": "tree-sitter test"
   },
   "dependencies": {
-    "nan": "^2.15.0"
+    "nan": "^2.16.0"
   },
   "devDependencies": {
     "@drom/eslint-config": "^0.10.0",

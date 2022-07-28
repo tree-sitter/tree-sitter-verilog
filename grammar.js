@@ -1150,7 +1150,7 @@ const rules = {
       optional('const'),
       optional('var'),
       optional($.lifetime),
-      optional($.data_type_or_implicit1),
+      $.data_type_or_implicit1,
       $.list_of_variable_decl_assignments,
       ';'
     ),
@@ -3396,9 +3396,10 @@ const rules = {
     $.delay_control
   ),
 
-  clocking_drive: $ => prec.left(PREC.ASSIGN,
-    seq($.clockvar_expression, '<=', optional($.cycle_delay), $.expression)
-  ),
+  clocking_drive: $ => prec.left(PREC.ASSIGN, choice(
+      seq($.variable_lvalue, '<=', $.cycle_delay, $.expression),
+      seq($.cycle_delay, $.clockvar_expression, '<=', $.expression)
+  )),
 
   cycle_delay: $ => prec.left(seq('##', choice(
     $.integral_number,
@@ -4870,7 +4871,6 @@ module.exports = grammar({
 
     [$.deferred_immediate_assertion_item, $.generate_block_identifier, $.concurrent_assertion_item],
 
-    [$.variable_lvalue, $.clockvar],
     [$.combinational_entry, $._seq_input_list],
   ]
     .concat(combi([
