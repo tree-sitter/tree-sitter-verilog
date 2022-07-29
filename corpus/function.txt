@@ -17,3 +17,30 @@ endfunction
     )
   ))
 ))
+
+============================================
+function - assign to bitslice
+============================================
+
+function int foo;
+  foo[7:0] = 8'd0;
+endfunction
+
+----
+
+(source_file (package_or_generate_item_declaration
+  (function_declaration (function_body_declaration
+  (function_data_type_or_implicit1 (data_type_or_void (data_type (integer_atom_type))))
+  (function_identifier (function_identifier (simple_identifier)))
+  (function_statement_or_null (function_statement (statement (statement_item
+    (blocking_assignment (operator_assignment
+      (variable_lvalue (simple_identifier)
+        (select1 (constant_range
+          (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number))))))
+          (constant_expression (constant_primary (primary_literal (integral_number (decimal_number (unsigned_number)))))))))
+      (assignment_operator)
+      (expression (primary (primary_literal (integral_number (decimal_number)))))
+    ))
+  ))))
+  ))
+))
