@@ -11715,6 +11715,10 @@
           "named": true
         },
         {
+          "type": "system_tf_call",
+          "named": true
+        },
+        {
           "type": "wait_statement",
           "named": true
         }
