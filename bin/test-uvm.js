@@ -34,7 +34,7 @@ function inspect (root) {
     if (node.type === 'ERROR') {
       errors += 1;
     } else
-    if (node.type === 'MISSING') {
+    if (node.isMissing()) {
       missing += 1;
     }
     const childCount = node.childCount;
