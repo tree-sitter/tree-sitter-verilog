@@ -4,3 +4,4 @@ package-lock.json
 *.log
 uvm
 *.tar.gz
+.build/
