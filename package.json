@@ -29,8 +29,7 @@
     "example": "examples"
   },
   "scripts": {
-    "install": "node bin/install.js",
-    "prepare": "node bin/install.js",
+    "build": "tree-sitter generate && node-gyp build",
     "wasm": "tree-sitter generate --next-abi && tree-sitter build-wasm",
     "generate": "tree-sitter generate",
     "test": "tree-sitter test"
