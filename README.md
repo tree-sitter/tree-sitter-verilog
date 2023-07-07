@@ -5,7 +5,7 @@
 
 # tree-sitter-verilog
 
-StemVerilog grammar for [tree-sitter](https://github.com/tree-sitter/tree-sitter).
+SystemVerilog grammar for [tree-sitter](https://github.com/tree-sitter/tree-sitter).
 
 ## References
   * https://en.wikipedia.org/wiki/Verilog
