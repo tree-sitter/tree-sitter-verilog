@@ -1,3 +1,11 @@
+/* eslint-disable arrow-parens */
+/* eslint-disable camelcase */
+/* eslint-disable-next-line spaced-comment */
+/* eslint-disable-no-undef */
+/* eslint-disable-no-unused-vars */
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
+
 'use strict';
 
 const PREC = {
@@ -40,22 +48,37 @@ const PREC = {
   // sync_accept_on, sync_reject_on
 };
 
-function optseq() {
-  return optional(prec.left(seq.apply(null, arguments)));
+/**
+ *
+ * @param {(Rule|string|RegExp)[]} rules
+ *
+ * @return {ChoiceRule}
+ *
+ */
+function optseq(...rules) {
+  return optional(prec.left(seq(...rules)));
 }
 
-function repseq() {
-  return repeat(prec.left(seq.apply(null, arguments)));
+/**
+ *
+ * @param {(Rule|string|RegExp)[]} rules
+ *
+ * @return {RepeatRule}
+ *
+ */
+function repseq(...rules) {
+  return repeat(prec.left(seq(...rules)));
 }
 
-function commaSep(rule) {
-  return optional(sep1(',', rule));
-}
-
-function commaSep1(rule) {
-  return seq(rule, repseq(',', rule));
-}
-
+/**
+ * Creates a rule to match one or more of the rules separated by the separator
+ *
+ * @param {string} separator - The separator to use.
+ * @param {Rule} rule
+ *
+ * @return {PrecLeftRule}
+ *
+ */
 function sep1(separator, rule) {
   return prec.left(seq(
     rule,
@@ -63,6 +86,15 @@ function sep1(separator, rule) {
   ));
 }
 
+/**
+ *
+ * @param {number} precedence
+ * @param {string} separator
+ * @param {Rule} rule
+ *
+ * @returns {PrecLeftRule}
+ *
+ */
 function psep1(precedence, separator, rule) {
   return prec.left(precedence, seq(
     rule,
@@ -70,33 +102,41 @@ function psep1(precedence, separator, rule) {
   ));
 }
 
-function exprOp ($, prior, ops) {
+/**
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {number} prior
+ * @param {Rule|string} ops
+ *
+ * @returns {PrecLeftRule}
+ *
+ */
+function exprOp($, prior, ops) {
   return prec.left(prior, seq($.expression, ops, repeat($.attribute_instance), $.expression));
 }
 
-function constExprOp ($, prior, ops) {
+/**
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {number} prior
+ * @param {Rule|string} ops
+ *
+ * @returns {PrecLeftRule}
+ *
+ */
+function constExprOp($, prior, ops) {
   return prec.left(prior, seq($.constant_expression, ops, repeat($.attribute_instance), $.constant_expression));
 }
 
-function directive (command) {
+/**
+ *
+ * @param {string} command 
+ *
+ * @returns {AliasRule}
+ *
+ */
+function directive(command) {
   return alias(new RegExp('`' + command), 'directive_' + command);
-}
-
-
-function combi (arr) {
-  const len = arr.length;
-  const len2 = Math.pow(2, len);
-  const res = [];
-  for (let i = 3; i <= len2; i++) {
-    const e = [];
-    for (let j = 0; j < len; j++) {
-      if ((i >> j) & 1) {
-        e.push(arr[j]);
-      }
-    }
-    res.push(e);
-  }
-  return res;
 }
 
 /*
@@ -2052,7 +2092,7 @@ const rules = {
   ),
 
   sequence_expr: $ => choice(
-    prec.left(sep1(',', $.cycle_delay_range, $.sequence_expr)), // FIXME precedence?
+    prec.left(sep1(',', $.cycle_delay_range)), // FIXME precedence?
     prec.left(PREC.SHARP2, seq($.sequence_expr, repeat1(seq($.cycle_delay_range, $.sequence_expr)))),
     seq($.expression_or_dist, optional($._boolean_abbrev)),
     seq($.sequence_instance, optional($.sequence_abbrev)),
@@ -4769,223 +4809,186 @@ module.exports = grammar({
   ],
 
   conflicts: $ => [
-
     [$.constant_primary, $.primary],
-    [$.primary, $.implicit_class_handle],
-    [$.primary, $.constant_function_call],
-    [$.primary, $.param_expression],
-    [$.primary, $._constant_let_expression],
+    [$.implicit_class_handle, $.primary],
+    [$.param_expression, $.primary],
     [$.primary, $.queue_dimension],
-
-    [$._module_common_item, $._checker_or_generate_item],
-    [$._module_common_item, $._checker_generate_item],
-
+    [$._checker_or_generate_item, $._module_common_item],
+    [$._checker_generate_item, $._module_common_item],
     [$.dpi_function_import_property, $.dpi_task_import_property],
-
-    [$.package_or_generate_item_declaration, $.checker_or_generate_item_declaration],
+    [$.checker_or_generate_item_declaration, $.package_or_generate_item_declaration],
     [$._module_or_generate_item_declaration, $.checker_or_generate_item_declaration],
-
-    [$.module_or_generate_item, $.interface_or_generate_item],
-    [$.method_call_body, $.array_method_name],
+    [$.interface_or_generate_item, $.module_or_generate_item],
+    [$.array_method_name, $.method_call_body],
     [$.constraint_set, $.empty_unpacked_array_concatenation],
-    [$.interface_declaration, $._non_port_interface_item],
-    [$.program_declaration, $.non_port_program_item],
-    [$.list_of_ports, $.list_of_port_declarations],
-
-    [$.mintypmax_expression, $.expression_or_dist],
-
+    [$._non_port_interface_item, $.interface_declaration],
+    [$.non_port_program_item, $.program_declaration],
+    [$.list_of_port_declarations, $.list_of_ports],
+    [$.expression_or_dist, $.mintypmax_expression],
     [$.class_constructor_declaration, $.implicit_class_handle],
-    [$.statement_or_null, $.action_block],
-
-    //
-    [$.port_reference, $.ansi_port_declaration],
-    [$.port, $.ansi_port_declaration],
+    [$.action_block, $.statement_or_null],
+    [$.ansi_port_declaration, $.port_reference],
+    [$.ansi_port_declaration, $.port],
     [$.net_port_header1, $.variable_port_header],
-    [$.ansi_port_declaration, $._variable_dimension],
-
-    [$.module_declaration, $._non_port_module_item],
+    [$._variable_dimension, $.ansi_port_declaration],
+    [$._non_port_module_item, $.module_declaration],
     [$._expression_or_cond_pattern, $.tagged_union_expression],
-    [$.pattern, $.tagged_union_expression],
-
-    [$.mintypmax_expression, $._covergroup_expression],
-    [$.concatenation, $._covergroup_expression],
-
-    [$.concatenation, $.stream_expression],
-
+    [$._covergroup_expression, $.mintypmax_expression],
+    [$._covergroup_expression, $.concatenation],
     [$.delay2, $.delay_control],
     [$.delay3, $.delay_control],
     [$.delay_control, $.param_expression],
     [$.delay2, $.delay_control, $.param_expression],
-
-    [$.property_spec, $.property_expr],
+    [$.property_expr, $.property_spec],
     [$.property_expr, $.sequence_expr],
-
-    [$.select1, $.bit_select1],
-    [$.select1, $.nonrange_select1],
-    //
+    [$.nonrange_select1, $.select1],
     [$.class_method, $.constraint_prototype_qualifier],
     [$.class_method, $.method_qualifier],
-    //
-    [$.bind_target_scope, $.bind_target_instance],
+    [$.bind_target_instance, $.bind_target_scope],
     [$.class_type, $.package_scope],
-
-    [$.data_type_or_implicit1, $._var_data_type],
+    [$._var_data_type, $.data_type_or_implicit1],
     [$.list_of_port_identifiers, $.list_of_variable_identifiers],
     [$.list_of_port_identifiers, $.list_of_variable_port_identifiers],
-
-    [$.list_of_interface_identifiers, $.net_decl_assignment],
-
-    [$.class_type, $.tf_port_item1, $.data_type],
-
-    [$.net_port_type1, $.interface_port_header, $.data_type, $.class_type],
-    [$.net_port_type1, $.data_type, $.class_type],
-
-    [$.list_of_port_identifiers, $._variable_dimension],
-
-
-    [$.property_expr, $._sequence_actual_arg],
-
-    [$.event_control, $._hierarchical_event_identifier, $._sequence_identifier],
-    [$.event_control, $._hierarchical_event_identifier],
-
-    [$.sequence_list_of_arguments, $.let_list_of_arguments],
-
+    [$.class_type, $.data_type, $.tf_port_item1],
+    [$.class_type, $.data_type, $.interface_port_header, $.net_port_type1],
+    [$.class_type, $.data_type, $.net_port_type1],
+    [$._variable_dimension, $.list_of_port_identifiers],
+    [$._sequence_actual_arg, $.property_expr],
+    [$._hierarchical_event_identifier, $._sequence_identifier, $.event_control],
+    [$._hierarchical_event_identifier, $.event_control],
+    [$.let_list_of_arguments, $.sequence_list_of_arguments],
     [$.input_identifier, $.output_identifier],
-
     [$.constant_primary, $.path_delay_expression],
-    [$.unary_operator, $.scalar_timing_check_condition],
+    [$.scalar_timing_check_condition, $.unary_operator],
     [$.mintypmax_expression, $.scalar_timing_check_condition],
-
     [$.delayed_data, $.delayed_reference],
-    [$.system_tf_call, $.list_of_arguments_parent],
+    [$.list_of_arguments_parent, $.system_tf_call],
     [$.class_item_qualifier, $.lifetime],
     [$._property_qualifier, $.method_qualifier],
     [$.class_property, $.data_type_or_implicit1],
-
-    [$.mintypmax_expression, $.list_of_arguments_parent],
-
+    [$.list_of_arguments_parent, $.mintypmax_expression],
     [$.module_path_primary, $.tf_call],
-
-    [$.package_declaration, $._package_item],
-
-    [$.deferred_immediate_assertion_item, $.generate_block_identifier, $.concurrent_assertion_item],
-
-    [$.variable_lvalue, $.clockvar],
-    [$.combinational_entry, $._seq_input_list],
-  ]
-    .concat(combi([
-      $.constant_primary,
-      $.primary,
-      $.let_expression,
-      $.tf_call,
-      $.select_expression,
-    ]))
-    .concat(combi([
-      $.constant_primary,
-      // $._simple_type,
-      $.primary,
-      $.variable_lvalue,
-      $.net_lvalue,
-      $.port_reference,
-      $.sequence_instance,
-      $.let_expression,
-      // $.pattern,
-      $.tf_call,
-      // $.terminal_identifier,
-      // $.select_expression,
-      $.generate_block_identifier,
-      $._sequence_identifier,
-      $._assignment_pattern_expression_type,
-      $.list_of_arguments_parent,
-      $.module_path_primary,
-      $.data_type,
-      $.class_type,
-    ]))
-    .concat(combi([
-      $.primary, // +
-      $.sequence_instance, // +
-      $.let_expression, // ++
-      $.tf_call, // ++
-      $.terminal_identifier, // ++
-      $._sequence_identifier, // +
-    ]))
-    .concat(combi([
-      $.variable_lvalue,
-      $.net_lvalue,
-    ]))
-    .concat(combi([
-      $.constant_primary,
-      $._simple_type,
-      $.primary,
-      $.generate_block_identifier,
-    ]))
-    .concat(combi([
-      $.module_instantiation,
-      $.net_declaration,
-      $.net_type_declaration,
-      $.interface_port_declaration,
-      $.interface_instantiation,
-      $.program_instantiation,
-      $.udp_instantiation,
-      $.checker_instantiation,
-      $.data_type,
-      $.class_type,
-    ]))
-    .concat(combi([
-      $.variable_lvalue,
-      $.nonrange_variable_lvalue,
-      $._method_call_root,
-      $.class_qualifier
-    ]))
-    .concat(combi([
-      $.variable_decl_assignment,
-      $.packed_dimension,
-      $._variable_dimension
-    ]))
-    .concat(combi([
-      $.constant_primary,
-      $._simple_type,
-      $._assignment_pattern_expression_type,
-      $.class_qualifier,
-      $.data_type,
-    ]))
-    .concat(combi([
-      $._constant_range_expression,
-      // $.constant_bit_select1,
-      $.constant_select1,
-      $.unpacked_dimension,
-    ]))
-    .concat(combi([
-      $.packed_dimension,
-      $.unpacked_dimension,
-      $._constant_part_select_range,
-      $._part_select_range
-    ]))
-    .concat(combi([
-      $.inout_port_identifier, $.input_port_identifier, $.output_port_identifier
-    ]))
-    .concat(combi([
-      $.named_port_connection,
-      $.hierarchical_instance,
-      $.checker_instantiation
-    ]))
-    .concat(combi([
-      $.named_port_connection,
-      $.ordered_port_connection,
-      $._sequence_actual_arg,
-      $.expression_or_dist,
-      $.let_actual_arg,
-      $.list_of_arguments_parent,
-      $.event_expression,
-    ]))
-    .concat(combi([
-      $.primary,
-      $.module_path_primary,
-      $.constant_function_call,
-      $.primary_literal,
-    ]))
+    [$._package_item, $.package_declaration],
+    [$.concurrent_assertion_item, $.deferred_immediate_assertion_item, $.generate_block_identifier],
+    [$.clockvar, $.variable_lvalue],
+    [$._seq_input_list, $.combinational_entry],
+    [$.constant_primary, $.primary],
+    [$.let_expression, $.primary],
+    [$.constant_primary, $.let_expression, $.primary],
+    [$.primary, $.tf_call],
+    [$.let_expression, $.primary, $.tf_call],
+    [$.constant_primary, $.let_expression, $.primary, $.tf_call],
+    [$.let_expression, $.primary, $.select_expression, $.tf_call],
+    [$.constant_primary, $.let_expression, $.primary, $.select_expression, $.tf_call],
+    [$.constant_primary, $.primary],
+    [$.primary, $.variable_lvalue],
+    [$.constant_primary, $.net_lvalue],
+    [$.net_lvalue, $.variable_lvalue],
+    [$.constant_primary, $.port_reference],
+    [$.let_expression, $.primary],
+    [$.constant_primary, $.let_expression, $.primary],
+    [$.let_expression, $.primary, $.variable_lvalue],
+    [$.constant_primary, $.let_expression, $.primary, $.variable_lvalue],
+    [$.primary, $.tf_call],
+    [$.primary, $.tf_call, $.variable_lvalue],
+    [$.net_lvalue, $.primary, $.tf_call, $.variable_lvalue],
+    [$.primary, $.sequence_instance, $.tf_call],
+    [$.net_lvalue, $.primary, $.sequence_instance, $.tf_call],
+    [$.let_expression, $.primary, $.tf_call],
+    [$.constant_primary, $.let_expression, $.primary, $.tf_call],
+    [$.let_expression, $.primary, $.tf_call, $.variable_lvalue],
+    [$.constant_primary, $.let_expression, $.primary, $.tf_call, $.variable_lvalue],
+    [$.let_expression, $.port_reference, $.primary, $.tf_call],
+    [$.constant_primary, $.let_expression, $.port_reference, $.primary, $.tf_call, $.variable_lvalue],
+    [$.constant_primary, $.generate_block_identifier],
+    [$.constant_primary, $.generate_block_identifier, $.primary, $.sequence_instance, $.tf_call],
+    [$.constant_primary, $.generate_block_identifier, $.primary, $.sequence_instance, $.tf_call, $.variable_lvalue],
+    [$.constant_primary, $.generate_block_identifier, $.port_reference, $.primary, $.sequence_instance, $.tf_call, $.variable_lvalue],
+    [$._sequence_identifier, $.let_expression],
+    [$._sequence_identifier, $.let_expression, $.primary],
+    [$._sequence_identifier, $.constant_primary, $.let_expression, $.primary],
+    [$._sequence_identifier, $.let_expression, $.primary, $.variable_lvalue],
+    [$._sequence_identifier, $.let_expression, $.sequence_instance, $.tf_call],
+    [$._sequence_identifier, $.let_expression, $.primary, $.sequence_instance, $.tf_call],
+    [$._sequence_identifier, $.constant_primary, $.let_expression, $.primary, $.sequence_instance, $.tf_call],
+    [$._sequence_identifier, $.generate_block_identifier, $.let_expression, $.primary, $.sequence_instance, $.tf_call],
+    [$._sequence_identifier, $.generate_block_identifier, $.let_expression, $.primary, $.sequence_instance, $.tf_call, $.variable_lvalue],
+    [$._sequence_identifier, $.generate_block_identifier, $.let_expression, $.net_lvalue, $.primary, $.sequence_instance, $.tf_call, $.variable_lvalue],
+    [$._assignment_pattern_expression_type, $.variable_lvalue],
+    [$._assignment_pattern_expression_type, $.let_expression, $.primary],
+    [$._assignment_pattern_expression_type, $.let_expression, $.primary, $.tf_call],
+    [$.list_of_arguments_parent, $.sequence_instance],
+    [$.let_expression, $.list_of_arguments_parent],
+    [$.let_expression, $.list_of_arguments_parent, $.sequence_instance],
+    [$.module_path_primary, $.primary],
+    [$.module_path_primary, $.tf_call],
+    [$.constant_primary, $.module_path_primary, $.tf_call],
+    [$.constant_primary, $.let_expression, $.module_path_primary, $.primary, $.tf_call],
+    [$.constant_primary, $.let_expression, $.module_path_primary, $.primary, $.tf_call, $.variable_lvalue],
+    [$.constant_primary, $.data_type],
+    [$.constant_primary, $.data_type, $.generate_block_identifier],
+    [$.constant_primary, $.data_type, $.generate_block_identifier, $.primary, $.sequence_instance, $.tf_call, $.variable_lvalue],
+    [$.class_type, $.data_type],
+    [$.class_type, $.constant_primary, $.data_type],
+    [$.class_type, $.data_type, $.let_expression, $.primary],
+    [$.class_type, $.constant_primary, $.data_type, $.let_expression, $.primary],
+    [$.class_type, $.data_type, $.let_expression, $.primary, $.tf_call],
+    [$.class_type, $.constant_primary, $.data_type, $.let_expression, $.primary, $.tf_call],
+    [$.let_expression, $.primary],
+    [$.primary, $.tf_call],
+    [$.primary, $.sequence_instance, $.tf_call],
+    [$.let_expression, $.primary, $.tf_call],
+    [$.let_expression, $.primary, $.terminal_identifier, $.tf_call],
+    [$._sequence_identifier, $.let_expression],
+    [$._sequence_identifier, $.let_expression, $.primary],
+    [$._sequence_identifier, $.let_expression, $.sequence_instance, $.tf_call],
+    [$._sequence_identifier, $.let_expression, $.primary, $.sequence_instance, $.tf_call],
+    [$._sequence_identifier, $.let_expression, $.sequence_instance, $.terminal_identifier, $.tf_call],
+    [$.net_lvalue, $.variable_lvalue],
+    [$._simple_type, $.constant_primary],
+    [$.constant_primary, $.primary],
+    [$.constant_primary, $.generate_block_identifier],
+    [$.interface_instantiation, $.program_instantiation],
+    [$.interface_instantiation, $.module_instantiation, $.program_instantiation],
+    [$.data_type, $.net_type_declaration],
+    [$.class_type, $.data_type],
+    [$.class_type, $.data_type, $.net_declaration],
+    [$.class_type, $.data_type, $.net_type_declaration],
+    [$.checker_instantiation, $.class_type, $.data_type],
+    [$.checker_instantiation, $.class_type, $.data_type, $.net_declaration],
+    [$.checker_instantiation, $.class_type, $.data_type, $.interface_port_declaration, $.net_declaration],
+    [$.checker_instantiation, $.class_type, $.data_type, $.interface_instantiation, $.net_declaration, $.program_instantiation],
+    [$.checker_instantiation, $.class_type, $.data_type, $.interface_instantiation, $.interface_port_declaration, $.net_declaration, $.program_instantiation],
+    [$.checker_instantiation, $.class_type, $.data_type, $.interface_instantiation, $.module_instantiation, $.net_declaration, $.program_instantiation, $.udp_instantiation],
+    [$.checker_instantiation, $.class_type, $.data_type, $.interface_instantiation, $.interface_port_declaration, $.module_instantiation, $.net_declaration, $.program_instantiation, $.udp_instantiation],
+    [$.nonrange_variable_lvalue, $.variable_lvalue],
+    [$._method_call_root, $.class_qualifier],
+    [$._variable_dimension, $.variable_decl_assignment],
+    [$._variable_dimension, $.packed_dimension],
+    [$._variable_dimension, $.packed_dimension, $.variable_decl_assignment],
+    [$._simple_type, $.constant_primary],
+    [$._assignment_pattern_expression_type, $._simple_type, $.class_qualifier, $.constant_primary],
+    [$.constant_primary, $.data_type],
+    [$._assignment_pattern_expression_type, $._simple_type, $.class_qualifier, $.constant_primary, $.data_type],
+    [$.constant_select1, $.unpacked_dimension],
+    [$.packed_dimension, $.unpacked_dimension],
+    [$._constant_part_select_range, $.packed_dimension],
+    [$._constant_part_select_range, $.packed_dimension, $.unpacked_dimension],
+    [$._part_select_range, $.packed_dimension],
+    [$._part_select_range, $.packed_dimension, $.unpacked_dimension],
+    [$._constant_part_select_range, $._part_select_range],
+    [$._constant_part_select_range, $._part_select_range, $.packed_dimension],
+    [$.inout_port_identifier, $.input_port_identifier],
+    [$.inout_port_identifier, $.output_port_identifier],
+    [$.inout_port_identifier, $.input_port_identifier, $.output_port_identifier],
+    [$.checker_instantiation, $.named_port_connection],
+    [$.checker_instantiation, $.hierarchical_instance],
+    [$._sequence_actual_arg, $.event_expression],
+    [$.event_expression, $.expression_or_dist],
+    [$.event_expression, $.expression_or_dist, $.named_port_connection],
+    [$.event_expression, $.expression_or_dist, $.ordered_port_connection],
+    [$.event_expression, $.expression_or_dist, $.let_actual_arg],
+    [$.module_path_primary, $.primary],
+    [$.module_path_primary, $.primary_literal],
+  ],
 });
-
-/* eslint camelcase: 0 */
-/* eslint no-undef: 0 */
-/* eslint no-unused-vars: 0 */
