@@ -1,3 +1,11 @@
+/* eslint-disable arrow-parens */
+/* eslint-disable camelcase */
+/* eslint-disable-next-line spaced-comment */
+/* eslint-disable-no-undef */
+/* eslint-disable-no-unused-vars */
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
+
 'use strict';
 
 const PREC = {
@@ -40,22 +48,37 @@ const PREC = {
   // sync_accept_on, sync_reject_on
 };
 
-function optseq() {
-  return optional(prec.left(seq.apply(null, arguments)));
+/**
+ *
+ * @param {(Rule|string|RegExp)[]} rules
+ *
+ * @return {ChoiceRule}
+ *
+ */
+function optseq(...rules) {
+  return optional(prec.left(seq(...rules)));
 }
 
-function repseq() {
-  return repeat(prec.left(seq.apply(null, arguments)));
+/**
+ *
+ * @param {(Rule|string|RegExp)[]} rules
+ *
+ * @return {RepeatRule}
+ *
+ */
+function repseq(...rules) {
+  return repeat(prec.left(seq(...rules)));
 }
 
-function commaSep(rule) {
-  return optional(sep1(',', rule));
-}
-
-function commaSep1(rule) {
-  return seq(rule, repseq(',', rule));
-}
-
+/**
+ * Creates a rule to match one or more of the rules separated by the separator
+ *
+ * @param {string} separator - The separator to use.
+ * @param {Rule} rule
+ *
+ * @return {PrecLeftRule}
+ *
+ */
 function sep1(separator, rule) {
   return prec.left(seq(
     rule,
@@ -63,6 +86,15 @@ function sep1(separator, rule) {
   ));
 }
 
+/**
+ *
+ * @param {number} precedence
+ * @param {string} separator
+ * @param {Rule} rule
+ *
+ * @returns {PrecLeftRule}
+ *
+ */
 function psep1(precedence, separator, rule) {
   return prec.left(precedence, seq(
     rule,
@@ -70,15 +102,40 @@ function psep1(precedence, separator, rule) {
   ));
 }
 
-function exprOp ($, prior, ops) {
+/**
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {number} prior
+ * @param {Rule|string} ops
+ *
+ * @returns {PrecLeftRule}
+ *
+ */
+function exprOp($, prior, ops) {
   return prec.left(prior, seq($.expression, ops, repeat($.attribute_instance), $.expression));
 }
 
-function constExprOp ($, prior, ops) {
+/**
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {number} prior
+ * @param {Rule|string} ops
+ *
+ * @returns {PrecLeftRule}
+ *
+ */
+function constExprOp($, prior, ops) {
   return prec.left(prior, seq($.constant_expression, ops, repeat($.attribute_instance), $.constant_expression));
 }
 
-function directive (command) {
+/**
+ *
+ * @param {string} command 
+ *
+ * @returns {AliasRule}
+ *
+ */
+function directive(command) {
   return alias(new RegExp('`' + command), 'directive_' + command);
 }
 
@@ -2035,7 +2092,7 @@ const rules = {
   ),
 
   sequence_expr: $ => choice(
-    prec.left(sep1(',', $.cycle_delay_range, $.sequence_expr)), // FIXME precedence?
+    prec.left(sep1(',', $.cycle_delay_range)), // FIXME precedence?
     prec.left(PREC.SHARP2, seq($.sequence_expr, repeat1(seq($.cycle_delay_range, $.sequence_expr)))),
     seq($.expression_or_dist, optional($._boolean_abbrev)),
     seq($.sequence_instance, optional($.sequence_abbrev)),
@@ -4935,7 +4992,3 @@ module.exports = grammar({
     [$.module_path_primary, $.primary_literal],
   ],
 });
-
-/* eslint camelcase: 0 */
-/* eslint no-undef: 0 */
-/* eslint no-unused-vars: 0 */
