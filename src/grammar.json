@@ -7662,61 +7662,57 @@
       ]
     },
     "class_type": {
-      "type": "PREC_RIGHT",
-      "value": 0,
-      "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "SYMBOL",
-            "name": "ps_class_identifier"
-          },
-          {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "parameter_value_assignment"
-              },
-              {
-                "type": "BLANK"
-              }
-            ]
-          },
-          {
-            "type": "REPEAT",
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "ps_class_identifier"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "parameter_value_assignment"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "PREC_LEFT",
+            "value": 0,
             "content": {
-              "type": "PREC_LEFT",
-              "value": 0,
-              "content": {
-                "type": "SEQ",
-                "members": [
-                  {
-                    "type": "STRING",
-                    "value": "::"
-                  },
-                  {
-                    "type": "SYMBOL",
-                    "name": "class_identifier"
-                  },
-                  {
-                    "type": "CHOICE",
-                    "members": [
-                      {
-                        "type": "SYMBOL",
-                        "name": "parameter_value_assignment"
-                      },
-                      {
-                        "type": "BLANK"
-                      }
-                    ]
-                  }
-                ]
-              }
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "::"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "class_identifier"
+                },
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "parameter_value_assignment"
+                    },
+                    {
+                      "type": "BLANK"
+                    }
+                  ]
+                }
+              ]
             }
           }
-        ]
-      }
+        }
+      ]
     },
     "_integer_type": {
       "type": "CHOICE",
@@ -32404,6 +32400,20 @@
     [
       "module_path_primary",
       "primary_literal"
+    ],
+    [
+      "class_type"
+    ],
+    [
+      "class_type",
+      "interface_instantiation",
+      "program_instantiation"
+    ],
+    [
+      "class_type",
+      "module_instantiation",
+      "interface_instantiation",
+      "program_instantiation"
     ]
   ],
   "precedences": [],
