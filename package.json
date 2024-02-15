@@ -32,7 +32,8 @@
     "build": "tree-sitter generate && node-gyp build",
     "wasm": "tree-sitter generate --next-abi && tree-sitter build-wasm",
     "generate": "tree-sitter generate",
-    "test": "tree-sitter test"
+    "test": "tree-sitter test",
+    "test-windows": "tree-sitter test"
   },
   "dependencies": {
     "nan": "^2.15.0"
