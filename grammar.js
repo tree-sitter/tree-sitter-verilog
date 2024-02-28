@@ -1361,7 +1361,7 @@ const rules = {
   class_scope: $ => seq($.class_type, '::'),
 
   // class_type: $ => prec.left(PREC.PARENT, seq(
-  class_type: $ => prec.right(seq(
+  class_type: $ => seq(
     $.ps_class_identifier,
     optional($.parameter_value_assignment),
     repseq(
@@ -1369,7 +1369,7 @@ const rules = {
       $.class_identifier,
       optional($.parameter_value_assignment)
     )
-  )),
+  ),
 
   _integer_type: $ => choice(
     $.integer_vector_type,
@@ -4990,5 +4990,8 @@ module.exports = grammar({
     [$.event_expression, $.expression_or_dist, $.let_actual_arg],
     [$.module_path_primary, $.primary],
     [$.module_path_primary, $.primary_literal],
+    [$.class_type],
+    [$.class_type, $.interface_instantiation, $.program_instantiation],
+    [$.class_type, $.module_instantiation, $.interface_instantiation, $.program_instantiation],
   ],
 });

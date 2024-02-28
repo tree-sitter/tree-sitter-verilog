@@ -17,3 +17,50 @@ endfunction
     )
   ))
 ))
+
+
+============================================
+function - external method
+============================================
+
+function void class_scope::method(some_type arg);
+    foo = foo2;
+endfunction : method
+
+----
+
+(source_file
+  (package_or_generate_item_declaration
+    (function_declaration
+      (function_body_declaration
+        (function_data_type_or_implicit1
+          (data_type_or_void))
+        (class_scope
+          (class_type
+            (class_identifier
+              (simple_identifier))))
+        (function_identifier
+          (function_identifier
+            (simple_identifier)))
+        (tf_port_list
+          (tf_port_item1
+            (data_type_or_implicit1
+              (data_type
+                (simple_identifier)))
+            (port_identifier
+              (simple_identifier))))
+        (function_statement_or_null
+          (function_statement
+            (statement
+              (statement_item
+                (blocking_assignment
+                  (operator_assignment
+                    (variable_lvalue
+                      (simple_identifier))
+                    (assignment_operator)
+                    (expression
+                      (primary
+                        (simple_identifier)))))))))
+        (function_identifier
+          (function_identifier
+            (simple_identifier)))))))
