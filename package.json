@@ -47,5 +47,11 @@
   },
   "eslintConfig": {
     "extends": "@drom/eslint-config/eslint4/node8"
-  }
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.verilog",
+      "injection-regex": "^verilog$"
+    }
+  ]
 }
