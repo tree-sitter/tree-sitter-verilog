@@ -13,6 +13,7 @@
     "url": "https://github.com/tree-sitter/tree-sitter-verilog/issues"
   },
   "main": "bindings/node",
+  "types": "bindings/node",
   "files": [
     "grammar.js",
     "bindings",
@@ -29,21 +30,33 @@
     "example": "examples"
   },
   "scripts": {
-    "build": "tree-sitter generate && node-gyp build",
+    "build": "tree-sitter generate --no-bindings",
     "wasm": "tree-sitter generate --next-abi && tree-sitter build-wasm",
     "generate": "tree-sitter generate",
     "test": "tree-sitter test",
-    "test-windows": "tree-sitter test"
+    "test-windows": "tree-sitter test",
+    "install": "node-gyp-build",
+    "prebuildify": "prebuildify --napi --strip"
   },
   "dependencies": {
-    "nan": "^2.15.0"
+    "node-addon-api": "^7.1.0",
+    "node-gyp-build": "^4.8.0"
+  },
+  "peerDependencies": {
+    "tree-sitter": "^0.21.0"
+  },
+  "peerDependenciesMeta": {
+    "tree_sitter": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@drom/eslint-config": "^0.11.0",
     "eslint": "^8.44.0",
     "fs-extra": "^11.1.1",
-    "tree-sitter": "^0.20.5",
-    "tree-sitter-cli": "^0.20.8"
+    "tree-sitter": "^0.21.1",
+    "tree-sitter-cli": "^0.21.0",
+    "prebuildify": "^6.0.0"
   },
   "eslintConfig": {
     "extends": "@drom/eslint-config/eslint4/node8"

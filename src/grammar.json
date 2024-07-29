@@ -32445,7 +32445,6 @@
     "interface_identifier",
     "_module_identifier",
     "let_identifier",
-    "ReferenceError",
     "_net_identifier",
     "program_identifier",
     "checker_identifier",
@@ -32459,4 +32458,3 @@
   ],
   "supertypes": []
 }
-
