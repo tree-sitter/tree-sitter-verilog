@@ -1456,48 +1456,6 @@
     }
   },
   {
-    "type": "cell_clause",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "cell_identifier",
-          "named": true
-        },
-        {
-          "type": "library_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "cell_identifier",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "cell_identifier",
-          "named": true
-        },
-        {
-          "type": "escaped_identifier",
-          "named": true
-        },
-        {
-          "type": "simple_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "charge_strength",
     "named": true,
     "fields": {}
@@ -2556,60 +2514,6 @@
         },
         {
           "type": "unique_priority",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "config_identifier",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "config_identifier",
-          "named": true
-        },
-        {
-          "type": "escaped_identifier",
-          "named": true
-        },
-        {
-          "type": "simple_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "config_rule_statement",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "cell_clause",
-          "named": true
-        },
-        {
-          "type": "default_clause",
-          "named": true
-        },
-        {
-          "type": "inst_clause",
-          "named": true
-        },
-        {
-          "type": "liblist_clause",
-          "named": true
-        },
-        {
-          "type": "use_clause",
           "named": true
         }
       ]
@@ -3714,11 +3618,6 @@
     }
   },
   {
-    "type": "default_clause",
-    "named": true,
-    "fields": {}
-  },
-  {
     "type": "default_nettype_compiler_directive",
     "named": true,
     "fields": {},
@@ -4008,25 +3907,6 @@
         },
         {
           "type": "terminal_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "design_statement",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "cell_identifier",
-          "named": true
-        },
-        {
-          "type": "library_identifier",
           "named": true
         }
       ]
@@ -4822,25 +4702,6 @@
       "types": [
         {
           "type": "default_text",
-          "named": true
-        },
-        {
-          "type": "simple_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "formal_identifier",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "escaped_identifier",
           "named": true
         },
         {
@@ -5865,40 +5726,6 @@
     }
   },
   {
-    "type": "inst_clause",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "inst_name",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "inst_name",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "instance_identifier",
-          "named": true
-        },
-        {
-          "type": "topmodule_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "instance_identifier",
     "named": true,
     "fields": {},
@@ -6611,44 +6438,6 @@
       "types": [
         {
           "type": "level_symbol",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "liblist_clause",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "library_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "library_identifier",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "escaped_identifier",
-          "named": true
-        },
-        {
-          "type": "library_identifier",
-          "named": true
-        },
-        {
-          "type": "simple_identifier",
           "named": true
         }
       ]
@@ -9824,25 +9613,6 @@
     }
   },
   {
-    "type": "production_identifier",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "escaped_identifier",
-          "named": true
-        },
-        {
-          "type": "simple_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "program_ansi_header",
     "named": true,
     "fields": {},
@@ -10126,37 +9896,6 @@
       "types": [
         {
           "type": "escaped_identifier",
-          "named": true
-        },
-        {
-          "type": "simple_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "property_list_of_arguments",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "escaped_identifier",
-          "named": true
-        },
-        {
-          "type": "event_expression",
-          "named": true
-        },
-        {
-          "type": "property_expr",
-          "named": true
-        },
-        {
-          "type": "sequence_expr",
           "named": true
         },
         {
@@ -11247,6 +10986,7 @@
   {
     "type": "source_file",
     "named": true,
+    "root": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -12478,29 +12218,6 @@
     }
   },
   {
-    "type": "topmodule_identifier",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "escaped_identifier",
-          "named": true
-        },
-        {
-          "type": "simple_identifier",
-          "named": true
-        },
-        {
-          "type": "topmodule_identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "trans_item",
     "named": true,
     "fields": {},
@@ -13007,29 +12724,6 @@
     "type": "unsized_dimension",
     "named": true,
     "fields": {}
-  },
-  {
-    "type": "use_clause",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "cell_identifier",
-          "named": true
-        },
-        {
-          "type": "library_identifier",
-          "named": true
-        },
-        {
-          "type": "named_parameter_assignment",
-          "named": true
-        }
-      ]
-    }
   },
   {
     "type": "value_range",
@@ -13874,10 +13568,6 @@
     "named": false
   },
   {
-    "type": "cell",
-    "named": false
-  },
-  {
     "type": "chandle",
     "named": false
   },
@@ -13900,10 +13590,6 @@
   {
     "type": "comment",
     "named": true
-  },
-  {
-    "type": "config",
-    "named": false
   },
   {
     "type": "const",
@@ -13951,10 +13637,6 @@
   },
   {
     "type": "defparam",
-    "named": false
-  },
-  {
-    "type": "design",
     "named": false
   },
   {
@@ -14075,10 +13757,6 @@
   },
   {
     "type": "endclocking",
-    "named": false
-  },
-  {
-    "type": "endconfig",
     "named": false
   },
   {
@@ -14278,10 +13956,6 @@
     "named": false
   },
   {
-    "type": "instance",
-    "named": false
-  },
-  {
     "type": "int",
     "named": false
   },
@@ -14324,10 +13998,6 @@
   {
     "type": "level_symbol",
     "named": true
-  },
-  {
-    "type": "liblist",
-    "named": false
   },
   {
     "type": "local",
@@ -14842,10 +14512,6 @@
     "named": false
   },
   {
-    "type": "use",
-    "named": false
-  },
-  {
     "type": "uwire",
     "named": false
   },
@@ -14863,10 +14529,6 @@
   },
   {
     "type": "void",
-    "named": false
-  },
-  {
-    "type": "void'",
     "named": false
   },
   {
