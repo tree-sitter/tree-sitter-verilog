@@ -1,0 +1,4 @@
+github.com/mattn/go-pointer v0.0.1 h1:n+XhsuGeVO6MEAp7xyEukFINEa+Quek5psIR/ylA6o0=
+github.com/mattn/go-pointer v0.0.1/go.mod h1:2zXcozF6qYGgmsG+SeTZz3oAbFLdD3OWqnUbNvJZAlc=
+github.com/tree-sitter/go-tree-sitter v0.24.0 h1:kRZb6aBNfcI/u0Qh8XEt3zjNVnmxTisDBN+kXK0xRYQ=
+github.com/tree-sitter/go-tree-sitter v0.24.0/go.mod h1:x681iFVoLMEwOSIHA1chaLkXlroXEN7WY+VHGFaoDbk=
