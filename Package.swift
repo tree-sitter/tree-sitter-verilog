@@ -17,6 +17,9 @@ let package = Package(
             sources: [
                 "src/parser.c",
             ],
+            resources: [
+                .copy("queries")
+            ],
             publicHeadersPath: "bindings/swift",
             cSettings: [.headerSearchPath("src")]
         ),
