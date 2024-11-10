@@ -88,7 +88,7 @@ checksum = "e8ddffe35a0e5eeeadf13ff7350af564c6e73993a24db62caee1822b185c2600"
 
 [[package]]
 name = "tree-sitter-verilog"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "cc",
  "tree-sitter",
