@@ -4,7 +4,7 @@ endif
 
 LANGUAGE_NAME := tree-sitter-verilog
 HOMEPAGE_URL := https://github.com/tree-sitter/tree-sitter-verilog
-VERSION := 1.0.0
+VERSION := 1.0.1
 
 # repository
 SRC_DIR := src
