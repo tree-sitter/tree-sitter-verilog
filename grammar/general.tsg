@@ -1,0 +1,381 @@
+// A.9 Attributes, comments, identifiers, and whitespace.
+
+expect class_scope
+expect constant_bit_select1
+expect constant_expression
+expect implicit_class_handle
+
+rule attribute_instance {
+    seq(
+        "(*",
+        prec_left(0, seq(
+            attr_spec,
+            repeat(prec_left(0, seq(
+                ",",
+                attr_spec,
+            ))),
+        )),
+        "*)",
+    )
+}
+
+rule attr_spec {
+    seq(
+        _attr_name,
+        choice(
+            prec_left(0, seq(
+                "=",
+                constant_expression,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule _attr_name { _identifier }
+
+rule comment {
+    token(choice(
+        seq(
+            "//",
+            regexp(".*"),
+        ),
+        seq(
+            "/*",
+            regexp("[^*]*\\*+([^/*][^*]*\\*+)*"),
+            "/",
+        ),
+    ))
+}
+
+rule _array_identifier { _identifier }
+
+rule _block_identifier { _identifier }
+
+rule _bin_identifier { _identifier }
+
+rule c_identifier { regexp("[a-zA-Z_][a-zA-Z0-9_]*") }
+
+rule cell_identifier { alias(_identifier, cell_identifier) }
+
+rule checker_identifier { alias(_identifier, checker_identifier) }
+
+rule class_identifier { alias(_identifier, class_identifier) }
+
+rule class_variable_identifier { _variable_identifier }
+
+rule clocking_identifier { alias(_identifier, clocking_identifier) }
+
+rule config_identifier { alias(_identifier, config_identifier) }
+
+rule const_identifier { alias(_identifier, const_identifier) }
+
+rule constraint_identifier { alias(_identifier, constraint_identifier) }
+
+rule covergroup_identifier { alias(_identifier, covergroup_identifier) }
+
+rule cover_point_identifier { alias(_identifier, cover_point_identifier) }
+
+rule cross_identifier { alias(_identifier, cross_identifier) }
+
+rule dynamic_array_variable_identifier { alias(_variable_identifier, dynamic_array_variable_identifier) }
+
+rule enum_identifier { alias(_identifier, enum_identifier) }
+
+rule escaped_identifier {
+    seq(
+        "\\",
+        regexp("[^\\s]*"),
+    )
+}
+
+rule formal_identifier { alias(_identifier, formal_identifier) }
+
+rule formal_port_identifier { alias(_identifier, formal_port_identifier) }
+
+rule function_identifier { alias(_identifier, function_identifier) }
+
+rule generate_block_identifier { alias(_identifier, generate_block_identifier) }
+
+rule genvar_identifier { alias(_identifier, genvar_identifier) }
+
+rule _hierarchical_array_identifier { hierarchical_identifier }
+
+rule _hierarchical_block_identifier { hierarchical_identifier }
+
+rule _hierarchical_event_identifier { hierarchical_identifier }
+
+rule hierarchical_identifier {
+    prec_left(0, seq(
+        choice(
+            prec_left(0, seq(
+                "$root",
+                ".",
+            )),
+            blank(),
+        ),
+        repeat(prec_left(0, seq(
+            _identifier,
+            choice(
+                constant_bit_select1,
+                blank(),
+            ),
+            ".",
+        ))),
+        _identifier,
+    ))
+}
+
+rule _hierarchical_net_identifier { hierarchical_identifier }
+
+rule _hierarchical_parameter_identifier { hierarchical_identifier }
+
+rule _hierarchical_property_identifier { hierarchical_identifier }
+
+rule _hierarchical_sequence_identifier { hierarchical_identifier }
+
+rule _hierarchical_task_identifier { hierarchical_identifier }
+
+rule _hierarchical_tf_identifier { hierarchical_identifier }
+
+rule _hierarchical_variable_identifier { hierarchical_identifier }
+
+rule _identifier {
+    choice(
+        simple_identifier,
+        escaped_identifier,
+    )
+}
+
+rule index_variable_identifier { alias(_identifier, index_variable_identifier) }
+
+rule interface_identifier { alias(_identifier, interface_identifier) }
+
+rule interface_instance_identifier { alias(_identifier, interface_instance_identifier) }
+
+rule inout_port_identifier { alias(_identifier, inout_port_identifier) }
+
+rule input_port_identifier { alias(_identifier, input_port_identifier) }
+
+rule instance_identifier { alias(_identifier, instance_identifier) }
+
+rule library_identifier { alias(_identifier, library_identifier) }
+
+rule member_identifier { alias(_identifier, member_identifier) }
+
+rule method_identifier { alias(_identifier, method_identifier) }
+
+rule modport_identifier { alias(_identifier, modport_identifier) }
+
+rule _module_identifier { _identifier }
+
+rule _net_identifier { _identifier }
+
+rule _net_type_identifier { _identifier }
+
+rule output_port_identifier { alias(_identifier, output_port_identifier) }
+
+rule package_identifier { alias(_identifier, package_identifier) }
+
+rule package_scope {
+    choice(
+        seq(
+            package_identifier,
+            "::",
+        ),
+        seq(
+            "$unit",
+            "::",
+        ),
+    )
+}
+
+rule parameter_identifier { alias(_identifier, parameter_identifier) }
+
+rule port_identifier { alias(_identifier, port_identifier) }
+
+rule production_identifier { alias(_identifier, production_identifier) }
+
+rule program_identifier { alias(_identifier, program_identifier) }
+
+rule property_identifier { alias(_identifier, property_identifier) }
+
+rule ps_class_identifier {
+    seq(
+        choice(
+            package_scope,
+            blank(),
+        ),
+        class_identifier,
+    )
+}
+
+rule ps_covergroup_identifier {
+    seq(
+        choice(
+            package_scope,
+            blank(),
+        ),
+        covergroup_identifier,
+    )
+}
+
+rule ps_checker_identifier {
+    seq(
+        choice(
+            package_scope,
+            blank(),
+        ),
+        checker_identifier,
+    )
+}
+
+rule ps_identifier {
+    seq(
+        choice(
+            package_scope,
+            blank(),
+        ),
+        _identifier,
+    )
+}
+
+rule ps_or_hierarchical_array_identifier {
+    seq(
+        choice(
+            choice(
+                seq(
+                    implicit_class_handle,
+                    ".",
+                ),
+                class_scope,
+                package_scope,
+            ),
+            blank(),
+        ),
+        _hierarchical_array_identifier,
+    )
+}
+
+rule ps_or_hierarchical_net_identifier {
+    choice(
+        prec_left(37, seq(
+            choice(
+                package_scope,
+                blank(),
+            ),
+            _net_identifier,
+        )),
+        _hierarchical_net_identifier,
+    )
+}
+
+rule ps_or_hierarchical_property_identifier {
+    choice(
+        seq(
+            choice(
+                package_scope,
+                blank(),
+            ),
+            property_identifier,
+        ),
+        _hierarchical_property_identifier,
+    )
+}
+
+rule ps_or_hierarchical_sequence_identifier {
+    choice(
+        seq(
+            choice(
+                package_scope,
+                blank(),
+            ),
+            _sequence_identifier,
+        ),
+        _hierarchical_sequence_identifier,
+    )
+}
+
+rule ps_or_hierarchical_tf_identifier {
+    choice(
+        seq(
+            choice(
+                package_scope,
+                blank(),
+            ),
+            tf_identifier,
+        ),
+        _hierarchical_tf_identifier,
+    )
+}
+
+rule ps_parameter_identifier {
+    choice(
+        seq(
+            choice(
+                choice(
+                    package_scope,
+                    class_scope,
+                ),
+                blank(),
+            ),
+            parameter_identifier,
+        ),
+        seq(
+            repeat(prec_left(0, seq(
+                generate_block_identifier,
+                choice(
+                    prec_left(0, seq(
+                        "[",
+                        constant_expression,
+                        "]",
+                    )),
+                    blank(),
+                ),
+                ".",
+            ))),
+            parameter_identifier,
+        ),
+    )
+}
+
+rule ps_type_identifier {
+    seq(
+        choice(
+            choice(
+                seq(
+                    "local",
+                    "::",
+                ),
+                package_scope,
+                class_scope,
+            ),
+            blank(),
+        ),
+        _type_identifier,
+    )
+}
+
+rule _sequence_identifier { _identifier }
+
+rule _signal_identifier { _identifier }
+
+rule simple_identifier { regexp("[a-zA-Z_][a-zA-Z0-9_$]*") }
+
+rule specparam_identifier { alias(_identifier, specparam_identifier) }
+
+rule system_tf_identifier { regexp("\\$[a-zA-Z0-9_$]+") }
+
+rule task_identifier { alias(_identifier, task_identifier) }
+
+rule tf_identifier { alias(_identifier, tf_identifier) }
+
+rule terminal_identifier { alias(_identifier, terminal_identifier) }
+
+rule topmodule_identifier { alias(_identifier, topmodule_identifier) }
+
+rule _type_identifier { _identifier }
+
+rule _udp_identifier { _identifier }
+
+rule _variable_identifier { _identifier }

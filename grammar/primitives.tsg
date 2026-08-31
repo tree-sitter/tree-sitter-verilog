@@ -1,0 +1,403 @@
+// A.3 Primitive instances.
+
+expect delay2
+expect delay3
+expect drive_strength
+expect expression
+expect name_of_instance
+expect net_lvalue
+expect strength0
+expect strength1
+
+rule gate_instantiation {
+    seq(
+        choice(
+            seq(
+                cmos_switchtype,
+                choice(
+                    delay3,
+                    blank(),
+                ),
+                prec_left(0, seq(
+                    cmos_switch_instance,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        cmos_switch_instance,
+                    ))),
+                )),
+            ),
+            seq(
+                enable_gatetype,
+                choice(
+                    drive_strength,
+                    blank(),
+                ),
+                choice(
+                    delay3,
+                    blank(),
+                ),
+                prec_left(0, seq(
+                    enable_gate_instance,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        enable_gate_instance,
+                    ))),
+                )),
+            ),
+            seq(
+                mos_switchtype,
+                choice(
+                    delay3,
+                    blank(),
+                ),
+                prec_left(0, seq(
+                    mos_switch_instance,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        mos_switch_instance,
+                    ))),
+                )),
+            ),
+            seq(
+                n_input_gatetype,
+                choice(
+                    drive_strength,
+                    blank(),
+                ),
+                choice(
+                    delay2,
+                    blank(),
+                ),
+                prec_left(0, seq(
+                    n_input_gate_instance,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        n_input_gate_instance,
+                    ))),
+                )),
+            ),
+            seq(
+                n_output_gatetype,
+                choice(
+                    drive_strength,
+                    blank(),
+                ),
+                choice(
+                    delay2,
+                    blank(),
+                ),
+                prec_left(0, seq(
+                    n_output_gate_instance,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        n_output_gate_instance,
+                    ))),
+                )),
+            ),
+            seq(
+                pass_en_switchtype,
+                choice(
+                    delay2,
+                    blank(),
+                ),
+                prec_left(0, seq(
+                    pass_enable_switch_instance,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        pass_enable_switch_instance,
+                    ))),
+                )),
+            ),
+            seq(
+                pass_switchtype,
+                prec_left(0, seq(
+                    pass_switch_instance,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        pass_switch_instance,
+                    ))),
+                )),
+            ),
+            seq(
+                "pulldown",
+                choice(
+                    pulldown_strength,
+                    blank(),
+                ),
+                prec_left(0, seq(
+                    pull_gate_instance,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        pull_gate_instance,
+                    ))),
+                )),
+            ),
+            seq(
+                "pullup",
+                choice(
+                    pullup_strength,
+                    blank(),
+                ),
+                prec_left(0, seq(
+                    pull_gate_instance,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        pull_gate_instance,
+                    ))),
+                )),
+            ),
+        ),
+        ";",
+    )
+}
+
+rule cmos_switch_instance {
+    seq(
+        choice(
+            name_of_instance,
+            blank(),
+        ),
+        "(",
+        output_terminal,
+        ",",
+        input_terminal,
+        ",",
+        ncontrol_terminal,
+        ",",
+        pcontrol_terminal,
+        ")",
+    )
+}
+
+rule enable_gate_instance {
+    seq(
+        choice(
+            name_of_instance,
+            blank(),
+        ),
+        "(",
+        output_terminal,
+        ",",
+        input_terminal,
+        ",",
+        enable_terminal,
+        ")",
+    )
+}
+
+rule mos_switch_instance {
+    seq(
+        choice(
+            name_of_instance,
+            blank(),
+        ),
+        "(",
+        output_terminal,
+        ",",
+        input_terminal,
+        ",",
+        enable_terminal,
+        ")",
+    )
+}
+
+rule n_input_gate_instance {
+    seq(
+        choice(
+            name_of_instance,
+            blank(),
+        ),
+        "(",
+        output_terminal,
+        ",",
+        prec_left(0, seq(
+            input_terminal,
+            repeat(prec_left(0, seq(
+                ",",
+                input_terminal,
+            ))),
+        )),
+        ")",
+    )
+}
+
+rule n_output_gate_instance {
+    seq(
+        choice(
+            name_of_instance,
+            blank(),
+        ),
+        "(",
+        prec_left(0, seq(
+            output_terminal,
+            repeat(prec_left(0, seq(
+                ",",
+                output_terminal,
+            ))),
+        )),
+        ",",
+        input_terminal,
+        ")",
+    )
+}
+
+rule pass_switch_instance {
+    seq(
+        choice(
+            name_of_instance,
+            blank(),
+        ),
+        "(",
+        inout_terminal,
+        ",",
+        inout_terminal,
+        ")",
+    )
+}
+
+rule pass_enable_switch_instance {
+    seq(
+        choice(
+            name_of_instance,
+            blank(),
+        ),
+        "(",
+        inout_terminal,
+        ",",
+        inout_terminal,
+        ",",
+        enable_terminal,
+        ")",
+    )
+}
+
+rule pull_gate_instance {
+    seq(
+        choice(
+            name_of_instance,
+            blank(),
+        ),
+        "(",
+        output_terminal,
+        ")",
+    )
+}
+
+rule pulldown_strength {
+    choice(
+        seq(
+            "(",
+            strength0,
+            ",",
+            strength1,
+            ")",
+        ),
+        seq(
+            "(",
+            strength1,
+            ",",
+            strength0,
+            ")",
+        ),
+        seq(
+            "(",
+            strength0,
+            ")",
+        ),
+    )
+}
+
+rule pullup_strength {
+    choice(
+        seq(
+            ",",
+            strength0,
+            ",",
+            strength1,
+            ")",
+        ),
+        seq(
+            ",",
+            strength1,
+            ",",
+            strength0,
+            ")",
+        ),
+        seq(
+            ",",
+            strength1,
+            ")",
+        ),
+    )
+}
+
+rule enable_terminal { expression }
+
+rule inout_terminal { net_lvalue }
+
+rule input_terminal { expression }
+
+rule ncontrol_terminal { expression }
+
+rule output_terminal { net_lvalue }
+
+rule pcontrol_terminal { expression }
+
+rule cmos_switchtype {
+    choice(
+        "cmos",
+        "rcmos",
+    )
+}
+
+rule enable_gatetype {
+    choice(
+        "bufif0",
+        "bufif1",
+        "notif0",
+        "notif1",
+    )
+}
+
+rule mos_switchtype {
+    choice(
+        "nmos",
+        "pmos",
+        "rnmos",
+        "rpmos",
+    )
+}
+
+rule n_input_gatetype {
+    choice(
+        "and",
+        "nand",
+        "or",
+        "nor",
+        "xor",
+        "xnor",
+    )
+}
+
+rule n_output_gatetype {
+    choice(
+        "buf",
+        "not",
+    )
+}
+
+rule pass_en_switchtype {
+    choice(
+        "tranif0",
+        "tranif1",
+        "rtranif1",
+        "rtranif0",
+    )
+}
+
+rule pass_switchtype {
+    choice(
+        "tran",
+        "rtran",
+    )
+}

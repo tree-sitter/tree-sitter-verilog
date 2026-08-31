@@ -1,0 +1,1453 @@
+// A.8 Expressions.
+
+expect _assignment_pattern_expression_type
+expect _hierarchical_tf_identifier
+expect _hierarchical_variable_identifier
+expect _identifier
+expect _simple_type
+expect assignment_pattern_expression
+expect assignment_pattern_net_lvalue
+expect assignment_pattern_variable_lvalue
+expect attribute_instance
+expect casting_type
+expect class_scope
+expect clocking_event
+expect cond_predicate
+expect constraint_block
+expect data_type
+expect hierarchical_identifier
+expect identifier_list
+expect let_expression
+expect member_identifier
+expect method_identifier
+expect open_range_list
+expect operator_assignment
+expect package_scope
+expect ps_or_hierarchical_net_identifier
+expect ps_parameter_identifier
+expect sequence_method_call
+expect simple_text_macro_usage
+expect system_tf_identifier
+expect type_reference
+expect variable_identifier_list
+
+rule concatenation {
+    seq(
+        "{",
+        prec_left(20, seq(
+            expression,
+            repeat(prec_left(0, seq(
+                ",",
+                expression,
+            ))),
+        )),
+        "}",
+    )
+}
+
+rule constant_concatenation {
+    seq(
+        "{",
+        prec_left(20, seq(
+            constant_expression,
+            repeat(prec_left(0, seq(
+                ",",
+                constant_expression,
+            ))),
+        )),
+        "}",
+    )
+}
+
+rule constant_multiple_concatenation {
+    prec_left(20, seq(
+        "{",
+        constant_expression,
+        constant_concatenation,
+        "}",
+    ))
+}
+
+rule module_path_concatenation {
+    seq(
+        "{",
+        prec_left(20, seq(
+            module_path_expression,
+            repeat(prec_left(0, seq(
+                ",",
+                module_path_expression,
+            ))),
+        )),
+        "}",
+    )
+}
+
+rule module_path_multiple_concatenation {
+    prec_left(20, seq(
+        "{",
+        constant_expression,
+        module_path_concatenation,
+        "}",
+    ))
+}
+
+rule multiple_concatenation {
+    prec_left(20, seq(
+        "{",
+        expression,
+        concatenation,
+        "}",
+    ))
+}
+
+rule streaming_concatenation {
+    prec_left(20, seq(
+        "{",
+        stream_operator,
+        choice(
+            slice_size,
+            blank(),
+        ),
+        stream_concatenation,
+        "}",
+    ))
+}
+
+rule stream_operator {
+    choice(
+        ">>",
+        "<<",
+    )
+}
+
+rule slice_size {
+    choice(
+        _simple_type,
+        constant_expression,
+    )
+}
+
+rule stream_concatenation {
+    prec_left(20, seq(
+        "{",
+        prec_left(0, seq(
+            stream_expression,
+            repeat(prec_left(0, seq(
+                ",",
+                stream_expression,
+            ))),
+        )),
+        "}",
+    ))
+}
+
+rule stream_expression {
+    seq(
+        expression,
+        choice(
+            prec_left(0, seq(
+                "with",
+                "[",
+                array_range_expression,
+                "]",
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule array_range_expression {
+    seq(
+        expression,
+        choice(
+            choice(
+                seq(
+                    ":",
+                    expression,
+                ),
+                seq(
+                    "+:",
+                    expression,
+                ),
+                seq(
+                    "-:",
+                    expression,
+                ),
+            ),
+            blank(),
+        ),
+    )
+}
+
+rule empty_unpacked_array_concatenation {
+    seq(
+        "{",
+        "}",
+    )
+}
+
+rule constant_function_call { function_subroutine_call }
+
+rule tf_call {
+    prec_left(0, seq(
+        _hierarchical_tf_identifier,
+        repeat(attribute_instance),
+        choice(
+            list_of_arguments_parent,
+            blank(),
+        ),
+    ))
+}
+
+rule system_tf_call {
+    prec_left(0, seq(
+        system_tf_identifier,
+        choice(
+            choice(
+                list_of_arguments_parent,
+                seq(
+                    "(",
+                    choice(
+                        seq(
+                            data_type,
+                            choice(
+                                prec_left(0, seq(
+                                    ",",
+                                    expression,
+                                )),
+                                blank(),
+                            ),
+                        ),
+                        prec_left(0, seq(
+                            prec_left(0, seq(
+                                expression,
+                                repeat(prec_left(0, seq(
+                                    ",",
+                                    expression,
+                                ))),
+                            )),
+                            choice(
+                                prec_left(0, seq(
+                                    ",",
+                                    choice(
+                                        clocking_event,
+                                        blank(),
+                                    ),
+                                )),
+                                blank(),
+                            ),
+                        )),
+                    ),
+                    ")",
+                ),
+            ),
+            blank(),
+        ),
+    ))
+}
+
+rule subroutine_call {
+    choice(
+        tf_call,
+        system_tf_call,
+        method_call,
+        seq(
+            choice(
+                prec_left(0, seq(
+                    "std",
+                    "::",
+                )),
+                blank(),
+            ),
+            randomize_call,
+        ),
+    )
+}
+
+rule function_subroutine_call { subroutine_call }
+
+rule list_of_arguments {
+    choice(
+        prec_left(0, seq(
+            seq(
+                ".",
+                _identifier,
+                "(",
+                choice(
+                    expression,
+                    blank(),
+                ),
+                ")",
+            ),
+            repeat(prec_left(0, seq(
+                ",",
+                seq(
+                    ".",
+                    _identifier,
+                    "(",
+                    choice(
+                        expression,
+                        blank(),
+                    ),
+                    ")",
+                ),
+            ))),
+        )),
+    )
+}
+
+rule list_of_arguments_parent {
+    seq(
+        "(",
+        choice(
+            prec_left(0, seq(
+                expression,
+                repeat(prec_left(0, seq(
+                    ",",
+                    expression,
+                ))),
+            )),
+            seq(
+                repeat(prec_left(0, seq(
+                    ",",
+                    ".",
+                    _identifier,
+                    "(",
+                    choice(
+                        expression,
+                        blank(),
+                    ),
+                    ")",
+                ))),
+            ),
+            prec_left(0, seq(
+                seq(
+                    ",",
+                    ".",
+                    _identifier,
+                    "(",
+                    choice(
+                        expression,
+                        blank(),
+                    ),
+                    ")",
+                ),
+                repeat(prec_left(0, seq(
+                    ",",
+                    seq(
+                        ",",
+                        ".",
+                        _identifier,
+                        "(",
+                        choice(
+                            expression,
+                            blank(),
+                        ),
+                        ")",
+                    ),
+                ))),
+            )),
+        ),
+        ")",
+    )
+}
+
+rule method_call {
+    seq(
+        _method_call_root,
+        ".",
+        method_call_body,
+    )
+}
+
+rule method_call_body {
+    choice(
+        prec_left(0, seq(
+            method_identifier,
+            repeat(attribute_instance),
+            choice(
+                list_of_arguments_parent,
+                blank(),
+            ),
+        )),
+        _built_in_method_call,
+    )
+}
+
+rule _built_in_method_call {
+    choice(
+        array_manipulation_call,
+        randomize_call,
+    )
+}
+
+rule array_manipulation_call {
+    prec_left(0, seq(
+        array_method_name,
+        repeat(attribute_instance),
+        choice(
+            list_of_arguments_parent,
+            blank(),
+        ),
+        choice(
+            prec_left(0, seq(
+                "with",
+                "(",
+                expression,
+                ")",
+            )),
+            blank(),
+        ),
+    ))
+}
+
+rule randomize_call {
+    prec_left(0, seq(
+        "randomize",
+        repeat(attribute_instance),
+        choice(
+            prec_left(0, seq(
+                "(",
+                choice(
+                    choice(
+                        variable_identifier_list,
+                        "null",
+                    ),
+                    blank(),
+                ),
+                ")",
+            )),
+            blank(),
+        ),
+        choice(
+            prec_left(0, seq(
+                "with",
+                choice(
+                    prec_left(0, seq(
+                        "(",
+                        choice(
+                            identifier_list,
+                            blank(),
+                        ),
+                        ")",
+                    )),
+                    blank(),
+                ),
+                constraint_block,
+            )),
+            blank(),
+        ),
+    ))
+}
+
+rule _method_call_root {
+    choice(
+        primary,
+        implicit_class_handle,
+    )
+}
+
+rule array_method_name {
+    choice(
+        method_identifier,
+        "unique",
+        "and",
+        "or",
+        "xor",
+    )
+}
+
+rule inc_or_dec_expression {
+    choice(
+        seq(
+            inc_or_dec_operator,
+            repeat(attribute_instance),
+            variable_lvalue,
+        ),
+        seq(
+            variable_lvalue,
+            repeat(attribute_instance),
+            inc_or_dec_operator,
+        ),
+    )
+}
+
+rule conditional_expression {
+    prec_right(23, seq(
+        cond_predicate,
+        "?",
+        repeat(attribute_instance),
+        expression,
+        ":",
+        expression,
+    ))
+}
+
+rule constant_expression {
+    choice(
+        constant_primary,
+        prec_left(36, seq(
+            unary_operator,
+            repeat(attribute_instance),
+            constant_primary,
+        )),
+        prec_left(33, seq(
+            constant_expression,
+            choice(
+                "+",
+                "-",
+            ),
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(34, seq(
+            constant_expression,
+            choice(
+                "*",
+                "/",
+                "%",
+            ),
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(30, seq(
+            constant_expression,
+            choice(
+                "==",
+                "!=",
+                "===",
+                "!==",
+                "==?",
+                "!=?",
+            ),
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(25, seq(
+            constant_expression,
+            "&&",
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(24, seq(
+            constant_expression,
+            "||",
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(35, seq(
+            constant_expression,
+            "**",
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(31, seq(
+            constant_expression,
+            choice(
+                "<",
+                "<=",
+                ">",
+                ">=",
+            ),
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(29, seq(
+            constant_expression,
+            "&",
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(27, seq(
+            constant_expression,
+            "|",
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(28, seq(
+            constant_expression,
+            choice(
+                "^",
+                "^~",
+                "~^",
+            ),
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(32, seq(
+            constant_expression,
+            choice(
+                ">>",
+                "<<",
+                ">>>",
+                "<<<",
+            ),
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_left(22, seq(
+            constant_expression,
+            choice(
+                "->",
+                "<->",
+            ),
+            repeat(attribute_instance),
+            constant_expression,
+        )),
+        prec_right(23, seq(
+            constant_expression,
+            "?",
+            repeat(attribute_instance),
+            constant_expression,
+            ":",
+            constant_expression,
+        )),
+    )
+}
+
+rule constant_mintypmax_expression {
+    seq(
+        constant_expression,
+        choice(
+            prec_left(0, seq(
+                ":",
+                constant_expression,
+                ":",
+                constant_expression,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule constant_param_expression {
+    choice(
+        constant_mintypmax_expression,
+        data_type,
+        "$",
+    )
+}
+
+rule param_expression {
+    choice(
+        mintypmax_expression,
+        data_type,
+        "$",
+    )
+}
+
+rule _constant_range_expression {
+    choice(
+        constant_expression,
+        _constant_part_select_range,
+    )
+}
+
+rule _constant_part_select_range {
+    choice(
+        constant_range,
+        constant_indexed_range,
+    )
+}
+
+rule constant_range {
+    seq(
+        constant_expression,
+        ":",
+        constant_expression,
+    )
+}
+
+rule constant_indexed_range {
+    seq(
+        constant_expression,
+        choice(
+            "+:",
+            "-:",
+        ),
+        constant_expression,
+    )
+}
+
+rule expression {
+    choice(
+        primary,
+        prec_left(36, seq(
+            unary_operator,
+            repeat(attribute_instance),
+            primary,
+        )),
+        prec_left(36, inc_or_dec_expression),
+        prec_left(37, seq(
+            "(",
+            operator_assignment,
+            ")",
+        )),
+        prec_left(33, seq(
+            expression,
+            choice(
+                "+",
+                "-",
+            ),
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(34, seq(
+            expression,
+            choice(
+                "*",
+                "/",
+                "%",
+            ),
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(30, seq(
+            expression,
+            choice(
+                "==",
+                "!=",
+                "===",
+                "!==",
+                "==?",
+                "!=?",
+            ),
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(25, seq(
+            expression,
+            "&&",
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(24, seq(
+            expression,
+            "||",
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(35, seq(
+            expression,
+            "**",
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(31, seq(
+            expression,
+            choice(
+                "<",
+                "<=",
+                ">",
+                ">=",
+            ),
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(29, seq(
+            expression,
+            "&",
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(27, seq(
+            expression,
+            "|",
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(28, seq(
+            expression,
+            choice(
+                "^",
+                "^~",
+                "~^",
+            ),
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(32, seq(
+            expression,
+            choice(
+                ">>",
+                "<<",
+                ">>>",
+                "<<<",
+            ),
+            repeat(attribute_instance),
+            expression,
+        )),
+        prec_left(22, seq(
+            expression,
+            choice(
+                "->",
+                "<->",
+            ),
+            repeat(attribute_instance),
+            expression,
+        )),
+        conditional_expression,
+        inside_expression,
+        tagged_union_expression,
+    )
+}
+
+rule tagged_union_expression {
+    prec_left(0, seq(
+        "tagged",
+        member_identifier,
+        choice(
+            expression,
+            blank(),
+        ),
+    ))
+}
+
+rule inside_expression {
+    prec_left(31, seq(
+        expression,
+        "inside",
+        "{",
+        open_range_list,
+        "}",
+    ))
+}
+
+rule value_range {
+    choice(
+        expression,
+        seq(
+            "[",
+            expression,
+            ":",
+            expression,
+            "]",
+        ),
+    )
+}
+
+rule mintypmax_expression {
+    seq(
+        expression,
+        choice(
+            prec_left(0, seq(
+                ":",
+                expression,
+                ":",
+                expression,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule module_path_conditional_expression {
+    seq(
+        module_path_expression,
+        "?",
+        repeat(attribute_instance),
+        module_path_expression,
+        ":",
+        module_path_expression,
+    )
+}
+
+rule module_path_expression {
+    choice(
+        module_path_primary,
+    )
+}
+
+rule module_path_mintypmax_expression {
+    seq(
+        module_path_expression,
+        choice(
+            prec_left(0, seq(
+                ":",
+                module_path_expression,
+                ":",
+                module_path_expression,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule _part_select_range {
+    choice(
+        constant_range,
+        indexed_range,
+    )
+}
+
+rule indexed_range {
+    seq(
+        expression,
+        choice(
+            "+:",
+            "-:",
+        ),
+        constant_expression,
+    )
+}
+
+rule _genvar_expression { constant_expression }
+
+rule constant_primary {
+    choice(
+        primary_literal,
+        seq(
+            ps_parameter_identifier,
+            choice(
+                constant_select1,
+                blank(),
+            ),
+        ),
+        seq(
+            constant_concatenation,
+            choice(
+                prec_left(0, seq(
+                    "[",
+                    _constant_range_expression,
+                    "]",
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            constant_multiple_concatenation,
+            choice(
+                prec_left(0, seq(
+                    "[",
+                    _constant_range_expression,
+                    "]",
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            "(",
+            constant_mintypmax_expression,
+            ")",
+        ),
+        type_reference,
+        "null",
+    )
+}
+
+rule module_path_primary {
+    choice(
+        _number,
+        _identifier,
+        module_path_concatenation,
+        module_path_multiple_concatenation,
+        function_subroutine_call,
+        seq(
+            "(",
+            module_path_mintypmax_expression,
+            ")",
+        ),
+    )
+}
+
+rule primary {
+    choice(
+        primary_literal,
+        seq(
+            choice(
+                choice(
+                    class_qualifier,
+                    package_scope,
+                ),
+                blank(),
+            ),
+            hierarchical_identifier,
+            choice(
+                select1,
+                blank(),
+            ),
+        ),
+        empty_unpacked_array_concatenation,
+        seq(
+            concatenation,
+            choice(
+                prec_left(0, seq(
+                    "[",
+                    range_expression,
+                    "]",
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            multiple_concatenation,
+            choice(
+                prec_left(0, seq(
+                    "[",
+                    range_expression,
+                    "]",
+                )),
+                blank(),
+            ),
+        ),
+        function_subroutine_call,
+        let_expression,
+        seq(
+            "(",
+            mintypmax_expression,
+            ")",
+        ),
+        cast,
+        assignment_pattern_expression,
+        streaming_concatenation,
+        sequence_method_call,
+        "this",
+        "$",
+        "null",
+    )
+}
+
+rule class_qualifier {
+    seq(
+        choice(
+            prec_left(0, seq(
+                "local",
+                "::",
+            )),
+            blank(),
+        ),
+        choice(
+            seq(
+                implicit_class_handle,
+                ".",
+            ),
+            class_scope,
+        ),
+    )
+}
+
+rule range_expression {
+    choice(
+        expression,
+        _part_select_range,
+    )
+}
+
+rule primary_literal {
+    choice(
+        _number,
+        time_literal,
+        unbased_unsized_literal,
+        string_literal,
+        simple_text_macro_usage,
+    )
+}
+
+rule time_literal {
+    choice(
+        seq(
+            unsigned_number,
+            time_unit,
+        ),
+        seq(
+            fixed_point_number,
+            time_unit,
+        ),
+    )
+}
+
+rule time_unit {
+    choice(
+        "s",
+        "ms",
+        "us",
+        "ns",
+        "ps",
+        "fs",
+    )
+}
+
+rule string_literal {
+    seq(
+        "\"",
+        repeat(choice(
+            token_immediate(regexp("[^\\\\\"]+")),
+            token_immediate(seq(
+                "\\",
+                regexp("."),
+            )),
+            token_immediate(seq(
+                "\\",
+                "\n",
+            )),
+        )),
+        "\"",
+    )
+}
+
+rule implicit_class_handle {
+    choice(
+        prec_left(0, seq(
+            "this",
+            choice(
+                prec_left(0, seq(
+                    ".",
+                    "super",
+                )),
+                blank(),
+            ),
+        )),
+        "super",
+    )
+}
+
+rule bit_select1 {
+    prec_left(37, repeat1(seq(
+        "[",
+        expression,
+        "]",
+    )))
+}
+
+rule select1 {
+    choice(
+        prec_left(37, seq(
+            repeat(prec_left(0, seq(
+                ".",
+                member_identifier,
+                choice(
+                    bit_select1,
+                    blank(),
+                ),
+            ))),
+            ".",
+            member_identifier,
+            choice(
+                bit_select1,
+                blank(),
+            ),
+            choice(
+                prec_left(0, seq(
+                    "[",
+                    _part_select_range,
+                    "]",
+                )),
+                blank(),
+            ),
+        )),
+        prec_left(37, seq(
+            bit_select1,
+            choice(
+                prec_left(0, seq(
+                    "[",
+                    _part_select_range,
+                    "]",
+                )),
+                blank(),
+            ),
+        )),
+        prec_left(37, seq(
+            seq(
+                "[",
+                _part_select_range,
+                "]",
+            ),
+        )),
+    )
+}
+
+rule nonrange_select1 {
+    choice(
+        prec_left(37, seq(
+            repeat(prec_left(0, seq(
+                ".",
+                member_identifier,
+                choice(
+                    bit_select1,
+                    blank(),
+                ),
+            ))),
+            ".",
+            member_identifier,
+            choice(
+                bit_select1,
+                blank(),
+            ),
+        )),
+        bit_select1,
+    )
+}
+
+rule constant_bit_select1 {
+    repeat1(prec_left(37, seq(
+        "[",
+        constant_expression,
+        "]",
+    )))
+}
+
+rule constant_select1 {
+    choice(
+        seq(
+            "[",
+            repeat(prec_left(0, seq(
+                constant_expression,
+                "]",
+                "[",
+            ))),
+            choice(
+                constant_expression,
+                _constant_part_select_range,
+            ),
+            "]",
+        ),
+    )
+}
+
+rule constant_cast {
+    seq(
+        casting_type,
+        "'",
+        "(",
+        constant_expression,
+        ")",
+    )
+}
+
+rule _constant_let_expression { let_expression }
+
+rule cast {
+    seq(
+        casting_type,
+        "'",
+        "(",
+        expression,
+        ")",
+    )
+}
+
+rule net_lvalue {
+    choice(
+        seq(
+            ps_or_hierarchical_net_identifier,
+            choice(
+                constant_select1,
+                blank(),
+            ),
+        ),
+        prec_left(20, seq(
+            "{",
+            prec_left(0, seq(
+                net_lvalue,
+                repeat(prec_left(0, seq(
+                    ",",
+                    net_lvalue,
+                ))),
+            )),
+            "}",
+        )),
+        seq(
+            choice(
+                _assignment_pattern_expression_type,
+                blank(),
+            ),
+            assignment_pattern_net_lvalue,
+        ),
+    )
+}
+
+rule variable_lvalue {
+    choice(
+        prec_left(37, seq(
+            choice(
+                choice(
+                    seq(
+                        implicit_class_handle,
+                        ".",
+                    ),
+                    package_scope,
+                ),
+                blank(),
+            ),
+            _hierarchical_variable_identifier,
+            choice(
+                select1,
+                blank(),
+            ),
+        )),
+        prec_left(20, seq(
+            "{",
+            prec_left(0, seq(
+                variable_lvalue,
+                repeat(prec_left(0, seq(
+                    ",",
+                    variable_lvalue,
+                ))),
+            )),
+            "}",
+        )),
+        prec_left(21, seq(
+            choice(
+                _assignment_pattern_expression_type,
+                blank(),
+            ),
+            assignment_pattern_variable_lvalue,
+        )),
+        streaming_concatenation,
+    )
+}
+
+rule nonrange_variable_lvalue {
+    prec_left(37, seq(
+        choice(
+            choice(
+                seq(
+                    implicit_class_handle,
+                    ".",
+                ),
+                package_scope,
+            ),
+            blank(),
+        ),
+        _hierarchical_variable_identifier,
+        choice(
+            nonrange_select1,
+            blank(),
+        ),
+    ))
+}
+
+rule unary_operator {
+    choice(
+        "+",
+        "-",
+        "!",
+        "~",
+        "&",
+        "~&",
+        "|",
+        "~|",
+        "^",
+        "~^",
+        "^~",
+    )
+}
+
+rule inc_or_dec_operator {
+    choice(
+        "++",
+        "--",
+    )
+}
+
+rule _number {
+    choice(
+        integral_number,
+        real_number,
+    )
+}
+
+rule integral_number {
+    choice(
+        decimal_number,
+        octal_number,
+        binary_number,
+        hex_number,
+    )
+}
+
+rule decimal_number {
+    choice(
+        unsigned_number,
+        token(seq(
+            choice(
+                prec_left(0, seq(
+                    regexp("[1-9][0-9_]*"),
+                    regexp("\\s*"),
+                )),
+                blank(),
+            ),
+            regexp("'[sS]?[dD]"),
+            regexp("\\s*"),
+            regexp("[0-9][0-9_]*"),
+        )),
+        token(seq(
+            choice(
+                prec_left(0, seq(
+                    regexp("[1-9][0-9_]*"),
+                    regexp("\\s*"),
+                )),
+                blank(),
+            ),
+            regexp("'[sS]?[dD]"),
+            regexp("\\s*"),
+            regexp("[xXzZ?][_]*"),
+        )),
+    )
+}
+
+rule binary_number {
+    token(seq(
+        choice(
+            prec_left(0, seq(
+                regexp("[1-9][0-9_]*"),
+                regexp("\\s*"),
+            )),
+            blank(),
+        ),
+        regexp("'[sS]?[bB]"),
+        regexp("\\s*"),
+        regexp("[01xXzZ?][01xXzZ?_]*"),
+    ))
+}
+
+rule octal_number {
+    token(seq(
+        choice(
+            prec_left(0, seq(
+                regexp("[1-9][0-9_]*"),
+                regexp("\\s*"),
+            )),
+            blank(),
+        ),
+        regexp("'[sS]?[oO]"),
+        regexp("\\s*"),
+        regexp("[0-7xXzZ?][0-7xXzZ?_]*"),
+    ))
+}
+
+rule hex_number {
+    token(seq(
+        choice(
+            prec_left(0, seq(
+                regexp("[1-9][0-9_]*"),
+                regexp("\\s*"),
+            )),
+            blank(),
+        ),
+        regexp("'[sS]?[hH]"),
+        regexp("\\s*"),
+        regexp("[0-9a-fA-FxXzZ?][0-9a-fA-FxXzZ?_]*"),
+    ))
+}
+
+rule non_zero_unsigned_number { token(regexp("[1-9][0-9_]*")) }
+
+rule real_number {
+    choice(
+        fixed_point_number,
+        token(regexp("[0-9][0-9_]*(\\.[0-9][0-9_]*)?[eE][+-]?[0-9][0-9_]*")),
+    )
+}
+
+rule fixed_point_number { token(regexp("[0-9][0-9_]*\\.[0-9][0-9_]*")) }
+
+rule unsigned_number { token(regexp("[0-9][0-9_]*")) }
+
+rule unbased_unsized_literal {
+    choice(
+        "'0",
+        "'1",
+        regexp("'[xXzZ]"),
+    )
+}

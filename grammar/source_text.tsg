@@ -1,0 +1,1898 @@
+// A.1 Source text and top-level items.
+
+expect _any_parameter_declaration
+expect _assertion_item
+expect _assertion_item_declaration
+expect _conditional_generate_construct
+expect _directives
+expect _identifier
+expect _module_identifier
+expect _property_actual_arg
+expect _variable_dimension
+expect _variable_port_type
+expect always_construct
+expect attribute_instance
+expect block_item_declaration
+expect cell_identifier
+expect checker_identifier
+expect checker_instantiation
+expect class_identifier
+expect class_scope
+expect class_type
+expect clocking_declaration
+expect clocking_identifier
+expect concurrent_assertion_item
+expect config_identifier
+expect const_identifier
+expect constant_bit_select1
+expect constant_expression
+expect constant_select1
+expect constraint_identifier
+expect continuous_assign
+expect covergroup_declaration
+expect data_declaration
+expect data_type
+expect dpi_import_export
+expect expression
+expect expression_or_dist
+expect final_construct
+expect formal_port_identifier
+expect function_declaration
+expect function_prototype
+expect function_statement_or_null
+expect gate_instantiation
+expect generate_region
+expect genvar_declaration
+expect hierarchical_identifier
+expect implicit_class_handle
+expect initial_construct
+expect inout_declaration
+expect input_declaration
+expect instance_identifier
+expect interface_identifier
+expect interface_instantiation
+expect interface_port_declaration
+expect library_identifier
+expect lifetime
+expect line_compiler_directive
+expect list_of_arguments
+expect list_of_arguments_parent
+expect list_of_defparam_assignments
+expect list_of_param_assignments
+expect list_of_type_assignments
+expect local_parameter_declaration
+expect loop_generate_construct
+expect loop_variables1
+expect modport_declaration
+expect modport_identifier
+expect module_instantiation
+expect named_parameter_assignment
+expect net_alias
+expect net_declaration
+expect net_port_type1
+expect open_range_list
+expect output_declaration
+expect overload_declaration
+expect package_export_declaration
+expect package_identifier
+expect package_import_declaration
+expect parameter_value_assignment
+expect port_identifier
+expect program_identifier
+expect program_instantiation
+expect property_formal_type1
+expect ps_class_identifier
+expect ps_or_hierarchical_array_identifier
+expect ref_declaration
+expect select1
+expect specify_block
+expect specparam_declaration
+expect task_declaration
+expect task_prototype
+expect tf_port_list
+expect time_literal
+expect topmodule_identifier
+expect type_declaration
+expect udp_declaration
+expect udp_instantiation
+expect unpacked_dimension
+expect value_range
+
+rule _description {
+    choice(
+        _directives,
+        module_declaration,
+        udp_declaration,
+        interface_declaration,
+        program_declaration,
+        package_declaration,
+        seq(
+            repeat(attribute_instance),
+            _package_item,
+        ),
+        seq(
+            repeat(attribute_instance),
+            bind_directive,
+        ),
+    )
+}
+
+rule module_header {
+    seq(
+        repeat(attribute_instance),
+        module_keyword,
+        choice(
+            lifetime,
+            blank(),
+        ),
+        _module_identifier,
+    )
+}
+
+rule module_nonansi_header {
+    seq(
+        repeat(package_import_declaration),
+        choice(
+            parameter_port_list,
+            blank(),
+        ),
+        list_of_ports,
+    )
+}
+
+rule module_ansi_header {
+    seq(
+        repeat(package_import_declaration),
+        choice(
+            seq(
+                parameter_port_list,
+                choice(
+                    list_of_port_declarations,
+                    blank(),
+                ),
+            ),
+            list_of_port_declarations,
+        ),
+    )
+}
+
+rule module_declaration {
+    choice(
+        seq(
+            module_header,
+            choice(
+                choice(
+                    module_nonansi_header,
+                    module_ansi_header,
+                    seq(
+                        "(",
+                        ".*",
+                        ")",
+                    ),
+                ),
+                blank(),
+            ),
+            ";",
+            choice(
+                timeunits_declaration,
+                blank(),
+            ),
+            repeat(_module_item),
+            "endmodule",
+            choice(
+                prec_left(0, seq(
+                    ":",
+                    _module_identifier,
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            "extern",
+            module_header,
+            choice(
+                module_nonansi_header,
+                module_ansi_header,
+            ),
+        ),
+    )
+}
+
+rule module_keyword {
+    choice(
+        "module",
+        "macromodule",
+    )
+}
+
+rule interface_declaration {
+    choice(
+        seq(
+            interface_nonansi_header,
+            choice(
+                timeunits_declaration,
+                blank(),
+            ),
+            repeat(interface_item),
+            "endinterface",
+            choice(
+                prec_left(0, seq(
+                    ":",
+                    interface_identifier,
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            interface_ansi_header,
+            choice(
+                timeunits_declaration,
+                blank(),
+            ),
+            repeat(_non_port_interface_item),
+            "endinterface",
+            choice(
+                prec_left(0, seq(
+                    ":",
+                    interface_identifier,
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            repeat(attribute_instance),
+            "interface",
+            interface_identifier,
+            "(",
+            ".*",
+            ")",
+            ";",
+            choice(
+                timeunits_declaration,
+                blank(),
+            ),
+            repeat(interface_item),
+            "endinterface",
+            choice(
+                prec_left(0, seq(
+                    ":",
+                    interface_identifier,
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            "extern",
+            interface_nonansi_header,
+        ),
+        seq(
+            "extern",
+            interface_ansi_header,
+        ),
+    )
+}
+
+rule interface_nonansi_header {
+    seq(
+        repeat(attribute_instance),
+        "interface",
+        choice(
+            lifetime,
+            blank(),
+        ),
+        interface_identifier,
+        repeat(package_import_declaration),
+        choice(
+            parameter_port_list,
+            blank(),
+        ),
+        list_of_ports,
+        ";",
+    )
+}
+
+rule interface_ansi_header {
+    seq(
+        repeat(attribute_instance),
+        "interface",
+        choice(
+            lifetime,
+            blank(),
+        ),
+        interface_identifier,
+        repeat(package_import_declaration),
+        choice(
+            parameter_port_list,
+            blank(),
+        ),
+        choice(
+            list_of_port_declarations,
+            blank(),
+        ),
+        ";",
+    )
+}
+
+rule program_declaration {
+    choice(
+        seq(
+            program_nonansi_header,
+            choice(
+                timeunits_declaration,
+                blank(),
+            ),
+            repeat(program_item),
+            "endprogram",
+            choice(
+                prec_left(0, seq(
+                    ":",
+                    program_identifier,
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            program_ansi_header,
+            choice(
+                timeunits_declaration,
+                blank(),
+            ),
+            repeat(non_port_program_item),
+            "endprogram",
+            choice(
+                prec_left(0, seq(
+                    ":",
+                    program_identifier,
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            repeat(attribute_instance),
+            "program",
+            program_identifier,
+            "(",
+            ".*",
+            ")",
+            ";",
+            choice(
+                timeunits_declaration,
+                blank(),
+            ),
+            repeat(program_item),
+            "endprogram",
+            choice(
+                prec_left(0, seq(
+                    ":",
+                    program_identifier,
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            "extern",
+            program_nonansi_header,
+        ),
+        seq(
+            "extern",
+            program_ansi_header,
+        ),
+    )
+}
+
+rule program_nonansi_header {
+    seq(
+        repeat(attribute_instance),
+        "program",
+        choice(
+            lifetime,
+            blank(),
+        ),
+        program_identifier,
+        repeat(package_import_declaration),
+        choice(
+            parameter_port_list,
+            blank(),
+        ),
+        list_of_ports,
+        ";",
+    )
+}
+
+rule program_ansi_header {
+    seq(
+        repeat(attribute_instance),
+        "program",
+        choice(
+            lifetime,
+            blank(),
+        ),
+        program_identifier,
+        repeat(package_import_declaration),
+        choice(
+            parameter_port_list,
+            blank(),
+        ),
+        choice(
+            list_of_port_declarations,
+            blank(),
+        ),
+        ";",
+    )
+}
+
+rule checker_declaration {
+    seq(
+        "checker",
+        checker_identifier,
+        choice(
+            prec_left(0, seq(
+                "(",
+                choice(
+                    checker_port_list,
+                    blank(),
+                ),
+                ")",
+            )),
+            blank(),
+        ),
+        ";",
+        repeat(prec_left(0, seq(
+            repeat(attribute_instance),
+            _checker_or_generate_item,
+        ))),
+        "endchecker",
+        choice(
+            prec_left(0, seq(
+                ":",
+                checker_identifier,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule class_declaration {
+    seq(
+        choice(
+            "virtual",
+            blank(),
+        ),
+        "class",
+        choice(
+            lifetime,
+            blank(),
+        ),
+        class_identifier,
+        choice(
+            parameter_port_list,
+            blank(),
+        ),
+        choice(
+            prec_left(0, seq(
+                "extends",
+                class_type,
+                choice(
+                    list_of_arguments_parent,
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        choice(
+            prec_left(0, seq(
+                "implements",
+                prec_left(0, seq(
+                    interface_class_type,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        interface_class_type,
+                    ))),
+                )),
+            )),
+            blank(),
+        ),
+        ";",
+        repeat(class_item),
+        "endclass",
+        choice(
+            prec_left(0, seq(
+                ":",
+                class_identifier,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule interface_class_type {
+    seq(
+        ps_class_identifier,
+        choice(
+            parameter_value_assignment,
+            blank(),
+        ),
+    )
+}
+
+rule interface_class_declaration {
+    seq(
+        "interface",
+        "class",
+        class_identifier,
+        choice(
+            parameter_port_list,
+            blank(),
+        ),
+        choice(
+            prec_left(0, seq(
+                "extends",
+                choice(
+                    prec_left(0, seq(
+                        interface_class_type,
+                        repeat(prec_left(0, seq(
+                            ",",
+                            interface_class_type,
+                        ))),
+                    )),
+                    blank(),
+                ),
+                ";",
+            )),
+            blank(),
+        ),
+        repeat(interface_class_item),
+        "endclass",
+        choice(
+            prec_left(0, seq(
+                ":",
+                class_identifier,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule interface_class_item {
+    choice(
+        type_declaration,
+        seq(
+            repeat(attribute_instance),
+            interface_class_method,
+        ),
+        seq(
+            _any_parameter_declaration,
+            ";",
+        ),
+        ";",
+    )
+}
+
+rule interface_class_method {
+    seq(
+        "pure",
+        "virtual",
+        _method_prototype,
+        ";",
+    )
+}
+
+rule package_declaration {
+    seq(
+        repeat(attribute_instance),
+        "package",
+        choice(
+            lifetime,
+            blank(),
+        ),
+        package_identifier,
+        ";",
+        choice(
+            timeunits_declaration,
+            blank(),
+        ),
+        repeat(prec_left(0, seq(
+            repeat(attribute_instance),
+            _package_item,
+        ))),
+        "endpackage",
+        choice(
+            prec_left(0, seq(
+                ":",
+                package_identifier,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule timeunits_declaration {
+    choice(
+        prec_left(0, seq(
+            "timeunit",
+            time_literal,
+            choice(
+                prec_left(0, seq(
+                    "/",
+                    time_literal,
+                )),
+                blank(),
+            ),
+            ";",
+        )),
+        prec_left(0, seq(
+            "timeprecision",
+            time_literal,
+            ";",
+        )),
+        prec_left(0, seq(
+            "timeunit",
+            time_literal,
+            ";",
+            "timeprecision",
+            time_literal,
+            ";",
+        )),
+        prec_left(0, seq(
+            "timeprecision",
+            time_literal,
+            ";",
+            "timeunit",
+            time_literal,
+            ";",
+        )),
+    )
+}
+
+rule parameter_port_list {
+    seq(
+        "#",
+        "(",
+        choice(
+            choice(
+                seq(
+                    list_of_param_assignments,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        parameter_port_declaration,
+                    ))),
+                ),
+                prec_left(0, seq(
+                    parameter_port_declaration,
+                    repeat(prec_left(0, seq(
+                        ",",
+                        parameter_port_declaration,
+                    ))),
+                )),
+            ),
+            blank(),
+        ),
+        ")",
+    )
+}
+
+rule parameter_port_declaration {
+    choice(
+        _any_parameter_declaration,
+        seq(
+            data_type,
+            list_of_param_assignments,
+        ),
+        seq(
+            "type",
+            list_of_type_assignments,
+        ),
+    )
+}
+
+rule list_of_ports {
+    seq(
+        "(",
+        choice(
+            prec_left(0, seq(
+                seq(
+                    choice(
+                        line_compiler_directive,
+                        blank(),
+                    ),
+                    port,
+                    choice(
+                        line_compiler_directive,
+                        blank(),
+                    ),
+                ),
+                repeat(prec_left(0, seq(
+                    ",",
+                    seq(
+                        choice(
+                            line_compiler_directive,
+                            blank(),
+                        ),
+                        port,
+                        choice(
+                            line_compiler_directive,
+                            blank(),
+                        ),
+                    ),
+                ))),
+            )),
+            blank(),
+        ),
+        ")",
+    )
+}
+
+rule list_of_port_declarations {
+    seq(
+        "(",
+        choice(
+            prec_left(0, seq(
+                seq(
+                    repeat(attribute_instance),
+                    ansi_port_declaration,
+                ),
+                repeat(prec_left(0, seq(
+                    ",",
+                    seq(
+                        repeat(attribute_instance),
+                        ansi_port_declaration,
+                    ),
+                ))),
+            )),
+            blank(),
+        ),
+        ")",
+    )
+}
+
+rule port_declaration {
+    seq(
+        repeat(attribute_instance),
+        choice(
+            inout_declaration,
+            input_declaration,
+            output_declaration,
+            ref_declaration,
+            interface_port_declaration,
+        ),
+    )
+}
+
+rule port {
+    choice(
+        _port_expression,
+        seq(
+            ".",
+            port_identifier,
+            "(",
+            choice(
+                _port_expression,
+                blank(),
+            ),
+            ")",
+        ),
+    )
+}
+
+rule _port_expression {
+    choice(
+        port_reference,
+        seq(
+            "{",
+            prec_left(0, seq(
+                port_reference,
+                repeat(prec_left(0, seq(
+                    ",",
+                    port_reference,
+                ))),
+            )),
+            "}",
+        ),
+    )
+}
+
+rule port_reference {
+    seq(
+        port_identifier,
+        choice(
+            constant_select1,
+            blank(),
+        ),
+    )
+}
+
+rule port_direction {
+    choice(
+        "input",
+        "output",
+        "inout",
+        "ref",
+    )
+}
+
+rule net_port_header1 {
+    choice(
+        seq(
+            choice(
+                port_direction,
+                blank(),
+            ),
+            net_port_type1,
+        ),
+        port_direction,
+    )
+}
+
+rule variable_port_header {
+    seq(
+        choice(
+            port_direction,
+            blank(),
+        ),
+        _variable_port_type,
+    )
+}
+
+rule interface_port_header {
+    seq(
+        choice(
+            interface_identifier,
+            "interface",
+        ),
+        choice(
+            prec_left(0, seq(
+                ".",
+                modport_identifier,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule ansi_port_declaration {
+    choice(
+        seq(
+            choice(
+                choice(
+                    net_port_header1,
+                    interface_port_header,
+                ),
+                blank(),
+            ),
+            port_identifier,
+            repeat(unpacked_dimension),
+            choice(
+                prec_left(0, seq(
+                    "=",
+                    constant_expression,
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            choice(
+                variable_port_header,
+                blank(),
+            ),
+            port_identifier,
+            repeat(_variable_dimension),
+            choice(
+                prec_left(0, seq(
+                    "=",
+                    constant_expression,
+                )),
+                blank(),
+            ),
+        ),
+        seq(
+            choice(
+                port_direction,
+                blank(),
+            ),
+            ".",
+            port_identifier,
+            "(",
+            choice(
+                expression,
+                blank(),
+            ),
+            ")",
+        ),
+    )
+}
+
+rule elaboration_system_task {
+    choice(
+        seq(
+            "$fatal",
+            choice(
+                prec_left(0, seq(
+                    "(",
+                    finish_number,
+                    choice(
+                        prec_left(0, seq(
+                            ",",
+                            list_of_arguments,
+                        )),
+                        blank(),
+                    ),
+                    ")",
+                )),
+                blank(),
+            ),
+            ";",
+        ),
+        seq(
+            choice(
+                "$error",
+                "$warning",
+                "$info",
+            ),
+            choice(
+                list_of_arguments_parent,
+                blank(),
+            ),
+            ";",
+        ),
+    )
+}
+
+rule finish_number {
+    choice(
+        "0",
+        "1",
+        "2",
+    )
+}
+
+rule _module_common_item {
+    choice(
+        _module_or_generate_item_declaration,
+        interface_instantiation,
+        program_instantiation,
+        _assertion_item,
+        bind_directive,
+        continuous_assign,
+        net_alias,
+        initial_construct,
+        final_construct,
+        always_construct,
+        loop_generate_construct,
+        _conditional_generate_construct,
+        elaboration_system_task,
+    )
+}
+
+rule _module_item {
+    choice(
+        seq(
+            port_declaration,
+            ";",
+        ),
+        _non_port_module_item,
+    )
+}
+
+rule module_or_generate_item {
+    seq(
+        repeat(attribute_instance),
+        choice(
+            parameter_override,
+            gate_instantiation,
+            udp_instantiation,
+            module_instantiation,
+            _module_common_item,
+        ),
+    )
+}
+
+rule _module_or_generate_item_declaration {
+    choice(
+        package_or_generate_item_declaration,
+        genvar_declaration,
+        clocking_declaration,
+        seq(
+            "default",
+            "clocking",
+            clocking_identifier,
+            ";",
+        ),
+        seq(
+            "default",
+            "disable",
+            "iff",
+            expression_or_dist,
+            ";",
+        ),
+    )
+}
+
+rule _non_port_module_item {
+    choice(
+        _directives,
+        generate_region,
+        module_or_generate_item,
+        specify_block,
+        seq(
+            repeat(attribute_instance),
+            specparam_declaration,
+        ),
+        program_declaration,
+        module_declaration,
+        interface_declaration,
+        timeunits_declaration,
+    )
+}
+
+rule parameter_override {
+    seq(
+        "defparam",
+        list_of_defparam_assignments,
+        ";",
+    )
+}
+
+rule bind_directive {
+    seq(
+        "bind",
+        choice(
+            seq(
+                bind_target_scope,
+                choice(
+                    prec_left(0, seq(
+                        ":",
+                        bind_target_instance_list,
+                    )),
+                    blank(),
+                ),
+            ),
+            bind_target_instance,
+        ),
+        _bind_instantiation,
+        ";",
+    )
+}
+
+rule bind_target_scope {
+    choice(
+        _module_identifier,
+    )
+}
+
+rule bind_target_instance {
+    seq(
+        hierarchical_identifier,
+        choice(
+            constant_bit_select1,
+            blank(),
+        ),
+    )
+}
+
+rule bind_target_instance_list {
+    prec_left(0, seq(
+        bind_target_instance,
+        repeat(prec_left(0, seq(
+            ",",
+            bind_target_instance,
+        ))),
+    ))
+}
+
+rule _bind_instantiation {
+    choice(
+        program_instantiation,
+        module_instantiation,
+        interface_instantiation,
+        checker_instantiation,
+    )
+}
+
+rule config_declaration {
+    seq(
+        "config",
+        config_identifier,
+        ";",
+        repeat(prec_left(0, seq(
+            local_parameter_declaration,
+            ";",
+        ))),
+        design_statement,
+        repeat(config_rule_statement),
+        "endconfig",
+        choice(
+            prec_left(0, seq(
+                ":",
+                config_identifier,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule design_statement {
+    seq(
+        "design",
+        repeat(prec_left(0, seq(
+            choice(
+                prec_left(0, seq(
+                    library_identifier,
+                    ".",
+                )),
+                blank(),
+            ),
+            cell_identifier,
+        ))),
+        ";",
+    )
+}
+
+rule config_rule_statement {
+    choice(
+        seq(
+            default_clause,
+            liblist_clause,
+            ";",
+        ),
+        seq(
+            inst_clause,
+            liblist_clause,
+            ";",
+        ),
+        seq(
+            inst_clause,
+            use_clause,
+            ";",
+        ),
+        seq(
+            cell_clause,
+            liblist_clause,
+            ";",
+        ),
+        seq(
+            cell_clause,
+            use_clause,
+            ";",
+        ),
+    )
+}
+
+rule default_clause { "default" }
+
+rule inst_clause {
+    seq(
+        "instance",
+        inst_name,
+    )
+}
+
+rule inst_name {
+    seq(
+        topmodule_identifier,
+        repeat(prec_left(0, seq(
+            ".",
+            instance_identifier,
+        ))),
+    )
+}
+
+rule cell_clause {
+    seq(
+        "cell",
+        choice(
+            prec_left(0, seq(
+                library_identifier,
+                ".",
+            )),
+            blank(),
+        ),
+        cell_identifier,
+    )
+}
+
+rule liblist_clause {
+    seq(
+        "liblist",
+        repeat(library_identifier),
+    )
+}
+
+rule use_clause {
+    seq(
+        "use",
+        choice(
+            prec_left(0, seq(
+                named_parameter_assignment,
+                repeat(prec_left(0, seq(
+                    ",",
+                    named_parameter_assignment,
+                ))),
+            )),
+            seq(
+                choice(
+                    prec_left(0, seq(
+                        library_identifier,
+                        ".",
+                    )),
+                    blank(),
+                ),
+                cell_identifier,
+                choice(
+                    prec_left(0, seq(
+                        named_parameter_assignment,
+                        repeat(prec_left(0, seq(
+                            ",",
+                            named_parameter_assignment,
+                        ))),
+                    )),
+                    blank(),
+                ),
+            ),
+        ),
+        choice(
+            prec_left(0, seq(
+                ":",
+                "config",
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule interface_or_generate_item {
+    choice(
+        seq(
+            repeat(attribute_instance),
+            _module_common_item,
+        ),
+        seq(
+            repeat(attribute_instance),
+            extern_tf_declaration,
+        ),
+    )
+}
+
+rule extern_tf_declaration {
+    choice(
+        seq(
+            "extern",
+            _method_prototype,
+            ";",
+        ),
+        seq(
+            "extern",
+            "forkjoin",
+            task_prototype,
+            ";",
+        ),
+    )
+}
+
+rule interface_item {
+    choice(
+        seq(
+            port_declaration,
+            ";",
+        ),
+        _non_port_interface_item,
+    )
+}
+
+rule _non_port_interface_item {
+    choice(
+        generate_region,
+        interface_or_generate_item,
+        program_declaration,
+        modport_declaration,
+        interface_declaration,
+        timeunits_declaration,
+    )
+}
+
+rule program_item {
+    choice(
+        seq(
+            port_declaration,
+            ";",
+        ),
+        non_port_program_item,
+    )
+}
+
+rule non_port_program_item {
+    choice(
+        seq(
+            repeat(attribute_instance),
+            continuous_assign,
+        ),
+        seq(
+            repeat(attribute_instance),
+            _module_or_generate_item_declaration,
+        ),
+        seq(
+            repeat(attribute_instance),
+            initial_construct,
+        ),
+        seq(
+            repeat(attribute_instance),
+            final_construct,
+        ),
+        seq(
+            repeat(attribute_instance),
+            concurrent_assertion_item,
+        ),
+        timeunits_declaration,
+        _program_generate_item,
+    )
+}
+
+rule _program_generate_item {
+    choice(
+        loop_generate_construct,
+        _conditional_generate_construct,
+        generate_region,
+        elaboration_system_task,
+    )
+}
+
+rule checker_port_list {
+    prec_left(0, seq(
+        checker_port_item,
+        repeat(prec_left(0, seq(
+            ",",
+            checker_port_item,
+        ))),
+    ))
+}
+
+rule checker_port_item {
+    seq(
+        repeat(attribute_instance),
+        choice(
+            checker_port_direction,
+            blank(),
+        ),
+        choice(
+            property_formal_type1,
+            blank(),
+        ),
+        formal_port_identifier,
+        repeat(_variable_dimension),
+        choice(
+            prec_left(0, seq(
+                "=",
+                _property_actual_arg,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule checker_port_direction {
+    choice(
+        "input",
+        "output",
+    )
+}
+
+rule _checker_or_generate_item {
+    choice(
+        checker_or_generate_item_declaration,
+        initial_construct,
+        always_construct,
+        final_construct,
+        _assertion_item,
+        continuous_assign,
+        _checker_generate_item,
+    )
+}
+
+rule checker_or_generate_item_declaration {
+    choice(
+        seq(
+            choice(
+                "rand",
+                blank(),
+            ),
+            data_declaration,
+        ),
+        function_declaration,
+        checker_declaration,
+        _assertion_item_declaration,
+        covergroup_declaration,
+        genvar_declaration,
+        clocking_declaration,
+        seq(
+            "default",
+            "clocking",
+            clocking_identifier,
+            ";",
+        ),
+        prec_right(11, seq(
+            "default",
+            "disable",
+            "iff",
+            expression_or_dist,
+            ";",
+        )),
+        ";",
+    )
+}
+
+rule _checker_generate_item {
+    choice(
+        loop_generate_construct,
+        _conditional_generate_construct,
+        generate_region,
+        elaboration_system_task,
+    )
+}
+
+rule class_item {
+    choice(
+        _directives,
+        seq(
+            repeat(attribute_instance),
+            class_property,
+        ),
+        seq(
+            repeat(attribute_instance),
+            class_method,
+        ),
+        seq(
+            repeat(attribute_instance),
+            _class_constraint,
+        ),
+        seq(
+            repeat(attribute_instance),
+            class_declaration,
+        ),
+        seq(
+            repeat(attribute_instance),
+            covergroup_declaration,
+        ),
+        seq(
+            _any_parameter_declaration,
+            ";",
+        ),
+        ";",
+    )
+}
+
+rule class_property {
+    choice(
+        seq(
+            repeat(_property_qualifier),
+            data_declaration,
+        ),
+        seq(
+            "const",
+            repeat(class_item_qualifier),
+            data_type,
+            const_identifier,
+            choice(
+                prec_left(0, seq(
+                    "=",
+                    constant_expression,
+                )),
+                blank(),
+            ),
+            ";",
+        ),
+    )
+}
+
+rule class_method {
+    choice(
+        seq(
+            repeat(method_qualifier),
+            task_declaration,
+        ),
+        seq(
+            repeat(method_qualifier),
+            function_declaration,
+        ),
+        seq(
+            "pure",
+            "virtual",
+            repeat(class_item_qualifier),
+            _method_prototype,
+            ";",
+        ),
+        seq(
+            "extern",
+            repeat(method_qualifier),
+            _method_prototype,
+            ";",
+        ),
+        seq(
+            repeat(method_qualifier),
+            class_constructor_declaration,
+        ),
+        seq(
+            "extern",
+            repeat(method_qualifier),
+            class_constructor_prototype,
+        ),
+    )
+}
+
+rule class_constructor_prototype {
+    seq(
+        "function",
+        "new",
+        choice(
+            prec_left(0, seq(
+                "(",
+                choice(
+                    tf_port_list,
+                    blank(),
+                ),
+                ")",
+            )),
+            blank(),
+        ),
+        ";",
+    )
+}
+
+rule _class_constraint {
+    choice(
+        constraint_prototype,
+        constraint_declaration,
+    )
+}
+
+rule class_item_qualifier {
+    choice(
+        "static",
+        "protected",
+        "local",
+    )
+}
+
+rule _property_qualifier {
+    choice(
+        random_qualifier,
+        class_item_qualifier,
+    )
+}
+
+rule random_qualifier {
+    choice(
+        "rand",
+        "randc",
+    )
+}
+
+rule method_qualifier {
+    choice(
+        seq(
+            choice(
+                "pure",
+                blank(),
+            ),
+            "virtual",
+        ),
+        class_item_qualifier,
+    )
+}
+
+rule _method_prototype {
+    choice(
+        task_prototype,
+        function_prototype,
+    )
+}
+
+rule class_constructor_declaration {
+    seq(
+        "function",
+        choice(
+            class_scope,
+            blank(),
+        ),
+        "new",
+        choice(
+            prec_left(0, seq(
+                "(",
+                choice(
+                    tf_port_list,
+                    blank(),
+                ),
+                ")",
+            )),
+            blank(),
+        ),
+        ";",
+        repeat(block_item_declaration),
+        choice(
+            prec_left(0, seq(
+                "super",
+                ".",
+                "new",
+                choice(
+                    list_of_arguments_parent,
+                    blank(),
+                ),
+                ";",
+            )),
+            blank(),
+        ),
+        repeat(function_statement_or_null),
+        "endfunction",
+        choice(
+            prec_left(0, seq(
+                ":",
+                "new",
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule constraint_declaration {
+    seq(
+        choice(
+            "static",
+            blank(),
+        ),
+        "constraint",
+        constraint_identifier,
+        constraint_block,
+    )
+}
+
+rule constraint_block {
+    seq(
+        "{",
+        repeat(constraint_block_item),
+        "}",
+    )
+}
+
+rule constraint_block_item {
+    choice(
+        seq(
+            "solve",
+            solve_before_list,
+            "before",
+            solve_before_list,
+            ";",
+        ),
+        constraint_expression,
+    )
+}
+
+rule solve_before_list {
+    prec_left(0, seq(
+        constraint_primary,
+        repeat(prec_left(0, seq(
+            ",",
+            constraint_primary,
+        ))),
+    ))
+}
+
+rule constraint_primary {
+    seq(
+        choice(
+            choice(
+                seq(
+                    implicit_class_handle,
+                    ".",
+                ),
+                class_scope,
+            ),
+            blank(),
+        ),
+        hierarchical_identifier,
+        choice(
+            select1,
+            blank(),
+        ),
+    )
+}
+
+rule constraint_expression {
+    choice(
+        seq(
+            choice(
+                "soft",
+                blank(),
+            ),
+            expression_or_dist,
+            ";",
+        ),
+        seq(
+            uniqueness_constraint,
+            ";",
+        ),
+        prec_right(22, seq(
+            expression,
+            "–>",
+            constraint_set,
+        )),
+        prec_left(0, seq(
+            "if",
+            "(",
+            expression,
+            ")",
+            constraint_set,
+            choice(
+                prec_left(0, seq(
+                    "else",
+                    constraint_set,
+                )),
+                blank(),
+            ),
+        )),
+        seq(
+            "foreach",
+            "(",
+            ps_or_hierarchical_array_identifier,
+            "[",
+            choice(
+                loop_variables1,
+                blank(),
+            ),
+            "]",
+            ")",
+            constraint_set,
+        ),
+        seq(
+            "disable",
+            "soft",
+            constraint_primary,
+            ";",
+        ),
+    )
+}
+
+rule uniqueness_constraint {
+    seq(
+        "unique",
+        "{",
+        open_range_list,
+        "}",
+    )
+}
+
+rule constraint_set {
+    choice(
+        constraint_expression,
+        seq(
+            "{",
+            repeat(constraint_expression),
+            "}",
+        ),
+    )
+}
+
+rule dist_list {
+    prec_left(0, seq(
+        dist_item,
+        repeat(prec_left(0, seq(
+            ",",
+            dist_item,
+        ))),
+    ))
+}
+
+rule dist_item {
+    seq(
+        value_range,
+        choice(
+            dist_weight,
+            blank(),
+        ),
+    )
+}
+
+rule dist_weight {
+    seq(
+        choice(
+            ":=",
+            ":/",
+        ),
+        expression,
+    )
+}
+
+rule constraint_prototype {
+    seq(
+        choice(
+            constraint_prototype_qualifier,
+            blank(),
+        ),
+        choice(
+            "static",
+            blank(),
+        ),
+        "constraint",
+        constraint_identifier,
+        ";",
+    )
+}
+
+rule constraint_prototype_qualifier {
+    choice(
+        "extern",
+        "pure",
+    )
+}
+
+rule extern_constraint_declaration {
+    seq(
+        choice(
+            "static",
+            blank(),
+        ),
+        "constraint",
+        class_scope,
+        constraint_identifier,
+        constraint_block,
+    )
+}
+
+rule identifier_list {
+    prec_left(0, seq(
+        _identifier,
+        repeat(prec_left(0, seq(
+            ",",
+            _identifier,
+        ))),
+    ))
+}
+
+rule _package_item {
+    choice(
+        package_or_generate_item_declaration,
+        anonymous_program,
+        package_export_declaration,
+        timeunits_declaration,
+    )
+}
+
+rule package_or_generate_item_declaration {
+    choice(
+        net_declaration,
+        data_declaration,
+        task_declaration,
+        function_declaration,
+        checker_declaration,
+        dpi_import_export,
+        extern_constraint_declaration,
+        class_declaration,
+        interface_class_declaration,
+        class_constructor_declaration,
+        seq(
+            _any_parameter_declaration,
+            ";",
+        ),
+        covergroup_declaration,
+        overload_declaration,
+        _assertion_item_declaration,
+        ";",
+    )
+}
+
+rule anonymous_program {
+    seq(
+        "program",
+        ";",
+        repeat(anonymous_program_item),
+        "endprogram",
+    )
+}
+
+rule anonymous_program_item {
+    choice(
+        task_declaration,
+        function_declaration,
+        class_declaration,
+        covergroup_declaration,
+        class_constructor_declaration,
+        ";",
+    )
+}

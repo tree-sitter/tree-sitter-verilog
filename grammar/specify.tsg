@@ -1,0 +1,906 @@
+// A.7 Specify sections and timing checks.
+
+expect _constant_range_expression
+expect _variable_identifier
+expect constant_expression
+expect constant_mintypmax_expression
+expect expression
+expect inout_port_identifier
+expect input_port_identifier
+expect interface_identifier
+expect mintypmax_expression
+expect module_path_expression
+expect output_port_identifier
+expect port_identifier
+expect specparam_declaration
+expect terminal_identifier
+
+rule specify_block {
+    seq(
+        "specify",
+        repeat(_specify_item),
+        "endspecify",
+    )
+}
+
+rule _specify_item {
+    choice(
+        specparam_declaration,
+        pulsestyle_declaration,
+        showcancelled_declaration,
+        path_declaration,
+        _system_timing_check,
+    )
+}
+
+rule pulsestyle_declaration {
+    seq(
+        choice(
+            "pulsestyle_onevent",
+            "pulsestyle_ondetect",
+        ),
+        list_of_path_outputs,
+        ";",
+    )
+}
+
+rule showcancelled_declaration {
+    seq(
+        choice(
+            "showcancelled",
+            "noshowcancelled",
+        ),
+        list_of_path_outputs,
+        ";",
+    )
+}
+
+rule path_declaration {
+    seq(
+        choice(
+            simple_path_declaration,
+            edge_sensitive_path_declaration,
+            state_dependent_path_declaration,
+        ),
+        ";",
+    )
+}
+
+rule simple_path_declaration {
+    seq(
+        choice(
+            parallel_path_description,
+            full_path_description,
+        ),
+        "=",
+        path_delay_value,
+    )
+}
+
+rule parallel_path_description {
+    seq(
+        "(",
+        specify_input_terminal_descriptor,
+        choice(
+            polarity_operator,
+            blank(),
+        ),
+        "=>",
+        specify_output_terminal_descriptor,
+        ")",
+    )
+}
+
+rule full_path_description {
+    seq(
+        "(",
+        list_of_path_inputs,
+        choice(
+            polarity_operator,
+            blank(),
+        ),
+        "*>",
+        list_of_path_outputs,
+        ")",
+    )
+}
+
+rule list_of_path_inputs {
+    prec_left(0, seq(
+        specify_input_terminal_descriptor,
+        repeat(prec_left(0, seq(
+            ",",
+            specify_input_terminal_descriptor,
+        ))),
+    ))
+}
+
+rule list_of_path_outputs {
+    prec_left(0, seq(
+        specify_output_terminal_descriptor,
+        repeat(prec_left(0, seq(
+            ",",
+            specify_output_terminal_descriptor,
+        ))),
+    ))
+}
+
+rule specify_input_terminal_descriptor {
+    seq(
+        input_identifier,
+        choice(
+            prec_left(0, seq(
+                "[",
+                _constant_range_expression,
+                "]",
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule specify_output_terminal_descriptor {
+    seq(
+        output_identifier,
+        choice(
+            prec_left(0, seq(
+                "[",
+                _constant_range_expression,
+                "]",
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule input_identifier {
+    choice(
+        input_port_identifier,
+        inout_port_identifier,
+        seq(
+            interface_identifier,
+            ".",
+            port_identifier,
+        ),
+    )
+}
+
+rule output_identifier {
+    choice(
+        output_port_identifier,
+        inout_port_identifier,
+        seq(
+            interface_identifier,
+            ".",
+            port_identifier,
+        ),
+    )
+}
+
+rule path_delay_value {
+    choice(
+        list_of_path_delay_expressions,
+        seq(
+            "(",
+            list_of_path_delay_expressions,
+            ")",
+        ),
+    )
+}
+
+rule list_of_path_delay_expressions {
+    prec_left(0, seq(
+        path_delay_expression,
+        repeat(prec_left(0, seq(
+            ",",
+            path_delay_expression,
+        ))),
+    ))
+}
+
+rule path_delay_expression { constant_mintypmax_expression }
+
+rule edge_sensitive_path_declaration {
+    seq(
+        choice(
+            parallel_edge_sensitive_path_description,
+            full_edge_sensitive_path_description,
+        ),
+        "=",
+        path_delay_value,
+    )
+}
+
+rule parallel_edge_sensitive_path_description {
+    seq(
+        "(",
+        choice(
+            edge_identifier,
+            blank(),
+        ),
+        specify_input_terminal_descriptor,
+        choice(
+            polarity_operator,
+            blank(),
+        ),
+        "=>",
+        "(",
+        specify_output_terminal_descriptor,
+        choice(
+            polarity_operator,
+            blank(),
+        ),
+        ":",
+        data_source_expression,
+        ")",
+        ")",
+    )
+}
+
+rule full_edge_sensitive_path_description {
+    seq(
+        "(",
+        choice(
+            edge_identifier,
+            blank(),
+        ),
+        list_of_path_inputs,
+        choice(
+            polarity_operator,
+            blank(),
+        ),
+        "*>",
+        "(",
+        list_of_path_outputs,
+        choice(
+            polarity_operator,
+            blank(),
+        ),
+        ":",
+        data_source_expression,
+        ")",
+        ")",
+    )
+}
+
+rule data_source_expression { expression }
+
+rule edge_identifier {
+    choice(
+        "posedge",
+        "negedge",
+        "edge",
+    )
+}
+
+rule state_dependent_path_declaration {
+    choice(
+        seq(
+            "if",
+            "(",
+            module_path_expression,
+            ")",
+            simple_path_declaration,
+        ),
+        seq(
+            "if",
+            "(",
+            module_path_expression,
+            ")",
+            edge_sensitive_path_declaration,
+        ),
+        seq(
+            "ifnone",
+            simple_path_declaration,
+        ),
+    )
+}
+
+rule polarity_operator {
+    choice(
+        "+",
+        "-",
+    )
+}
+
+rule _system_timing_check {
+    choice(
+        setup_timing_check,
+        hold_timing_check,
+        setuphold_timing_check,
+        recovery_timing_check,
+        removal_timing_check,
+        recrem_timing_check,
+        skew_timing_check,
+        timeskew_timing_check,
+        fullskew_timing_check,
+        period_timing_check,
+        width_timing_check,
+        nochange_timing_check,
+    )
+}
+
+rule setup_timing_check {
+    seq(
+        "$setup",
+        "(",
+        data_event,
+        ",",
+        reference_event,
+        ",",
+        timing_check_limit,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule hold_timing_check {
+    seq(
+        "$hold",
+        "(",
+        reference_event,
+        ",",
+        data_event,
+        ",",
+        timing_check_limit,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule setuphold_timing_check {
+    seq(
+        "$setuphold",
+        "(",
+        reference_event,
+        ",",
+        data_event,
+        ",",
+        timing_check_limit,
+        ",",
+        timing_check_limit,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+                choice(
+                    prec_left(0, seq(
+                        ",",
+                        choice(
+                            timestamp_condition,
+                            blank(),
+                        ),
+                        choice(
+                            prec_left(0, seq(
+                                ",",
+                                choice(
+                                    timecheck_condition,
+                                    blank(),
+                                ),
+                                choice(
+                                    prec_left(0, seq(
+                                        ",",
+                                        choice(
+                                            delayed_reference,
+                                            blank(),
+                                        ),
+                                        choice(
+                                            prec_left(0, seq(
+                                                ",",
+                                                choice(
+                                                    delayed_data,
+                                                    blank(),
+                                                ),
+                                            )),
+                                            blank(),
+                                        ),
+                                    )),
+                                    blank(),
+                                ),
+                            )),
+                            blank(),
+                        ),
+                    )),
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule recovery_timing_check {
+    seq(
+        "$recovery",
+        "(",
+        reference_event,
+        ",",
+        data_event,
+        ",",
+        timing_check_limit,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule removal_timing_check {
+    seq(
+        "$removal",
+        "(",
+        reference_event,
+        ",",
+        data_event,
+        ",",
+        timing_check_limit,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule recrem_timing_check {
+    seq(
+        "$recrem",
+        "(",
+        reference_event,
+        ",",
+        data_event,
+        ",",
+        timing_check_limit,
+        ",",
+        timing_check_limit,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+                choice(
+                    prec_left(0, seq(
+                        ",",
+                        choice(
+                            timestamp_condition,
+                            blank(),
+                        ),
+                        choice(
+                            prec_left(0, seq(
+                                ",",
+                                choice(
+                                    timecheck_condition,
+                                    blank(),
+                                ),
+                            )),
+                            blank(),
+                        ),
+                        choice(
+                            prec_left(0, seq(
+                                ",",
+                                choice(
+                                    delayed_reference,
+                                    blank(),
+                                ),
+                                choice(
+                                    prec_left(0, seq(
+                                        ",",
+                                        choice(
+                                            delayed_data,
+                                            blank(),
+                                        ),
+                                    )),
+                                    blank(),
+                                ),
+                            )),
+                            blank(),
+                        ),
+                    )),
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule skew_timing_check {
+    seq(
+        "$skew",
+        "(",
+        reference_event,
+        ",",
+        data_event,
+        ",",
+        timing_check_limit,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule timeskew_timing_check {
+    seq(
+        "$timeskew",
+        "(",
+        reference_event,
+        ",",
+        data_event,
+        ",",
+        timing_check_limit,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+                choice(
+                    prec_left(0, seq(
+                        ",",
+                        choice(
+                            event_based_flag,
+                            blank(),
+                        ),
+                        choice(
+                            prec_left(0, seq(
+                                ",",
+                                choice(
+                                    remain_active_flag,
+                                    blank(),
+                                ),
+                            )),
+                            blank(),
+                        ),
+                    )),
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule fullskew_timing_check {
+    seq(
+        "$fullskew",
+        "(",
+        reference_event,
+        ",",
+        data_event,
+        ",",
+        timing_check_limit,
+        ",",
+        timing_check_limit,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+                choice(
+                    prec_left(0, seq(
+                        ",",
+                        choice(
+                            event_based_flag,
+                            blank(),
+                        ),
+                        choice(
+                            prec_left(0, seq(
+                                ",",
+                                choice(
+                                    remain_active_flag,
+                                    blank(),
+                                ),
+                            )),
+                            blank(),
+                        ),
+                    )),
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule period_timing_check {
+    seq(
+        "$period",
+        "(",
+        controlled_reference_event,
+        ",",
+        timing_check_limit,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule width_timing_check {
+    seq(
+        "$width",
+        "(",
+        controlled_reference_event,
+        ",",
+        timing_check_limit,
+        ",",
+        threshold,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule nochange_timing_check {
+    seq(
+        "$nochange",
+        "(",
+        reference_event,
+        ",",
+        data_event,
+        ",",
+        start_edge_offset,
+        ",",
+        end_edge_offset,
+        choice(
+            prec_left(0, seq(
+                ",",
+                choice(
+                    notifier,
+                    blank(),
+                ),
+            )),
+            blank(),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule timecheck_condition { mintypmax_expression }
+
+rule controlled_reference_event { alias(controlled_timing_check_event, controlled_reference_event) }
+
+rule data_event { timing_check_event }
+
+rule delayed_data {
+    seq(
+        terminal_identifier,
+        choice(
+            constant_mintypmax_expression,
+            blank(),
+        ),
+    )
+}
+
+rule delayed_reference {
+    seq(
+        terminal_identifier,
+        choice(
+            constant_mintypmax_expression,
+            blank(),
+        ),
+    )
+}
+
+rule end_edge_offset { mintypmax_expression }
+
+rule event_based_flag { constant_expression }
+
+rule notifier { _variable_identifier }
+
+rule reference_event { timing_check_event }
+
+rule remain_active_flag { constant_mintypmax_expression }
+
+rule timestamp_condition { mintypmax_expression }
+
+rule start_edge_offset { mintypmax_expression }
+
+rule threshold { constant_expression }
+
+rule timing_check_limit { expression }
+
+rule timing_check_event {
+    seq(
+        choice(
+            timing_check_event_control,
+            blank(),
+        ),
+        _specify_terminal_descriptor,
+        choice(
+            prec_left(0, seq(
+                "&&&",
+                timing_check_condition,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule controlled_timing_check_event {
+    seq(
+        timing_check_event_control,
+        _specify_terminal_descriptor,
+        choice(
+            prec_left(0, seq(
+                "&&&",
+                timing_check_condition,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule timing_check_event_control {
+    choice(
+        "posedge",
+        "negedge",
+        "edge",
+        edge_control_specifier,
+    )
+}
+
+rule _specify_terminal_descriptor {
+    choice(
+        specify_input_terminal_descriptor,
+        specify_output_terminal_descriptor,
+    )
+}
+
+rule edge_control_specifier {
+    seq(
+        "edge",
+        "[",
+        prec_left(0, seq(
+            edge_descriptor,
+            repeat(prec_left(0, seq(
+                ",",
+                edge_descriptor,
+            ))),
+        )),
+        "]",
+    )
+}
+
+rule edge_descriptor {
+    choice(
+        "01",
+        "10",
+        regexp("[xXzZ][01]"),
+        regexp("[01][xXzZ]"),
+    )
+}
+
+rule timing_check_condition {
+    choice(
+        scalar_timing_check_condition,
+        seq(
+            "(",
+            scalar_timing_check_condition,
+            ")",
+        ),
+    )
+}
+
+rule scalar_timing_check_condition {
+    choice(
+        expression,
+        seq(
+            "~",
+            expression,
+        ),
+        seq(
+            expression,
+            "==",
+            scalar_constant,
+        ),
+        seq(
+            expression,
+            "===",
+            scalar_constant,
+        ),
+        seq(
+            expression,
+            "!=",
+            scalar_constant,
+        ),
+        seq(
+            expression,
+            "!==",
+            scalar_constant,
+        ),
+    )
+}
+
+rule scalar_constant {
+    choice(
+        "1'b0",
+        "1'b1",
+        "1'B0",
+        "1'B1",
+        "'b0",
+        "'b1",
+        "'B0",
+        "'B1",
+        "1",
+        "0",
+    )
+}

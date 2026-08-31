@@ -1,0 +1,431 @@
+// A.4 Generated and module/interface instantiations.
+
+expect _checker_or_generate_item
+expect _genvar_expression
+expect _module_identifier
+expect _property_actual_arg
+expect assignment_operator
+expect attribute_instance
+expect constant_expression
+expect expression
+expect formal_port_identifier
+expect generate_block_identifier
+expect genvar_identifier
+expect inc_or_dec_operator
+expect instance_identifier
+expect interface_identifier
+expect interface_or_generate_item
+expect module_or_generate_item
+expect param_expression
+expect parameter_identifier
+expect port_identifier
+expect program_identifier
+expect ps_checker_identifier
+expect unpacked_dimension
+
+rule module_instantiation {
+    seq(
+        _module_identifier,
+        choice(
+            parameter_value_assignment,
+            blank(),
+        ),
+        prec_left(0, seq(
+            hierarchical_instance,
+            repeat(prec_left(0, seq(
+                ",",
+                hierarchical_instance,
+            ))),
+        )),
+        ";",
+    )
+}
+
+rule parameter_value_assignment {
+    seq(
+        "#",
+        "(",
+        choice(
+            list_of_parameter_assignments,
+            blank(),
+        ),
+        ")",
+    )
+}
+
+rule list_of_parameter_assignments {
+    choice(
+        prec_left(0, seq(
+            ordered_parameter_assignment,
+            repeat(prec_left(0, seq(
+                ",",
+                ordered_parameter_assignment,
+            ))),
+        )),
+        prec_left(0, seq(
+            named_parameter_assignment,
+            repeat(prec_left(0, seq(
+                ",",
+                named_parameter_assignment,
+            ))),
+        )),
+    )
+}
+
+rule ordered_parameter_assignment { alias(param_expression, _ordered_parameter_assignment) }
+
+rule named_parameter_assignment {
+    seq(
+        ".",
+        parameter_identifier,
+        "(",
+        choice(
+            param_expression,
+            blank(),
+        ),
+        ")",
+    )
+}
+
+rule hierarchical_instance {
+    seq(
+        name_of_instance,
+        "(",
+        choice(
+            list_of_port_connections,
+            blank(),
+        ),
+        ")",
+    )
+}
+
+rule name_of_instance {
+    seq(
+        instance_identifier,
+        repeat(unpacked_dimension),
+    )
+}
+
+rule list_of_port_connections {
+    choice(
+        prec_left(0, seq(
+            named_port_connection,
+            repeat(prec_left(0, seq(
+                ",",
+                named_port_connection,
+            ))),
+        )),
+        prec_left(0, seq(
+            ordered_port_connection,
+            repeat(prec_left(0, seq(
+                ",",
+                ordered_port_connection,
+            ))),
+        )),
+    )
+}
+
+rule ordered_port_connection {
+    seq(
+        repeat(attribute_instance),
+        expression,
+    )
+}
+
+rule named_port_connection {
+    seq(
+        repeat(attribute_instance),
+        choice(
+            seq(
+                ".",
+                port_identifier,
+                choice(
+                    prec_left(0, seq(
+                        "(",
+                        choice(
+                            expression,
+                            blank(),
+                        ),
+                        ")",
+                    )),
+                    blank(),
+                ),
+            ),
+            ".*",
+        ),
+    )
+}
+
+rule interface_instantiation {
+    seq(
+        interface_identifier,
+        choice(
+            parameter_value_assignment,
+            blank(),
+        ),
+        prec_left(0, seq(
+            hierarchical_instance,
+            repeat(prec_left(0, seq(
+                ",",
+                hierarchical_instance,
+            ))),
+        )),
+        ";",
+    )
+}
+
+rule program_instantiation {
+    seq(
+        program_identifier,
+        choice(
+            parameter_value_assignment,
+            blank(),
+        ),
+        prec_left(0, seq(
+            hierarchical_instance,
+            repeat(prec_left(0, seq(
+                ",",
+                hierarchical_instance,
+            ))),
+        )),
+        ";",
+    )
+}
+
+rule checker_instantiation {
+    seq(
+        ps_checker_identifier,
+        name_of_instance,
+        "(",
+        choice(
+            prec_left(0, seq(
+                choice(
+                    prec_left(0, seq(
+                        repeat(attribute_instance),
+                        choice(
+                            _property_actual_arg,
+                            blank(),
+                        ),
+                    )),
+                    blank(),
+                ),
+                repeat(prec_left(0, seq(
+                    ",",
+                    choice(
+                        prec_left(0, seq(
+                            repeat(attribute_instance),
+                            choice(
+                                _property_actual_arg,
+                                blank(),
+                            ),
+                        )),
+                        blank(),
+                    ),
+                ))),
+            )),
+            prec_left(0, seq(
+                choice(
+                    seq(
+                        repeat(attribute_instance),
+                        ".",
+                        formal_port_identifier,
+                        choice(
+                            prec_left(0, seq(
+                                "(",
+                                choice(
+                                    _property_actual_arg,
+                                    blank(),
+                                ),
+                                ")",
+                            )),
+                            blank(),
+                        ),
+                    ),
+                    seq(
+                        repeat(attribute_instance),
+                        ".*",
+                    ),
+                ),
+                repeat(prec_left(0, seq(
+                    ",",
+                    choice(
+                        seq(
+                            repeat(attribute_instance),
+                            ".",
+                            formal_port_identifier,
+                            choice(
+                                prec_left(0, seq(
+                                    "(",
+                                    choice(
+                                        _property_actual_arg,
+                                        blank(),
+                                    ),
+                                    ")",
+                                )),
+                                blank(),
+                            ),
+                        ),
+                        seq(
+                            repeat(attribute_instance),
+                            ".*",
+                        ),
+                    ),
+                ))),
+            )),
+        ),
+        ")",
+        ";",
+    )
+}
+
+rule generate_region {
+    seq(
+        "generate",
+        repeat(_generate_item),
+        "endgenerate",
+    )
+}
+
+rule loop_generate_construct {
+    seq(
+        "for",
+        "(",
+        genvar_initialization,
+        ";",
+        _genvar_expression,
+        ";",
+        genvar_iteration,
+        ")",
+        generate_block,
+    )
+}
+
+rule genvar_initialization {
+    seq(
+        choice(
+            "genvar",
+            blank(),
+        ),
+        genvar_identifier,
+        "=",
+        constant_expression,
+    )
+}
+
+rule genvar_iteration {
+    choice(
+        seq(
+            genvar_identifier,
+            assignment_operator,
+            _genvar_expression,
+        ),
+        seq(
+            inc_or_dec_operator,
+            genvar_identifier,
+        ),
+        seq(
+            genvar_identifier,
+            inc_or_dec_operator,
+        ),
+    )
+}
+
+rule _conditional_generate_construct {
+    choice(
+        if_generate_construct,
+        case_generate_construct,
+    )
+}
+
+rule if_generate_construct {
+    prec_left(0, seq(
+        "if",
+        "(",
+        constant_expression,
+        ")",
+        generate_block,
+        choice(
+            prec_left(0, seq(
+                "else",
+                generate_block,
+            )),
+            blank(),
+        ),
+    ))
+}
+
+rule case_generate_construct {
+    seq(
+        "case",
+        "(",
+        constant_expression,
+        ")",
+        case_generate_item,
+        repeat(case_generate_item),
+        "endcase",
+    )
+}
+
+rule case_generate_item {
+    choice(
+        seq(
+            prec_left(0, seq(
+                constant_expression,
+                repeat(prec_left(0, seq(
+                    ",",
+                    constant_expression,
+                ))),
+            )),
+            ":",
+            generate_block,
+        ),
+        seq(
+            "default",
+            choice(
+                ":",
+                blank(),
+            ),
+            generate_block,
+        ),
+    )
+}
+
+rule generate_block {
+    choice(
+        _generate_item,
+        seq(
+            choice(
+                prec_left(0, seq(
+                    generate_block_identifier,
+                    ":",
+                )),
+                blank(),
+            ),
+            "begin",
+            choice(
+                prec_left(0, seq(
+                    ":",
+                    generate_block_identifier,
+                )),
+                blank(),
+            ),
+            repeat(_generate_item),
+            "end",
+            choice(
+                prec_left(0, seq(
+                    ":",
+                    generate_block_identifier,
+                )),
+                blank(),
+            ),
+        ),
+    )
+}
+
+rule _generate_item {
+    choice(
+        module_or_generate_item,
+        interface_or_generate_item,
+        _checker_or_generate_item,
+    )
+}

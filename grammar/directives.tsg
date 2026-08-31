@@ -1,0 +1,227 @@
+// Compiler directives.
+
+expect _description
+expect _identifier
+expect expression
+expect simple_identifier
+expect time_literal
+expect unsigned_number
+
+rule source_file { repeat(_description) }
+
+rule double_quoted_string {
+    seq(
+        "\"",
+        token_immediate(prec(1, regexp("[^\\\\\"\\n]+"))),
+        "\"",
+    )
+}
+
+rule include_compiler_directive_standard {
+    seq(
+        "<",
+        token_immediate(prec(1, regexp("[^\\\\>\\n]+"))),
+        ">",
+    )
+}
+
+rule include_compiler_directive {
+    seq(
+        alias(regexp("`include"), "directive_include"),
+        choice(
+            double_quoted_string,
+            include_compiler_directive_standard,
+        ),
+    )
+}
+
+rule default_text { regexp("\\w+") }
+
+rule macro_text { regexp("(\\\\(.|\\r?\\n)|[^\\\\\\n])*") }
+
+rule text_macro_name {
+    seq(
+        text_macro_identifier,
+        choice(
+            prec_left(0, seq(
+                "(",
+                list_of_formal_arguments,
+                ")",
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule list_of_formal_arguments {
+    prec_left(0, seq(
+        formal_argument,
+        repeat(prec_left(0, seq(
+            ",",
+            formal_argument,
+        ))),
+    ))
+}
+
+rule formal_argument {
+    seq(
+        simple_identifier,
+        choice(
+            prec_left(0, seq(
+                "=",
+                default_text,
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule text_macro_identifier { _identifier }
+
+rule text_macro_definition {
+    seq(
+        alias(regexp("`define"), "directive_define"),
+        text_macro_name,
+        choice(
+            macro_text,
+            blank(),
+        ),
+        "\n",
+    )
+}
+
+rule text_macro_usage {
+    seq(
+        "`",
+        text_macro_identifier,
+        choice(
+            prec_left(0, seq(
+                "(",
+                list_of_actual_arguments,
+                ")",
+            )),
+            blank(),
+        ),
+    )
+}
+
+rule simple_text_macro_usage {
+    seq(
+        "`",
+        text_macro_identifier,
+    )
+}
+
+rule id_directive {
+    seq(
+        choice(
+            alias(regexp("`ifdef"), "directive_ifdef"),
+            alias(regexp("`ifndef"), "directive_ifndef"),
+            alias(regexp("`elsif"), "directive_elsif"),
+            alias(regexp("`undef"), "directive_undef"),
+        ),
+        text_macro_identifier,
+    )
+}
+
+rule zero_directive {
+    choice(
+        alias(regexp("`resetall"), "directive_resetall"),
+        alias(regexp("`undefineall"), "directive_undefineall"),
+        alias(regexp("`endif"), "directive_endif"),
+        alias(regexp("`else"), "directive_else"),
+        alias(regexp("`nounconnected_drive"), "directive_nounconnected_drive"),
+        alias(regexp("`celldefine"), "directive_celldefine"),
+        alias(regexp("`endcelldefine"), "directive_endcelldefine"),
+        alias(regexp("`end_keywords"), "directive_end_keywords"),
+    )
+}
+
+rule timescale_compiler_directive {
+    seq(
+        alias(regexp("`timescale"), "directive_timescale"),
+        time_literal,
+        "/",
+        time_literal,
+        "\n",
+    )
+}
+
+rule default_nettype_compiler_directive {
+    seq(
+        alias(regexp("`default_nettype"), "directive_default_nettype"),
+        default_nettype_value,
+        "\n",
+    )
+}
+
+rule default_nettype_value {
+    choice(
+        "wire",
+        "tri",
+        "tri0",
+        "tri1",
+        "wand",
+        "triand",
+        "wor",
+        "trior",
+        "trireg",
+        "uwire",
+        "none",
+    )
+}
+
+rule unconnected_drive {
+    seq(
+        alias(regexp("`unconnected_drive"), "directive_unconnected_drive"),
+        choice(
+            "pull0",
+            "pull1",
+        ),
+        "\n",
+    )
+}
+
+rule line_compiler_directive {
+    seq(
+        alias(regexp("`line"), "directive_line"),
+        unsigned_number,
+        double_quoted_string,
+        unsigned_number,
+        "\n",
+    )
+}
+
+rule begin_keywords {
+    seq(
+        alias(regexp("`begin_keywords"), "directive_begin_keywords"),
+        double_quoted_string,
+    )
+}
+
+rule _directives {
+    choice(
+        line_compiler_directive,
+        include_compiler_directive,
+        text_macro_definition,
+        text_macro_usage,
+        id_directive,
+        zero_directive,
+        timescale_compiler_directive,
+        default_nettype_compiler_directive,
+        unconnected_drive,
+        begin_keywords,
+    )
+}
+
+rule list_of_actual_arguments {
+    prec_left(0, seq(
+        _actual_argument,
+        repeat(prec_left(0, seq(
+            ",",
+            _actual_argument,
+        ))),
+    ))
+}
+
+rule _actual_argument { expression }
