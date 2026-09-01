@@ -1,5 +1,7 @@
 // A.2 Declarations.
 
+let dsl = import("helpers.tsg")
+
 expect _bin_identifier
 expect _block_identifier
 expect _hierarchical_block_identifier
@@ -74,21 +76,21 @@ expect tf_identifier
 expect time_literal
 expect unsigned_number
 
+// A.2 Declarations
+
+// A.2.1 Declaration types
+
+// A.2.1.1 Module parameter declarations
+
 rule local_parameter_declaration {
     seq(
         "localparam",
         choice(
             seq(
-                choice(
-                    data_type_or_implicit1,
-                    blank(),
-                ),
+                optional(data_type_or_implicit1),
                 list_of_param_assignments,
             ),
-            seq(
-                "type",
-                list_of_type_assignments,
-            ),
+            seq("type", list_of_type_assignments),
         ),
     )
 }
@@ -98,16 +100,10 @@ rule parameter_declaration {
         "parameter",
         choice(
             seq(
-                choice(
-                    data_type_or_implicit1,
-                    blank(),
-                ),
+                optional(data_type_or_implicit1),
                 list_of_param_assignments,
             ),
-            seq(
-                "type",
-                list_of_type_assignments,
-            ),
+            seq("type", list_of_type_assignments),
         ),
     )
 }
@@ -122,23 +118,17 @@ rule _any_parameter_declaration {
 rule specparam_declaration {
     seq(
         "specparam",
-        choice(
-            packed_dimension,
-            blank(),
-        ),
+        optional(packed_dimension),
         list_of_specparam_assignments,
         ";",
     )
 }
 
+// A.2.1.2 Port declarations
+
 rule inout_declaration {
     seq(
-        "inout",
-        choice(
-            net_port_type1,
-            blank(),
-        ),
-        list_of_port_identifiers,
+        "inout", optional(net_port_type1), list_of_port_identifiers,
     )
 }
 
@@ -146,20 +136,8 @@ rule input_declaration {
     seq(
         "input",
         choice(
-            seq(
-                choice(
-                    net_port_type1,
-                    blank(),
-                ),
-                list_of_port_identifiers,
-            ),
-            seq(
-                choice(
-                    _variable_port_type,
-                    blank(),
-                ),
-                list_of_variable_identifiers,
-            ),
+            seq(optional(net_port_type1), list_of_port_identifiers),
+            seq(optional(_variable_port_type), list_of_variable_identifiers),
         ),
     )
 }
@@ -168,20 +146,8 @@ rule output_declaration {
     seq(
         "output",
         choice(
-            seq(
-                choice(
-                    net_port_type1,
-                    blank(),
-                ),
-                list_of_port_identifiers,
-            ),
-            seq(
-                choice(
-                    _variable_port_type,
-                    blank(),
-                ),
-                list_of_variable_port_identifiers,
-            ),
+            seq(optional(net_port_type1), list_of_port_identifiers),
+            seq(optional(_variable_port_type), list_of_variable_port_identifiers),
         ),
     )
 }
@@ -189,44 +155,26 @@ rule output_declaration {
 rule interface_port_declaration {
     seq(
         interface_identifier,
-        choice(
-            prec_left(0, seq(
-                ".",
-                modport_identifier,
-            )),
-            blank(),
-        ),
+        dsl::optseq([".", modport_identifier]),
         list_of_interface_identifiers,
     )
 }
 
 rule ref_declaration {
     seq(
-        "ref",
-        _variable_port_type,
-        list_of_variable_identifiers,
+        "ref", _variable_port_type, list_of_variable_identifiers,
     )
 }
+
+// A.2.1.3 Type declarations
 
 rule data_declaration {
     choice(
         seq(
-            choice(
-                "const",
-                blank(),
-            ),
-            choice(
-                "var",
-                blank(),
-            ),
-            choice(
-                lifetime,
-                blank(),
-            ),
-            choice(
-                data_type_or_implicit1,
-                blank(),
-            ),
+            optional("const"),
+            optional("var"),
+            optional(lifetime),
+            optional(data_type_or_implicit1),
             list_of_variable_decl_assignments,
             ";",
         ),
@@ -238,51 +186,25 @@ rule data_declaration {
 
 rule package_import_declaration {
     seq(
-        "import",
-        prec_left(0, seq(
-            package_import_item,
-            repeat(prec_left(0, seq(
-                ",",
-                package_import_item,
-            ))),
-        )),
-        ";",
+        "import", dsl::sep1(",", package_import_item), ";",
     )
 }
 
 rule package_import_item {
     seq(
-        package_identifier,
-        "::",
-        choice(
-            _identifier,
-            "*",
-        ),
+        package_identifier, "::", choice(_identifier, "*"),
     )
 }
 
 rule package_export_declaration {
     seq(
-        "export",
-        choice(
-            "*::*",
-            prec_left(0, seq(
-                package_import_item,
-                repeat(prec_left(0, seq(
-                    ",",
-                    package_import_item,
-                ))),
-            )),
-        ),
-        ";",
+        "export", choice("*::*", dsl::sep1(",", package_import_item)), ";",
     )
 }
 
 rule genvar_declaration {
     seq(
-        "genvar",
-        list_of_genvar_identifiers,
-        ";",
+        "genvar", list_of_genvar_identifiers, ";",
     )
 }
 
@@ -290,66 +212,24 @@ rule net_declaration {
     choice(
         seq(
             net_type,
-            choice(
-                choice(
-                    drive_strength,
-                    charge_strength,
-                ),
-                blank(),
-            ),
-            choice(
-                choice(
-                    "vectored",
-                    "scalared",
-                ),
-                blank(),
-            ),
-            choice(
-                data_type_or_implicit1,
-                blank(),
-            ),
-            choice(
-                delay3,
-                blank(),
-            ),
+            optional(choice(drive_strength, charge_strength)),
+            optional(choice("vectored", "scalared")),
+            optional(data_type_or_implicit1),
+            optional(delay3),
             list_of_net_decl_assignments,
             ";",
         ),
         seq(
             _net_type_identifier,
-            choice(
-                delay_control,
-                blank(),
-            ),
+            optional(delay_control),
             list_of_net_decl_assignments,
             ";",
         ),
         seq(
             "interconnect",
-            choice(
-                implicit_data_type1,
-                blank(),
-            ),
-            choice(
-                prec_left(0, seq(
-                    "#",
-                    delay_value,
-                )),
-                blank(),
-            ),
-            prec_left(0, seq(
-                seq(
-                    _net_identifier,
-                    repeat(unpacked_dimension),
-                ),
-                repeat(prec_left(0, seq(
-                    ",",
-                    seq(
-                        _net_identifier,
-                        repeat(unpacked_dimension),
-                    ),
-                ))),
-            )),
+            optional(implicit_data_type1),
+            dsl::optseq(["#", delay_value]),
+            dsl::sep1(",", seq(_net_identifier, repeat(unpacked_dimension))),
             ";",
         ),
     )
@@ -359,35 +239,15 @@ rule type_declaration {
     seq(
         "typedef",
         choice(
+            seq(data_type, _type_identifier, repeat(_variable_dimension)),
             seq(
-                data_type,
-                _type_identifier,
-                repeat(_variable_dimension),
+                interface_instance_identifier, optional(constant_bit_select1),
+                ".", _type_identifier, _type_identifier,
             ),
             seq(
-                interface_instance_identifier,
-                choice(
-                    constant_bit_select1,
-                    blank(),
-                ),
-                ".",
-                _type_identifier,
-                _type_identifier,
-            ),
-            seq(
-                choice(
-                    choice(
-                        "enum",
-                        "struct",
-                        "union",
-                        "class",
-                        seq(
-                            "interface",
-                            "class",
-                        ),
-                    ),
-                    blank(),
-                ),
+                optional(choice(
+                    "enum", "struct", "union", "class", seq("interface", "class"),
+                )),
                 _type_identifier,
             ),
         ),
@@ -402,29 +262,14 @@ rule net_type_declaration {
             seq(
                 data_type,
                 _net_type_identifier,
-                choice(
-                    prec_left(0, seq(
-                        "with",
-                        choice(
-                            choice(
-                                package_scope,
-                                class_scope,
-                            ),
-                            blank(),
-                        ),
-                        tf_identifier,
-                    )),
-                    blank(),
+                dsl::optseq(
+                    ["with",
+                    optional(choice(package_scope, class_scope)),
+                    tf_identifier],
                 ),
             ),
             seq(
-                choice(
-                    choice(
-                        package_scope,
-                        class_scope,
-                    ),
-                    blank(),
-                ),
+                optional(choice(package_scope, class_scope)),
                 _net_type_identifier,
                 _net_type_identifier,
             ),
@@ -433,12 +278,11 @@ rule net_type_declaration {
     )
 }
 
-rule lifetime {
-    choice(
-        "static",
-        "automatic",
-    )
-}
+rule lifetime { choice("static", "automatic") }
+
+// A.2.2 Declaration data types
+
+// A.2.2.1 Net and variable types
 
 rule casting_type {
     choice(
@@ -452,85 +296,30 @@ rule casting_type {
 
 rule data_type {
     choice(
-        seq(
-            integer_vector_type,
-            choice(
-                _signing,
-                blank(),
-            ),
-            repeat(packed_dimension),
-        ),
-        seq(
-            integer_atom_type,
-            choice(
-                _signing,
-                blank(),
-            ),
-        ),
+        seq(integer_vector_type, optional(_signing), repeat(packed_dimension)),
+        seq(integer_atom_type, optional(_signing)),
         non_integer_type,
         seq(
             struct_union,
-            choice(
-                prec_left(0, seq(
-                    "packed",
-                    choice(
-                        _signing,
-                        blank(),
-                    ),
-                )),
-                blank(),
-            ),
-            "{",
-            repeat1(struct_union_member),
-            "}",
+            dsl::optseq(["packed", optional(_signing)]),
+            "{", repeat1(struct_union_member), "}",
             repeat(packed_dimension),
         ),
         seq(
-            "enum",
-            choice(
-                enum_base_type,
-                blank(),
-            ),
-            "{",
-            prec_left(0, seq(
-                enum_name_declaration,
-                repeat(prec_left(0, seq(
-                    ",",
-                    enum_name_declaration,
-                ))),
-            )),
-            "}",
+            "enum", optional(enum_base_type),
+            "{", dsl::sep1(",", enum_name_declaration), "}",
             repeat(packed_dimension),
         ),
         "string",
         "chandle",
         prec_left(0, seq(
-            "virtual",
-            choice(
-                "interface",
-                blank(),
-            ),
+            "virtual", optional("interface"),
             interface_identifier,
-            choice(
-                parameter_value_assignment,
-                blank(),
-            ),
-            choice(
-                prec_left(0, seq(
-                    ".",
-                    modport_identifier,
-                )),
-                blank(),
-            ),
+            optional(parameter_value_assignment),
+            dsl::optseq([".", modport_identifier]),
         )),
         seq(
-            choice(
-                choice(
-                    class_scope,
-                    package_scope,
-                ),
-                blank(),
-            ),
+            optional(choice(class_scope, package_scope)),
             _type_identifier,
             repeat(packed_dimension),
         ),
@@ -549,11 +338,8 @@ rule data_type_or_implicit1 {
 }
 
 rule implicit_data_type1 {
-    choice(
-        seq(
-            _signing,
-            repeat(packed_dimension),
-        ),
+    choice( // reordered : repeat -> repeat1
+        seq(_signing, repeat(packed_dimension)),
         repeat1(packed_dimension),
     )
 }
@@ -561,29 +347,13 @@ rule implicit_data_type1 {
 rule enum_base_type {
     choice(
         seq(
-            integer_atom_type,
-            choice(
-                _signing,
-                blank(),
-            ),
+            integer_atom_type, optional(_signing),
         ),
         seq(
-            integer_vector_type,
-            choice(
-                _signing,
-                blank(),
-            ),
-            choice(
-                packed_dimension,
-                blank(),
-            ),
+            integer_vector_type, optional(_signing), optional(packed_dimension),
         ),
         seq(
-            _type_identifier,
-            choice(
-                packed_dimension,
-                blank(),
-            ),
+            _type_identifier, optional(packed_dimension),
         ),
     )
 }
@@ -591,53 +361,26 @@ rule enum_base_type {
 rule enum_name_declaration {
     seq(
         enum_identifier,
-        choice(
-            prec_left(0, seq(
-                "[",
-                integral_number,
-                choice(
-                    prec_left(0, seq(
-                        ":",
-                        integral_number,
-                    )),
-                    blank(),
-                ),
-                "]",
-            )),
-            blank(),
+        dsl::optseq(
+            ["[", integral_number, dsl::optseq([":", integral_number]), "]"],
         ),
-        choice(
-            prec_left(0, seq(
-                "=",
-                constant_expression,
-            )),
-            blank(),
-        ),
+        dsl::optseq(["=", constant_expression]),
     )
 }
 
-rule class_scope {
-    seq(
-        class_type,
-        "::",
-    )
-}
+rule class_scope { seq(class_type, "::") }
+
+// class_type: $ => prec.left(PREC.PARENT, seq(
 
 rule class_type {
     prec_right(0, seq(
         ps_class_identifier,
-        choice(
-            parameter_value_assignment,
-            blank(),
-        ),
-        repeat(prec_left(0, seq(
-            "::",
+        optional(parameter_value_assignment),
+        dsl::repseq(
+            ["::",
             class_identifier,
-            choice(
-                parameter_value_assignment,
-                blank(),
-            ),
-        ))),
+            optional(parameter_value_assignment)],
+        ),
     ))
 }
 
@@ -648,66 +391,22 @@ rule _integer_type {
     )
 }
 
-rule integer_atom_type {
-    choice(
-        "byte",
-        "shortint",
-        "int",
-        "longint",
-        "integer",
-        "time",
-    )
-}
+rule integer_atom_type { choice("byte", "shortint", "int", "longint", "integer", "time") }
 
-rule integer_vector_type {
-    choice(
-        "bit",
-        "logic",
-        "reg",
-    )
-}
+rule integer_vector_type { choice("bit", "logic", "reg") }
 
-rule non_integer_type {
-    choice(
-        "shortreal",
-        "real",
-        "realtime",
-    )
-}
+rule non_integer_type { choice("shortreal", "real", "realtime") }
 
-rule net_type {
-    choice(
-        "supply0",
-        "supply1",
-        "tri",
-        "triand",
-        "trior",
-        "trireg",
-        "tri0",
-        "tri1",
-        "uwire",
-        "wire",
-        "wand",
-        "wor",
-    )
-}
+rule net_type { choice("supply0", "supply1", "tri", "triand", "trior", "trireg", "tri0", "tri1", "uwire", "wire", "wand", "wor") }
 
 rule net_port_type1 {
     choice(
-        prec_left(-1, seq(
-            net_type,
-            data_type_or_implicit1,
-        )),
+        prec_left(-1, seq(net_type, data_type_or_implicit1)),
         net_type,
         data_type_or_implicit1,
+
         _net_type_identifier,
-        seq(
-            "interconnect",
-            choice(
-                implicit_data_type1,
-                blank(),
-            ),
-        ),
+        seq("interconnect", optional(implicit_data_type1)),
     )
 }
 
@@ -716,22 +415,11 @@ rule _variable_port_type { _var_data_type }
 rule _var_data_type {
     prec_left(0, choice(
         data_type,
-        seq(
-            "var",
-            choice(
-                data_type_or_implicit1,
-                blank(),
-            ),
-        ),
+        seq("var", optional(data_type_or_implicit1)),
     ))
 }
 
-rule _signing {
-    choice(
-        "signed",
-        "unsigned",
-    )
-}
+rule _signing { choice("signed", "unsigned") }
 
 rule _simple_type {
     choice(
@@ -745,10 +433,7 @@ rule _simple_type {
 rule struct_union_member {
     seq(
         repeat(attribute_instance),
-        choice(
-            random_qualifier,
-            blank(),
-        ),
+        optional(random_qualifier),
         data_type_or_void,
         list_of_variable_decl_assignments,
         ";",
@@ -765,20 +450,13 @@ rule data_type_or_void {
 rule struct_union {
     choice(
         "struct",
-        seq(
-            "union",
-            choice(
-                "tagged",
-                blank(),
-            ),
-        ),
+        seq("union", optional("tagged")),
     )
 }
 
 rule type_reference {
     seq(
-        "type",
-        "(",
+        "type", "(",
         choice(
             expression,
             data_type,
@@ -787,115 +465,49 @@ rule type_reference {
     )
 }
 
+// A.2.2.2 Strengths
+
 rule drive_strength {
     seq(
         "(",
         choice(
-            seq(
-                strength0,
-                ",",
-                strength1,
-            ),
-            seq(
-                strength1,
-                ",",
-                strength0,
-            ),
-            seq(
-                strength0,
-                ",",
-                "highz1",
-            ),
-            seq(
-                strength1,
-                ",",
-                "highz0",
-            ),
-            seq(
-                "highz0",
-                ",",
-                strength1,
-            ),
-            seq(
-                "highz1",
-                ",",
-                strength0,
-            ),
+            seq(strength0, ",", strength1),
+            seq(strength1, ",", strength0),
+            seq(strength0, ",", "highz1"),
+            seq(strength1, ",", "highz0"),
+            seq("highz0", ",", strength1),
+            seq("highz1", ",", strength0),
         ),
         ")",
     )
 }
 
-rule strength0 {
-    choice(
-        "supply0",
-        "strong0",
-        "pull0",
-        "weak0",
-    )
-}
+rule strength0 { choice("supply0", "strong0", "pull0", "weak0") }
 
-rule strength1 {
-    choice(
-        "supply1",
-        "strong1",
-        "pull1",
-        "weak1",
-    )
-}
+rule strength1 { choice("supply1", "strong1", "pull1", "weak1") }
 
-rule charge_strength {
-    seq(
-        "(",
-        choice(
-            "small",
-            "medium",
-            "large",
-        ),
-        ")",
-    )
-}
+rule charge_strength { seq("(", choice("small", "medium", "large"), ")") }
+
+// A.2.2.3 Delays
 
 rule delay3 {
-    seq(
-        "#",
-        choice(
-            delay_value,
-            seq(
-                "(",
-                mintypmax_expression,
-                choice(
-                    prec_left(0, seq(
-                        mintypmax_expression,
-                        choice(
-                            mintypmax_expression,
-                            blank(),
-                        ),
-                    )),
-                    blank(),
-                ),
-                ")",
+    seq("#", choice(
+        delay_value,
+        seq(
+            "(", mintypmax_expression,
+            dsl::optseq([mintypmax_expression,
+                optional(mintypmax_expression)],
             ),
+            ")",
         ),
-    )
+    ))
 }
 
 rule delay2 {
-    seq(
-        "#",
-        choice(
-            delay_value,
-            seq(
-                "(",
-                mintypmax_expression,
-                choice(
-                    mintypmax_expression,
-                    blank(),
-                ),
-                ")",
-            ),
-        ),
-    )
+    seq("#", choice(
+        delay_value,
+        seq("(", mintypmax_expression, optional(mintypmax_expression), ")"),
+    ))
 }
 
 rule delay_value {
@@ -908,193 +520,62 @@ rule delay_value {
     )
 }
 
-rule list_of_defparam_assignments {
-    prec_left(0, seq(
-        defparam_assignment,
-        repeat(prec_left(0, seq(
-            ",",
-            defparam_assignment,
-        ))),
-    ))
-}
+// A.2.3 Declaration lists
 
-rule list_of_genvar_identifiers {
-    prec_left(0, seq(
-        genvar_identifier,
-        repeat(prec_left(0, seq(
-            ",",
-            genvar_identifier,
-        ))),
-    ))
-}
+rule list_of_defparam_assignments { dsl::sep1(",", defparam_assignment) }
+
+rule list_of_genvar_identifiers { dsl::sep1(",", genvar_identifier) }
 
 rule list_of_interface_identifiers {
-    prec_left(0, seq(
-        seq(
-            interface_identifier,
-            repeat(unpacked_dimension),
-        ),
-        repeat(prec_left(0, seq(
-            ",",
-            seq(
-                interface_identifier,
-                repeat(unpacked_dimension),
-            ),
-        ))),
+    dsl::sep1(",", seq(
+        interface_identifier,
+        repeat(unpacked_dimension),
     ))
 }
 
-rule list_of_net_decl_assignments {
-    prec_left(0, seq(
-        net_decl_assignment,
-        repeat(prec_left(0, seq(
-            ",",
-            net_decl_assignment,
-        ))),
-    ))
-}
+rule list_of_net_decl_assignments { dsl::sep1(",", net_decl_assignment) }
 
-rule list_of_param_assignments {
-    prec_left(0, seq(
-        param_assignment,
-        repeat(prec_left(0, seq(
-            ",",
-            param_assignment,
-        ))),
-    ))
-}
+rule list_of_param_assignments { dsl::sep1(",", param_assignment) }
 
 rule list_of_port_identifiers {
-    prec_left(0, seq(
-        seq(
-            port_identifier,
-            repeat(unpacked_dimension),
-        ),
-        repeat(prec_left(0, seq(
-            ",",
-            seq(
-                port_identifier,
-                repeat(unpacked_dimension),
-            ),
-        ))),
-    ))
-}
-
-rule list_of_udp_port_identifiers {
-    prec_left(0, seq(
+    dsl::sep1(",", seq(
         port_identifier,
-        repeat(prec_left(0, seq(
-            ",",
-            port_identifier,
-        ))),
+        repeat(unpacked_dimension),
     ))
 }
 
-rule list_of_specparam_assignments {
-    prec_left(0, seq(
-        specparam_assignment,
-        repeat(prec_left(0, seq(
-            ",",
-            specparam_assignment,
-        ))),
-    ))
-}
+rule list_of_udp_port_identifiers { dsl::sep1(",", port_identifier) }
+
+rule list_of_specparam_assignments { dsl::sep1(",", specparam_assignment) }
 
 rule list_of_tf_variable_identifiers {
-    prec_left(0, seq(
-        seq(
-            port_identifier,
-            repeat(_variable_dimension),
-            choice(
-                prec_left(0, seq(
-                    "=",
-                    expression,
-                )),
-                blank(),
-            ),
-        ),
-        repeat(prec_left(0, seq(
-            ",",
-            seq(
-                port_identifier,
-                repeat(_variable_dimension),
-                choice(
-                    prec_left(0, seq(
-                        "=",
-                        expression,
-                    )),
-                    blank(),
-                ),
-            ),
-        ))),
+    dsl::sep1(",", seq(
+        port_identifier,
+        repeat(_variable_dimension),
+        dsl::optseq(["=", expression]),
     ))
 }
 
-rule list_of_type_assignments {
-    prec_left(0, seq(
-        type_assignment,
-        repeat(prec_left(0, seq(
-            ",",
-            type_assignment,
-        ))),
-    ))
-}
+rule list_of_type_assignments { dsl::sep1(",", type_assignment) }
 
-rule list_of_variable_decl_assignments {
-    prec_left(0, seq(
-        variable_decl_assignment,
-        repeat(prec_left(0, seq(
-            ",",
-            variable_decl_assignment,
-        ))),
-    ))
-}
+rule list_of_variable_decl_assignments { dsl::sep1(",", variable_decl_assignment) }
 
 rule list_of_variable_identifiers {
-    prec_left(0, seq(
-        seq(
-            _variable_identifier,
-            repeat(_variable_dimension),
-        ),
-        repeat(prec_left(0, seq(
-            ",",
-            seq(
-                _variable_identifier,
-                repeat(_variable_dimension),
-            ),
-        ))),
+    dsl::sep1(",", seq(
+        _variable_identifier,
+        repeat(_variable_dimension),
     ))
 }
 
 rule list_of_variable_port_identifiers {
-    prec_left(0, seq(
-        seq(
-            port_identifier,
-            repeat(_variable_dimension),
-            choice(
-                prec_left(0, seq(
-                    "=",
-                    constant_expression,
-                )),
-                blank(),
-            ),
-        ),
-        repeat(prec_left(0, seq(
-            ",",
-            seq(
-                port_identifier,
-                repeat(_variable_dimension),
-                choice(
-                    prec_left(0, seq(
-                        "=",
-                        constant_expression,
-                    )),
-                    blank(),
-                ),
-            ),
-        ))),
+    dsl::sep1(",", seq(
+        port_identifier,
+        repeat(_variable_dimension),
+        dsl::optseq(["=", constant_expression]),
     ))
 }
+
+// A.2.4 Declaration assignments
 
 rule defparam_assignment {
     seq(
@@ -1105,16 +586,10 @@ rule defparam_assignment {
 }
 
 rule net_decl_assignment {
-    prec_left(21, seq(
+    prec_left(dsl::PREC.ASSIGN, seq(
         _net_identifier,
         repeat(unpacked_dimension),
-        choice(
-            prec_left(0, seq(
-                "=",
-                expression,
-            )),
-            blank(),
-        ),
+        dsl::optseq(["=", expression]),
     ))
 }
 
@@ -1122,23 +597,13 @@ rule param_assignment {
     seq(
         parameter_identifier,
         repeat(unpacked_dimension),
-        choice(
-            prec_left(0, seq(
-                "=",
-                constant_param_expression,
-            )),
-            blank(),
-        ),
+        dsl::optseq(["=", constant_param_expression]),
     )
 }
 
 rule specparam_assignment {
     choice(
-        seq(
-            specparam_identifier,
-            "=",
-            constant_mintypmax_expression,
-        ),
+        seq(specparam_identifier, "=", constant_mintypmax_expression),
         pulse_control_specparam,
     )
 }
@@ -1146,13 +611,7 @@ rule specparam_assignment {
 rule type_assignment {
     seq(
         _type_identifier,
-        choice(
-            prec_left(0, seq(
-                "=",
-                data_type,
-            )),
-            blank(),
-        ),
+        dsl::optseq(["=", data_type]),
     )
 }
 
@@ -1162,15 +621,16 @@ rule pulse_control_specparam {
             "PATHPULSE$=",
             "(",
             reject_limit_value,
-            choice(
-                prec_left(0, seq(
-                    ",",
-                    error_limit_value,
-                )),
-                blank(),
-            ),
+            dsl::optseq([",", error_limit_value]),
             ")",
         ),
+        // seq(
+        //   'PATHPULSE$',
+        //   $.specify_input_terminal_descriptor,
+        //   '$',
+        //   $.specify_output_terminal_descriptor,
+        //   '=', '(', $.reject_limit_value, optseq(',', $.error_limit_value), ')'
+        // )
     )
 }
 
@@ -1185,35 +645,17 @@ rule variable_decl_assignment {
         seq(
             _variable_identifier,
             repeat(_variable_dimension),
-            choice(
-                prec_left(0, seq(
-                    "=",
-                    expression,
-                )),
-                blank(),
-            ),
+            dsl::optseq(["=", expression]),
         ),
         seq(
             dynamic_array_variable_identifier,
             unsized_dimension,
             repeat(_variable_dimension),
-            choice(
-                prec_left(0, seq(
-                    "=",
-                    dynamic_array_new,
-                )),
-                blank(),
-            ),
+            dsl::optseq(["=", dynamic_array_new]),
         ),
         seq(
             class_variable_identifier,
-            choice(
-                prec_left(0, seq(
-                    "=",
-                    class_new,
-                )),
-                blank(),
-            ),
+            dsl::optseq(["=", class_new]),
         ),
     )
 }
@@ -1221,70 +663,39 @@ rule variable_decl_assignment {
 rule class_new {
     choice(
         seq(
-            choice(
-                class_scope,
-                blank(),
-            ),
-            "new",
-            choice(
-                list_of_arguments_parent,
-                blank(),
-            ),
+            optional(class_scope), "new", optional(list_of_arguments_parent),
         ),
-        seq(
-            "new",
-            expression,
-        ),
+        seq("new", expression),
     )
 }
 
 rule dynamic_array_new {
     seq(
-        "new",
-        "[",
-        expression,
-        "]",
-        choice(
-            prec_left(0, seq(
-                "(",
-                expression,
-                ")",
-            )),
-            blank(),
-        ),
+        "new", "[", expression, "]", dsl::optseq(["(", expression, ")"]),
     )
 }
 
+// A.2.5 Declaration ranges
+
 rule unpacked_dimension {
     seq(
-        "[",
-        choice(
+        "[", choice(
             constant_range,
             constant_expression,
-        ),
-        "]",
+        ), "]",
     )
 }
 
 rule packed_dimension {
     choice(
-        seq(
-            "[",
-            constant_range,
-            "]",
-        ),
+        seq("[", constant_range, "]"),
         unsized_dimension,
     )
 }
 
 rule associative_dimension {
     seq(
-        "[",
-        choice(
-            data_type,
-            "*",
-        ),
-        "]",
+        "[", choice(data_type, "*"), "]",
     )
 }
 
@@ -1299,25 +710,13 @@ rule _variable_dimension {
 
 rule queue_dimension {
     seq(
-        "[",
-        "$",
-        choice(
-            prec_left(0, seq(
-                ":",
-                constant_expression,
-            )),
-            blank(),
-        ),
-        "]",
+        "[", "$", dsl::optseq([":", constant_expression]), "]",
     )
 }
 
-rule unsized_dimension {
-    seq(
-        "[",
-        "]",
-    )
-}
+rule unsized_dimension { seq("[", "]") }
+
+// A.2.6 Function declarations
 
 rule function_data_type_or_implicit1 {
     choice(
@@ -1329,30 +728,18 @@ rule function_data_type_or_implicit1 {
 rule function_declaration {
     seq(
         "function",
-        choice(
-            lifetime,
-            blank(),
-        ),
+        optional(lifetime),
         function_body_declaration,
     )
 }
 
 rule function_body_declaration {
     seq(
-        choice(
-            function_data_type_or_implicit1,
-            blank(),
-        ),
-        choice(
-            choice(
-                seq(
-                    interface_identifier,
-                    ".",
-                ),
-                class_scope,
-            ),
-            blank(),
-        ),
+        optional(function_data_type_or_implicit1),
+        optional(choice(
+            seq(interface_identifier, "."),
+            class_scope,
+        )),
         function_identifier,
         choice(
             seq(
@@ -1360,25 +747,13 @@ rule function_body_declaration {
                 repeat(tf_item_declaration),
             ),
             seq(
-                "(",
-                choice(
-                    tf_port_list,
-                    blank(),
-                ),
-                ")",
-                ";",
+                "(", optional(tf_port_list), ")", ";",
                 repeat(block_item_declaration),
             ),
         ),
         repeat(function_statement_or_null),
         "endfunction",
-        choice(
-            prec_left(0, seq(
-                ":",
-                function_identifier,
-            )),
-            blank(),
-        ),
+        dsl::optseq([":", function_identifier]),
     )
 }
 
@@ -1387,16 +762,8 @@ rule function_prototype {
         "function",
         data_type_or_void,
         function_identifier,
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    tf_port_list,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
+        dsl::optseq(
+            ["(", optional(tf_port_list), ")"],
         ),
     )
 }
@@ -1406,47 +773,23 @@ rule dpi_import_export {
         seq(
             "import",
             dpi_spec_string,
-            choice(
-                dpi_function_import_property,
-                blank(),
-            ),
-            choice(
-                prec_left(0, seq(
-                    c_identifier,
-                    "=",
-                )),
-                blank(),
-            ),
+            optional(dpi_function_import_property),
+            dsl::optseq([c_identifier, "="]),
             dpi_function_proto,
             ";",
         ),
         seq(
             "import",
             dpi_spec_string,
-            choice(
-                dpi_task_import_property,
-                blank(),
-            ),
-            choice(
-                prec_left(0, seq(
-                    c_identifier,
-                    "=",
-                )),
-                blank(),
-            ),
+            optional(dpi_task_import_property),
+            dsl::optseq([c_identifier, "="]),
             dpi_task_proto,
             ";",
         ),
         seq(
             "export",
             dpi_spec_string,
-            choice(
-                prec_left(0, seq(
-                    c_identifier,
-                    "=",
-                )),
-                blank(),
-            ),
+            dsl::optseq([c_identifier, "="]),
             "function",
             function_identifier,
             ";",
@@ -1454,13 +797,7 @@ rule dpi_import_export {
         seq(
             "export",
             dpi_spec_string,
-            choice(
-                prec_left(0, seq(
-                    c_identifier,
-                    "=",
-                )),
-                blank(),
-            ),
+            dsl::optseq([c_identifier, "="]),
             "task",
             task_identifier,
             ";",
@@ -1468,19 +805,9 @@ rule dpi_import_export {
     )
 }
 
-rule dpi_spec_string {
-    choice(
-        "\"DPI-C\"",
-        "\"DPI\"",
-    )
-}
+rule dpi_spec_string { choice("\"DPI-C\"", "\"DPI\"") }
 
-rule dpi_function_import_property {
-    choice(
-        "context",
-        "pure",
-    )
-}
+rule dpi_function_import_property { choice("context", "pure") }
 
 rule dpi_task_import_property { "context" }
 
@@ -1488,29 +815,22 @@ rule dpi_function_proto { function_prototype }
 
 rule dpi_task_proto { task_prototype }
 
+// A.2.7 Task declarations
+
 rule task_declaration {
     seq(
         "task",
-        choice(
-            lifetime,
-            blank(),
-        ),
+        optional(lifetime),
         task_body_declaration,
     )
 }
 
 rule task_body_declaration {
     seq(
-        choice(
-            choice(
-                seq(
-                    interface_identifier,
-                    ".",
-                ),
-                class_scope,
-            ),
-            blank(),
-        ),
+        optional(choice(
+            seq(interface_identifier, "."),
+            class_scope,
+        )),
         task_identifier,
         choice(
             seq(
@@ -1518,25 +838,13 @@ rule task_body_declaration {
                 repeat(tf_item_declaration),
             ),
             seq(
-                "(",
-                choice(
-                    tf_port_list,
-                    blank(),
-                ),
-                ")",
-                ";",
+                "(", optional(tf_port_list), ")", ";",
                 repeat(block_item_declaration),
             ),
         ),
         repeat(statement_or_null),
         "endtask",
-        choice(
-            prec_left(0, seq(
-                ":",
-                task_identifier,
-            )),
-            blank(),
-        ),
+        dsl::optseq([":", task_identifier]),
     )
 }
 
@@ -1547,55 +855,26 @@ rule tf_item_declaration {
     )
 }
 
-rule tf_port_list {
-    prec_left(0, seq(
-        tf_port_item1,
-        repeat(prec_left(0, seq(
-            ",",
-            tf_port_item1,
-        ))),
-    ))
-}
+rule tf_port_list { dsl::sep1(",", tf_port_item1) }
 
 rule tf_port_item1 {
     seq(
         repeat(attribute_instance),
-        choice(
-            tf_port_direction,
-            blank(),
-        ),
-        choice(
-            "var",
-            blank(),
-        ),
+        optional(tf_port_direction),
+        optional("var"),
         choice(
             seq(
                 data_type_or_implicit1,
-                choice(
-                    prec_left(0, seq(
-                        port_identifier,
-                        repeat(_variable_dimension),
-                        choice(
-                            prec_left(0, seq(
-                                "=",
-                                expression,
-                            )),
-                            blank(),
-                        ),
-                    )),
-                    blank(),
+                dsl::optseq(
+                    [port_identifier,
+                    repeat(_variable_dimension),
+                    dsl::optseq(["=", expression])],
                 ),
             ),
             seq(
                 port_identifier,
                 repeat(_variable_dimension),
-                choice(
-                    prec_left(0, seq(
-                        "=",
-                        expression,
-                    )),
-                    blank(),
-                ),
+                dsl::optseq(["=", expression]),
             ),
         ),
     )
@@ -1604,10 +883,7 @@ rule tf_port_item1 {
 rule tf_port_direction {
     choice(
         port_direction,
-        seq(
-            "const",
-            "ref",
-        ),
+        seq("const", "ref"),
     )
 }
 
@@ -1615,14 +891,8 @@ rule tf_port_declaration {
     seq(
         repeat(attribute_instance),
         tf_port_direction,
-        choice(
-            "var",
-            blank(),
-        ),
-        choice(
-            data_type_or_implicit1,
-            blank(),
-        ),
+        optional("var"),
+        optional(data_type_or_implicit1),
         list_of_tf_variable_identifiers,
         ";",
     )
@@ -1632,29 +902,18 @@ rule task_prototype {
     seq(
         "task",
         task_identifier,
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    tf_port_list,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
-        ),
+        dsl::optseq(["(", optional(tf_port_list), ")"]),
     )
 }
+
+// A.2.8 Block item declarations
 
 rule block_item_declaration {
     seq(
         repeat(attribute_instance),
         choice(
             data_declaration,
-            seq(
-                _any_parameter_declaration,
-                ";",
-            ),
+            seq(_any_parameter_declaration, ";"),
             overload_declaration,
             let_declaration,
         ),
@@ -1675,62 +934,18 @@ rule overload_declaration {
     )
 }
 
-rule overload_operator {
-    choice(
-        "+",
-        "++",
-        "–",
-        "––",
-        "*",
-        "**",
-        "/",
-        "%",
-        "==",
-        "!=",
-        "<",
-        "<=",
-        ">",
-        ">=",
-        "=",
-    )
-}
+rule overload_operator { choice("+", "++", "–", "––", "*", "**", "/", "%", "==", "!=", "<", "<=", ">", ">=", "=") }
 
-rule overload_proto_formals {
-    prec_left(0, seq(
-        data_type,
-        repeat(prec_left(0, seq(
-            ",",
-            data_type,
-        ))),
-    ))
-}
+rule overload_proto_formals { dsl::sep1(",", data_type) }
 
-rule modport_declaration {
-    seq(
-        "modport",
-        prec_left(0, seq(
-            modport_item,
-            repeat(prec_left(0, seq(
-                ",",
-                modport_item,
-            ))),
-        )),
-        ";",
-    )
-}
+// A.2.9 Interface declarations
+
+rule modport_declaration { seq("modport", dsl::sep1(",", modport_item), ";") }
 
 rule modport_item {
     seq(
         modport_identifier,
-        "(",
-        prec_left(0, seq(
-            modport_ports_declaration,
-            repeat(prec_left(0, seq(
-                ",",
-                modport_ports_declaration,
-            ))),
-        )),
-        ")",
+        "(", dsl::sep1(",", modport_ports_declaration), ")",
     )
 }
 
@@ -1745,52 +960,25 @@ rule modport_ports_declaration {
     )
 }
 
-rule modport_clocking_declaration {
-    seq(
-        "clocking",
-        clocking_identifier,
-    )
-}
+rule modport_clocking_declaration { seq("clocking", clocking_identifier) }
 
 rule modport_simple_ports_declaration {
     seq(
         port_direction,
-        prec_left(0, seq(
-            modport_simple_port,
-            repeat(prec_left(0, seq(
-                ",",
-                modport_simple_port,
-            ))),
-        )),
+        dsl::sep1(",", modport_simple_port),
     )
 }
 
 rule modport_simple_port {
     choice(
         port_identifier,
-        seq(
-            ".",
-            port_identifier,
-            "(",
-            choice(
-                expression,
-                blank(),
-            ),
-            ")",
-        ),
+        seq(".", port_identifier, "(", optional(expression), ")"),
     )
 }
 
 rule modport_tf_ports_declaration {
     seq(
-        import_export,
-        prec_left(0, seq(
-            _modport_tf_port,
-            repeat(prec_left(0, seq(
-                ",",
-                _modport_tf_port,
-            ))),
-        )),
+        import_export, dsl::sep1(",", _modport_tf_port),
     )
 }
 
@@ -1801,23 +989,14 @@ rule _modport_tf_port {
     )
 }
 
-rule import_export {
-    choice(
-        "import",
-        "export",
-    )
-}
+rule import_export { choice("import", "export") }
+
+// A.2.10 Assertion declarations
 
 rule concurrent_assertion_item {
     choice(
         seq(
-            choice(
-                prec_left(0, seq(
-                    _block_identifier,
-                    ":",
-                )),
-                blank(),
-            ),
+            dsl::optseq([_block_identifier, ":"]),
             _concurrent_assertion_statement,
         ),
         checker_instantiation,
@@ -1836,66 +1015,35 @@ rule _concurrent_assertion_statement {
 
 rule assert_property_statement {
     seq(
-        "assert",
-        "property",
-        "(",
-        property_spec,
-        ")",
-        action_block,
+        "assert", "property", "(", property_spec, ")", action_block,
     )
 }
 
 rule assume_property_statement {
     seq(
-        "assume",
-        "property",
-        "(",
-        property_spec,
-        ")",
-        action_block,
+        "assume", "property", "(", property_spec, ")", action_block,
     )
 }
 
 rule cover_property_statement {
     seq(
-        "cover",
-        "property",
-        "(",
-        property_spec,
-        ")",
-        statement_or_null,
+        "cover", "property", "(", property_spec, ")", statement_or_null,
     )
 }
 
 rule expect_property_statement {
     seq(
-        "expect",
-        "(",
-        property_spec,
-        ")",
-        action_block,
+        "expect", "(", property_spec, ")", action_block,
     )
 }
 
 rule cover_sequence_statement {
     seq(
-        "cover",
-        "sequence",
-        "(",
-        choice(
-            clocking_event,
-            blank(),
-        ),
-        choice(
-            prec_right(11, seq(
-                "disable",
-                "iff",
-                "(",
-                expression_or_dist,
-                ")",
-            )),
-            blank(),
-        ),
+        "cover", "sequence", "(",
+        optional(clocking_event),
+        optional(prec_right(dsl::PREC.iff, seq(
+            "disable", "iff", "(", expression_or_dist, ")",
+        ))),
         sequence_expr,
         ")",
         statement_or_null,
@@ -1904,84 +1052,27 @@ rule cover_sequence_statement {
 
 rule restrict_property_statement {
     seq(
-        "restrict",
-        "property",
-        "(",
-        property_spec,
-        ")",
-        ";",
+        "restrict", "property", "(", property_spec, ")", ";",
     )
 }
 
 rule property_instance {
     seq(
         ps_or_hierarchical_property_identifier,
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    property_list_of_arguments,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
-        ),
+        dsl::optseq(["(", optional(property_list_of_arguments), ")"]),
     )
 }
 
 rule property_list_of_arguments {
     choice(
         seq(
-            prec_left(0, seq(
-                choice(
-                    _property_actual_arg,
-                    blank(),
-                ),
-                repeat(prec_left(0, seq(
-                    ",",
-                    choice(
-                        _property_actual_arg,
-                        blank(),
-                    ),
-                ))),
-            )),
-            repeat1(seq(
-                ",",
-                ".",
-                _identifier,
-                "(",
-                choice(
-                    _property_actual_arg,
-                    blank(),
-                ),
-                ")",
+            dsl::sep1(",", optional(_property_actual_arg)),
+            repeat1(seq( // TODO remove 1
+                ",", ".", _identifier, "(", optional(_property_actual_arg), ")",
             )),
         ),
-        prec_left(0, seq(
-            seq(
-                ".",
-                _identifier,
-                "(",
-                choice(
-                    _property_actual_arg,
-                    blank(),
-                ),
-                ")",
-            ),
-            repeat(prec_left(0, seq(
-                ",",
-                seq(
-                    ".",
-                    _identifier,
-                    "(",
-                    choice(
-                        _property_actual_arg,
-                        blank(),
-                    ),
-                    ")",
-                ),
-            ))),
+        dsl::sep1(",", seq(
+            ".", _identifier, "(", optional(_property_actual_arg), ")",
         )),
     )
 }
@@ -2005,71 +1096,28 @@ rule property_declaration {
     seq(
         "property",
         property_identifier,
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    property_port_list,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
-        ),
+        dsl::optseq(["(", optional(property_port_list), ")"]),
         ";",
         repeat(assertion_variable_declaration),
         property_spec,
-        choice(
-            ";",
-            blank(),
-        ),
-        "endproperty",
-        choice(
-            prec_left(0, seq(
-                ":",
-                property_identifier,
-            )),
-            blank(),
-        ),
+        optional(";"),
+        "endproperty", dsl::optseq([":", property_identifier]),
     )
 }
 
-rule property_port_list {
-    prec_left(0, seq(
-        property_port_item,
-        repeat(prec_left(0, seq(
-            ",",
-            property_port_item,
-        ))),
-    ))
-}
+rule property_port_list { dsl::sep1(",", property_port_item) }
 
 rule property_port_item {
     seq(
         repeat(attribute_instance),
-        choice(
-            prec_left(0, seq(
-                "local",
-                choice(
-                    property_lvar_port_direction,
-                    blank(),
-                ),
-            )),
-            blank(),
+        dsl::optseq(
+            ["local",
+            optional(property_lvar_port_direction)],
         ),
-        choice(
-            property_formal_type1,
-            blank(),
-        ),
+        optional(property_formal_type1),
         formal_port_identifier,
         repeat(_variable_dimension),
-        choice(
-            prec_left(0, seq(
-                "=",
-                _property_actual_arg,
-            )),
-            blank(),
-        ),
+        dsl::optseq(["=", _property_actual_arg]),
     )
 }
 
@@ -2084,20 +1132,10 @@ rule property_formal_type1 {
 
 rule property_spec {
     seq(
-        choice(
-            clocking_event,
-            blank(),
-        ),
-        choice(
-            prec_right(11, seq(
-                "disable",
-                "iff",
-                "(",
-                expression_or_dist,
-                ")",
-            )),
-            blank(),
-        ),
+        optional(clocking_event),
+        optional(prec_right(dsl::PREC.iff, seq(
+            "disable", "iff", "(", expression_or_dist, ")",
+        ))),
         property_expr,
     )
 }
@@ -2105,194 +1143,62 @@ rule property_spec {
 rule property_expr {
     choice(
         sequence_expr,
-        seq(
-            "strong",
-            "(",
-            sequence_expr,
-            ")",
-        ),
-        seq(
-            "weak",
-            "(",
-            sequence_expr,
-            ")",
-        ),
-        prec_left(37, seq(
-            "(",
-            property_expr,
-            ")",
-        )),
-        prec_left(14, seq(
-            "not",
-            property_expr,
-        )),
-        prec_left(12, seq(
-            property_expr,
-            "or",
-            property_expr,
-        )),
-        prec_left(13, seq(
-            property_expr,
-            "and",
-            property_expr,
-        )),
-        prec_right(9, seq(
-            sequence_expr,
-            "|->",
-            property_expr,
-        )),
-        prec_right(9, seq(
-            sequence_expr,
-            "|=>",
+        seq("strong", "(", sequence_expr, ")"),
+        seq("weak", "(", sequence_expr, ")"),
+        prec_left(dsl::PREC.PARENT, seq("(", property_expr, ")")),
+
+        // FIXME no assosiativity rules per spec
+        prec_left(dsl::PREC.nexttime, seq("not", property_expr)),
+        prec_left(dsl::PREC.or, seq(property_expr, "or", property_expr)),
+        prec_left(dsl::PREC.and, seq(property_expr, "and", property_expr)),
+
+        prec_right(dsl::PREC.INCIDENCE, seq(sequence_expr, "|->", property_expr)),
+        prec_right(dsl::PREC.INCIDENCE, seq(sequence_expr, "|=>", property_expr)),
+
+        // FIXME no assosiativity rules per spec
+        prec_left(0, seq("if", "(", expression_or_dist, ")", property_expr, dsl::optseq(["else", property_expr]))), // FIXME spec bug ( ) are not red
+
+        seq("case", "(", expression_or_dist, ")", repeat1(property_case_item), "endcase"),  // FIXME spec bug ( ) are not red
+        prec_right(dsl::PREC.INCIDENCE, seq(sequence_expr, "#-#", property_expr)),
+        prec_right(dsl::PREC.INCIDENCE, seq(sequence_expr, "#=#", property_expr)),
+
+        // FIXME no assosiativity rules per spec
+        prec_left(dsl::PREC.nexttime, seq("nexttime", property_expr)),
+        prec_left(dsl::PREC.nexttime, seq("nexttime", "[", constant_expression, "]", property_expr)), // FIXME spec bug constant _expression with the space
+        prec_left(dsl::PREC.nexttime, seq("s_nexttime", property_expr)),
+        prec_left(dsl::PREC.nexttime, seq("s_nexttime", "[", constant_expression, "]", property_expr)),
+
+        prec_left(dsl::PREC.always, seq("always", property_expr)),
+        prec_left(dsl::PREC.always, seq("always", "[", cycle_delay_const_range_expression, "]", property_expr)),
+        prec_left(dsl::PREC.always, seq("s_always", "[", constant_range, "]", property_expr)),
+        prec_left(dsl::PREC.always, seq("s_eventually", property_expr)),
+        prec_left(dsl::PREC.always, seq("eventually", "[", constant_range, "]", property_expr)),
+        prec_left(dsl::PREC.always, seq("s_eventually", "[", cycle_delay_const_range_expression, "]", property_expr)),
+
+        prec_right(dsl::PREC.until, seq(property_expr,
+            choice("until", "s_until", "until_with", "s_until_with", "implies"),
             property_expr,
         )),
-        prec_left(0, seq(
-            "if",
-            "(",
-            expression_or_dist,
-            ")",
-            property_expr,
-            choice(
-                prec_left(0, seq(
-                    "else",
-                    property_expr,
-                )),
-                blank(),
-            ),
+
+        prec_right(dsl::PREC.iff, seq(property_expr, "iff", property_expr)),
+
+        // FIXME no assosiativity rules per spec
+        prec_left(dsl::PREC.always, seq(
+            choice("accept_on", "reject_on", "sync_accept_on", "sync_reject_on"),
+            "(", expression_or_dist, ")", property_expr,
         )),
-        seq(
-            "case",
-            "(",
-            expression_or_dist,
-            ")",
-            repeat1(property_case_item),
-            "endcase",
-        ),
-        prec_right(9, seq(
-            sequence_expr,
-            "#-#",
-            property_expr,
-        )),
-        prec_right(9, seq(
-            sequence_expr,
-            "#=#",
-            property_expr,
-        )),
-        prec_left(14, seq(
-            "nexttime",
-            property_expr,
-        )),
-        prec_left(14, seq(
-            "nexttime",
-            "[",
-            constant_expression,
-            "]",
-            property_expr,
-        )),
-        prec_left(14, seq(
-            "s_nexttime",
-            property_expr,
-        )),
-        prec_left(14, seq(
-            "s_nexttime",
-            "[",
-            constant_expression,
-            "]",
-            property_expr,
-        )),
-        prec_left(8, seq(
-            "always",
-            property_expr,
-        )),
-        prec_left(8, seq(
-            "always",
-            "[",
-            cycle_delay_const_range_expression,
-            "]",
-            property_expr,
-        )),
-        prec_left(8, seq(
-            "s_always",
-            "[",
-            constant_range,
-            "]",
-            property_expr,
-        )),
-        prec_left(8, seq(
-            "s_eventually",
-            property_expr,
-        )),
-        prec_left(8, seq(
-            "eventually",
-            "[",
-            constant_range,
-            "]",
-            property_expr,
-        )),
-        prec_left(8, seq(
-            "s_eventually",
-            "[",
-            cycle_delay_const_range_expression,
-            "]",
-            property_expr,
-        )),
-        prec_right(10, seq(
-            property_expr,
-            choice(
-                "until",
-                "s_until",
-                "until_with",
-                "s_until_with",
-                "implies",
-            ),
-            property_expr,
-        )),
-        prec_right(11, seq(
-            property_expr,
-            "iff",
-            property_expr,
-        )),
-        prec_left(8, seq(
-            choice(
-                "accept_on",
-                "reject_on",
-                "sync_accept_on",
-                "sync_reject_on",
-            ),
-            "(",
-            expression_or_dist,
-            ")",
-            property_expr,
-        )),
-        prec_left(0, seq(
-            clocking_event,
-            property_expr,
-        )),
+        // $.property_instance,
+        prec_left(0, seq(clocking_event, property_expr)), // FIXME no assosiativity rules per spec
     )
 }
 
 rule property_case_item {
     choice(
         seq(
-            prec_left(0, seq(
-                expression_or_dist,
-                repeat(prec_left(0, seq(
-                    ",",
-                    expression_or_dist,
-                ))),
-            )),
-            ":",
-            property_expr,
-            ";",
+            dsl::sep1(",", expression_or_dist), ":", property_expr, ";",
         ),
         seq(
-            "default",
-            choice(
-                ":",
-                blank(),
-            ),
-            property_expr,
-            ";",
+            "default", optional(":"), property_expr, ";",
         ),
     )
 }
@@ -2301,81 +1207,36 @@ rule sequence_declaration {
     seq(
         "sequence",
         _sequence_identifier,
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    sequence_port_list,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
+        dsl::optseq(
+            ["(", optional(sequence_port_list), ")"],
         ),
         ";",
         repeat(assertion_variable_declaration),
         sequence_expr,
-        choice(
-            ";",
-            blank(),
-        ),
-        "endsequence",
-        choice(
-            prec_left(0, seq(
-                ":",
-                _sequence_identifier,
-            )),
-            blank(),
-        ),
+        optional(";"),
+        "endsequence", dsl::optseq([":", _sequence_identifier]),
     )
 }
 
-rule sequence_port_list {
-    prec_left(0, seq(
-        sequence_port_item,
-        repeat(prec_left(0, seq(
-            ",",
-            sequence_port_item,
-        ))),
-    ))
-}
+rule sequence_port_list { dsl::sep1(",", sequence_port_item) }
 
 rule sequence_port_item {
     seq(
         repeat(attribute_instance),
-        choice(
-            prec_left(0, seq(
-                "local",
-                choice(
-                    sequence_lvar_port_direction,
-                    blank(),
-                ),
-            )),
-            blank(),
+        dsl::optseq(
+            ["local",
+            optional(sequence_lvar_port_direction)],
         ),
-        choice(
-            sequence_formal_type1,
-            blank(),
-        ),
+        optional(sequence_formal_type1),
         formal_port_identifier,
         repeat(_variable_dimension),
-        choice(
-            prec_left(0, seq(
-                "=",
-                _sequence_actual_arg,
-            )),
-            blank(),
+        dsl::optseq(
+            ["=", _sequence_actual_arg],
         ),
     )
 }
 
-rule sequence_lvar_port_direction {
-    choice(
-        "input",
-        "inout",
-        "output",
-    )
-}
+rule sequence_lvar_port_direction { choice("input", "inout", "output") }
 
 rule sequence_formal_type1 {
     choice(
@@ -2387,113 +1248,31 @@ rule sequence_formal_type1 {
 
 rule sequence_expr {
     choice(
-        prec_left(0, prec_left(0, seq(
-            cycle_delay_range,
-            repeat(prec_left(0, seq(
-                ",",
-                cycle_delay_range,
-            ))),
-        ))),
-        prec_left(18, seq(
-            sequence_expr,
-            repeat1(seq(
-                cycle_delay_range,
-                sequence_expr,
-            )),
-        )),
-        seq(
-            expression_or_dist,
-            choice(
-                _boolean_abbrev,
-                blank(),
-            ),
-        ),
-        seq(
-            sequence_instance,
-            choice(
-                sequence_abbrev,
-                blank(),
-            ),
-        ),
-        prec_left(0, seq(
-            "(",
-            sequence_expr,
-            repeat(prec_left(0, seq(
-                ",",
-                _sequence_match_item,
-            ))),
-            ")",
-            choice(
-                sequence_abbrev,
-                blank(),
-            ),
-        )),
-        prec_left(13, seq(
-            sequence_expr,
-            "and",
-            sequence_expr,
-        )),
-        prec_left(15, seq(
-            sequence_expr,
-            "intersect",
-            sequence_expr,
-        )),
-        prec_left(12, seq(
-            sequence_expr,
-            "or",
-            sequence_expr,
-        )),
-        seq(
-            "first_match",
-            "(",
-            sequence_expr,
-            repeat(prec_left(0, seq(
-                ",",
-                _sequence_match_item,
-            ))),
-            ")",
-        ),
-        prec_right(17, seq(
-            expression_or_dist,
-            "throughout",
-            sequence_expr,
-        )),
-        prec_left(16, seq(
-            sequence_expr,
-            "within",
-            sequence_expr,
-        )),
-        prec_left(0, seq(
-            clocking_event,
-            sequence_expr,
-        )),
+        prec_left(0, dsl::sep1(",", cycle_delay_range)), // FIXME precedence?
+        prec_left(dsl::PREC.SHARP2, seq(sequence_expr, repeat1(seq(cycle_delay_range, sequence_expr)))),
+        seq(expression_or_dist, optional(_boolean_abbrev)),
+        seq(sequence_instance, optional(sequence_abbrev)),
+        prec_left(0, seq("(", sequence_expr, dsl::repseq([",", _sequence_match_item]), ")", optional(sequence_abbrev))),
+        prec_left(dsl::PREC.and, seq(sequence_expr, "and", sequence_expr)),
+        prec_left(dsl::PREC.intersect, seq(sequence_expr, "intersect", sequence_expr)),
+        prec_left(dsl::PREC.or, seq(sequence_expr, "or", sequence_expr)),
+        seq("first_match", "(", sequence_expr, dsl::repseq([",", _sequence_match_item]), ")"),
+        prec_right(dsl::PREC.throughout, seq(expression_or_dist, "throughout", sequence_expr)),
+        prec_left(dsl::PREC.within, seq(sequence_expr, "within", sequence_expr)),
+        prec_left(0, seq(clocking_event, sequence_expr)), // FIXME precedence?
     )
 }
 
 rule cycle_delay_range {
     choice(
-        prec_left(0, seq(
-            "##",
-            constant_primary,
-        )),
-        prec_left(0, seq(
-            "##",
-            "[",
-            cycle_delay_const_range_expression,
-            "]",
-        )),
+        prec_left(0, seq("##", constant_primary)),
+        prec_left(0, seq("##", "[", cycle_delay_const_range_expression, "]")),
         "##[*]",
         "##[+]",
     )
 }
 
-rule sequence_method_call {
-    seq(
-        sequence_instance,
-        ".",
-        method_identifier,
-    )
-}
+rule sequence_method_call { seq(sequence_instance, ".", method_identifier) }
 
 rule _sequence_match_item {
     choice(
@@ -2506,47 +1285,17 @@ rule _sequence_match_item {
 rule sequence_instance {
     seq(
         ps_or_hierarchical_sequence_identifier,
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    sequence_list_of_arguments,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
-        ),
+        dsl::optseq(["(", optional(sequence_list_of_arguments), ")"]),
     )
 }
 
 rule sequence_list_of_arguments {
     choice(
-        prec_left(0, seq(
-            seq(
-                ".",
-                _identifier,
-                "(",
-                choice(
-                    _sequence_actual_arg,
-                    blank(),
-                ),
-                ")",
-            ),
-            repeat(prec_left(0, seq(
-                ",",
-                seq(
-                    ".",
-                    _identifier,
-                    "(",
-                    choice(
-                        _sequence_actual_arg,
-                        blank(),
-                    ),
-                    ")",
-                ),
-            ))),
-        )),
+        // seq(
+        //   sep1(',', optional($._sequence_actual_arg)),
+        //   repseq(',', '.', $._identifier, '(', optional($._sequence_actual_arg), ')')
+        // ),
+        dsl::sep1(",", seq(".", _identifier, "(", optional(_sequence_actual_arg), ")")),
     )
 }
 
@@ -2569,31 +1318,15 @@ rule sequence_abbrev { consecutive_repetition }
 
 rule consecutive_repetition {
     choice(
-        seq(
-            "[*",
-            _const_or_range_expression,
-            "]",
-        ),
+        seq("[*", _const_or_range_expression, "]"),
         "[*]",
         "[+]",
     )
 }
 
-rule non_consecutive_repetition {
-    seq(
-        "[=",
-        _const_or_range_expression,
-        "]",
-    )
-}
+rule non_consecutive_repetition { seq("[=", _const_or_range_expression, "]") }
 
-rule goto_repetition {
-    seq(
-        "[->",
-        _const_or_range_expression,
-        "]",
-    )
-}
+rule goto_repetition { seq("[->", _const_or_range_expression, "]") }
 
 rule _const_or_range_expression {
     choice(
@@ -2604,31 +1337,15 @@ rule _const_or_range_expression {
 
 rule cycle_delay_const_range_expression {
     choice(
-        seq(
-            constant_expression,
-            ":",
-            constant_expression,
-        ),
-        seq(
-            constant_expression,
-            ":",
-            "$",
-        ),
+        seq(constant_expression, ":", constant_expression),
+        seq(constant_expression, ":", "$"),
     )
 }
 
 rule expression_or_dist {
     seq(
         expression,
-        choice(
-            prec_left(31, seq(
-                "dist",
-                "{",
-                dist_list,
-                "}",
-            )),
-            blank(),
-        ),
+        optional(prec_left(dsl::PREC.RELATIONAL, seq("dist", "{", dist_list, "}"))),
     )
 }
 
@@ -2640,116 +1357,48 @@ rule assertion_variable_declaration {
     )
 }
 
+// A.2.11 Covergroup declarations
+
 rule covergroup_declaration {
     seq(
-        "covergroup",
-        covergroup_identifier,
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    tf_port_list,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
-        ),
-        choice(
-            coverage_event,
-            blank(),
-        ),
+        "covergroup", covergroup_identifier,
+        dsl::optseq(["(", optional(tf_port_list), ")"]),
+        optional(coverage_event),
         ";",
         repeat(coverage_spec_or_option),
-        "endgroup",
-        choice(
-            prec_left(0, seq(
-                ":",
-                covergroup_identifier,
-            )),
-            blank(),
-        ),
+        "endgroup", dsl::optseq([":", covergroup_identifier]),
     )
 }
 
 rule coverage_spec_or_option {
     choice(
-        seq(
-            repeat(attribute_instance),
-            _coverage_spec,
-        ),
-        seq(
-            repeat(attribute_instance),
-            coverage_option,
-            ";",
-        ),
+        seq(repeat(attribute_instance), _coverage_spec),
+        seq(repeat(attribute_instance), coverage_option, ";"),
     )
 }
 
 rule coverage_option {
     choice(
-        seq(
-            "option",
-            ".",
-            member_identifier,
-            "=",
-            expression,
-        ),
-        seq(
-            "type_option",
-            ".",
-            member_identifier,
-            "=",
-            constant_expression,
-        ),
+        seq("option", ".", member_identifier, "=", expression),
+        seq("type_option", ".", member_identifier, "=", constant_expression),
     )
 }
 
-rule _coverage_spec {
-    choice(
-        cover_point,
-        cover_cross,
-    )
-}
+rule _coverage_spec { choice(cover_point, cover_cross) }
 
 rule coverage_event {
     choice(
         clocking_event,
-        seq(
-            "with",
-            "function",
-            "sample",
-            "(",
-            choice(
-                tf_port_list,
-                blank(),
-            ),
-            ")",
-        ),
-        seq(
-            "@@",
-            "(",
-            block_event_expression,
-            ")",
-        ),
+        seq("with", "function", "sample", "(", optional(tf_port_list), ")"),
+        seq("@@", "(", block_event_expression, ")"),
     )
 }
 
 rule block_event_expression {
     choice(
-        prec_left(12, seq(
-            block_event_expression,
-            "or",
-            block_event_expression,
-        )),
-        seq(
-            "begin",
-            hierarchical_btf_identifier,
-        ),
-        seq(
-            "end",
-            hierarchical_btf_identifier,
-        ),
+        prec_left(dsl::PREC.or, seq(block_event_expression, "or", block_event_expression)),
+        seq("begin", hierarchical_btf_identifier),
+        seq("end", hierarchical_btf_identifier),
     )
 }
 
@@ -2757,14 +1406,8 @@ rule hierarchical_btf_identifier {
     choice(
         _hierarchical_tf_identifier,
         _hierarchical_block_identifier,
-        prec_left(37, seq(
-            choice(
-                seq(
-                    hierarchical_identifier,
-                    ".",
-                ),
-                class_scope,
-            ),
+        prec_left(dsl::PREC.PARENT, seq(
+            choice(seq(hierarchical_identifier, "."), class_scope),
             method_identifier,
         )),
     )
@@ -2772,43 +1415,16 @@ rule hierarchical_btf_identifier {
 
 rule cover_point {
     seq(
-        choice(
-            prec_left(0, seq(
-                choice(
-                    data_type_or_implicit1,
-                    blank(),
-                ),
-                cover_point_identifier,
-                ":",
-            )),
-            blank(),
-        ),
-        "coverpoint",
-        expression,
-        choice(
-            prec_right(11, seq(
-                "iff",
-                "(",
-                expression,
-                ")",
-            )),
-            blank(),
-        ),
+        dsl::optseq([optional(data_type_or_implicit1), cover_point_identifier, ":"]),
+        "coverpoint", expression,
+        optional(prec_right(dsl::PREC.iff, seq("iff", "(", expression, ")"))),
         bins_or_empty,
     )
 }
 
 rule bins_or_empty {
     choice(
-        seq(
-            "{",
-            repeat(attribute_instance),
-            repeat(prec_left(0, seq(
-                bins_or_options,
-                ";",
-            ))),
-            "}",
-        ),
+        seq("{", repeat(attribute_instance), dsl::repseq([bins_or_options, ";"]), "}"),
         ";",
     )
 }
@@ -2820,146 +1436,47 @@ rule bins_or_options {
             "wildcard",
             bins_keyword,
             _bin_identifier,
-            choice(
-                prec_left(0, seq(
-                    "[",
-                    choice(
-                        _covergroup_expression,
-                        blank(),
-                    ),
-                    "]",
-                )),
-                blank(),
-            ),
+            dsl::optseq(["[", optional(_covergroup_expression), "]"]),
             "=",
-            "{",
-            covergroup_range_list,
-            "}",
-            choice(
-                prec_left(0, seq(
-                    "with",
-                    "(",
-                    _with_covergroup_expression,
-                    ")",
-                )),
-                blank(),
-            ),
-            choice(
-                prec_right(11, seq(
-                    "iff",
-                    "(",
-                    expression,
-                    ")",
-                )),
-                blank(),
-            ),
+            "{", covergroup_range_list, "}",
+            dsl::optseq(["with", "(", _with_covergroup_expression, ")"]),
+            optional(prec_right(dsl::PREC.iff, seq("iff", "(", expression, ")"))),
         ),
         seq(
             "wildcard",
             bins_keyword,
             _bin_identifier,
-            choice(
-                prec_left(0, seq(
-                    "[",
-                    choice(
-                        _covergroup_expression,
-                        blank(),
-                    ),
-                    "]",
-                )),
-                blank(),
-            ),
+            dsl::optseq(["[", optional(_covergroup_expression), "]"]),
             "=",
             cover_point_identifier,
-            "with",
-            "(",
-            _with_covergroup_expression,
-            ")",
-            choice(
-                prec_right(11, seq(
-                    "iff",
-                    "(",
-                    expression,
-                    ")",
-                )),
-                blank(),
-            ),
+            "with", "(", _with_covergroup_expression, ")",
+            optional(prec_right(dsl::PREC.iff, seq("iff", "(", expression, ")"))),
         ),
         seq(
             "wildcard",
             bins_keyword,
             _bin_identifier,
-            choice(
-                prec_left(0, seq(
-                    "[",
-                    choice(
-                        _covergroup_expression,
-                        blank(),
-                    ),
-                    "]",
-                )),
-                blank(),
-            ),
+            dsl::optseq(["[", optional(_covergroup_expression), "]"]),
             "=",
             _set_covergroup_expression,
-            choice(
-                prec_right(11, seq(
-                    "iff",
-                    "(",
-                    expression,
-                    ")",
-                )),
-                blank(),
-            ),
+            optional(prec_right(dsl::PREC.iff, seq("iff", "(", expression, ")"))),
         ),
         seq(
             "wildcard",
             bins_keyword,
             _bin_identifier,
-            choice(
-                prec_left(0, seq(
-                    "[",
-                    "]",
-                )),
-                blank(),
-            ),
+            dsl::optseq(["[", "]"]),
             "=",
             trans_list,
-            choice(
-                prec_right(11, seq(
-                    "iff",
-                    "(",
-                    expression,
-                    ")",
-                )),
-                blank(),
-            ),
+            optional(prec_right(dsl::PREC.iff, seq("iff", "(", expression, ")"))),
         ),
         seq(
             bins_keyword,
             _bin_identifier,
-            choice(
-                prec_left(0, seq(
-                    "[",
-                    choice(
-                        _covergroup_expression,
-                        blank(),
-                    ),
-                    "]",
-                )),
-                blank(),
-            ),
+            dsl::optseq(["[", optional(_covergroup_expression), "]"]),
             "=",
             "default",
-            choice(
-                prec_right(11, seq(
-                    "iff",
-                    "(",
-                    expression,
-                    ")",
-                )),
-                blank(),
-            ),
+            optional(prec_right(dsl::PREC.iff, seq("iff", "(", expression, ")"))),
         ),
         seq(
             bins_keyword,
@@ -2967,76 +1484,23 @@ rule bins_or_options {
             "=",
             "default",
             "sequence",
-            choice(
-                prec_right(11, seq(
-                    "iff",
-                    "(",
-                    expression,
-                    ")",
-                )),
-                blank(),
-            ),
+            optional(prec_right(dsl::PREC.iff, seq("iff", "(", expression, ")"))),
         ),
     )
 }
 
-rule bins_keyword {
-    choice(
-        "bins",
-        "illegal_bins",
-        "ignore_bins",
-    )
-}
+rule bins_keyword { choice("bins", "illegal_bins", "ignore_bins") }
 
-rule trans_list {
-    prec_left(0, seq(
-        seq(
-            "(",
-            trans_set,
-            ")",
-        ),
-        repeat(prec_left(0, seq(
-            ",",
-            seq(
-                "(",
-                trans_set,
-                ")",
-            ),
-        ))),
-    ))
-}
+rule trans_list { dsl::sep1(",", seq("(", trans_set, ")")) }
 
-rule trans_set {
-    prec_left(0, seq(
-        trans_range_list,
-        repeat(prec_left(0, seq(
-            "=>",
-            trans_range_list,
-        ))),
-    ))
-}
+rule trans_set { dsl::sep1("=>", trans_range_list) }
 
 rule trans_range_list {
     choice(
         trans_item,
-        seq(
-            trans_item,
-            "[*",
-            repeat_range,
-            "]",
-        ),
-        seq(
-            trans_item,
-            "[–>",
-            repeat_range,
-            "]",
-        ),
-        seq(
-            trans_item,
-            "[=",
-            repeat_range,
-            "]",
-        ),
+        seq(trans_item, "[*", repeat_range, "]"),
+        seq(trans_item, "[–>", repeat_range, "]"),
+        seq(trans_item, "[=", repeat_range, "]"),
     )
 }
 
@@ -3044,220 +1508,96 @@ rule trans_item { covergroup_range_list }
 
 rule repeat_range {
     seq(
-        _covergroup_expression,
-        choice(
-            prec_left(0, seq(
-                ":",
-                _covergroup_expression,
-            )),
-            blank(),
-        ),
+        _covergroup_expression, dsl::optseq([":", _covergroup_expression]),
     )
 }
 
 rule cover_cross {
     seq(
-        choice(
-            prec_left(0, seq(
-                cross_identifier,
-                ":",
-            )),
-            blank(),
-        ),
+        dsl::optseq([cross_identifier, ":"]),
         "cross",
         list_of_cross_items,
-        choice(
-            prec_right(11, seq(
-                "iff",
-                "(",
-                expression,
-                ")",
-            )),
-            blank(),
-        ),
+        optional(prec_right(dsl::PREC.iff, seq("iff", "(", expression, ")"))),
         cross_body,
     )
 }
 
-rule list_of_cross_items {
-    seq(
-        _cross_item,
-        ",",
-        prec_left(0, seq(
-            _cross_item,
-            repeat(prec_left(0, seq(
-                ",",
-                _cross_item,
-            ))),
-        )),
-    )
-}
+rule list_of_cross_items { seq(_cross_item, ",", dsl::sep1(",", _cross_item)) }
 
 rule _cross_item {
     choice(
         cover_point_identifier,
+        // $._variable_identifier
     )
 }
 
 rule cross_body {
     choice(
-        seq(
-            "{",
-            repeat(prec_left(0, seq(
-                cross_body_item,
-                ";",
-            ))),
-            "}",
-        ),
+        seq("{", dsl::repseq([cross_body_item, ";"]), "}"),
         ";",
     )
 }
 
 rule cross_body_item {
     choice(
-        function_declaration,
-        seq(
-            bins_selection_or_option,
-            ";",
-        ),
+        function_declaration, // FIXME standard function_declaraton => function_declaration
+        seq(bins_selection_or_option, ";"),
     )
 }
 
 rule bins_selection_or_option {
     choice(
-        seq(
-            repeat(attribute_instance),
-            coverage_option,
-        ),
-        seq(
-            repeat(attribute_instance),
-            bins_selection,
-        ),
+        seq(repeat(attribute_instance), coverage_option),
+        seq(repeat(attribute_instance), bins_selection),
     )
 }
 
 rule bins_selection {
     seq(
-        bins_keyword,
-        _bin_identifier,
-        "=",
-        select_expression,
-        choice(
-            prec_right(11, seq(
-                "iff",
-                "(",
-                expression,
-                ")",
-            )),
-            blank(),
-        ),
+        bins_keyword, _bin_identifier, "=", select_expression,
+        optional(prec_right(dsl::PREC.iff, seq("iff", "(", expression, ")"))),
     )
 }
 
 rule select_expression {
     choice(
         select_condition,
-        prec_left(36, seq(
-            "!",
-            select_condition,
-        )),
-        prec_left(25, seq(
-            select_expression,
-            "&&",
-            select_expression,
-        )),
-        prec_left(24, seq(
-            select_expression,
-            "||",
-            select_expression,
-        )),
-        prec_left(37, seq(
-            "(",
-            select_expression,
-            ")",
-        )),
+        prec_left(dsl::PREC.UNARY, seq("!", select_condition)),
+        prec_left(dsl::PREC.LOGICAL_AND, seq(select_expression, "&&", select_expression)),
+        prec_left(dsl::PREC.LOGICAL_OR, seq(select_expression, "||", select_expression)),
+        prec_left(dsl::PREC.PARENT, seq("(", select_expression, ")")),
         seq(
-            select_expression,
-            "with",
-            "(",
-            _with_covergroup_expression,
-            ")",
-            choice(
-                prec_left(0, seq(
-                    "matches",
-                    _integer_covergroup_expression,
-                )),
-                blank(),
-            ),
+            select_expression, "with", "(", _with_covergroup_expression, ")",
+            dsl::optseq(["matches", _integer_covergroup_expression]),
         ),
         cross_identifier,
         seq(
             _cross_set_expression,
-            choice(
-                prec_left(0, seq(
-                    "matches",
-                    _integer_covergroup_expression,
-                )),
-                blank(),
-            ),
+            dsl::optseq(["matches", _integer_covergroup_expression]),
         ),
     )
 }
 
 rule select_condition {
     seq(
-        "binsof",
-        "(",
-        bins_expression,
-        ")",
-        choice(
-            prec_left(0, seq(
-                "intersect",
-                "{",
-                covergroup_range_list,
-                "}",
-            )),
-            blank(),
-        ),
+        "binsof", "(", bins_expression, ")",
+        dsl::optseq(["intersect", "{", covergroup_range_list, "}"]),
     )
 }
 
 rule bins_expression {
     choice(
         _variable_identifier,
-        prec_left(37, seq(
-            cover_point_identifier,
-            choice(
-                prec_left(0, seq(
-                    ".",
-                    _bin_identifier,
-                )),
-                blank(),
-            ),
-        )),
+        prec_left(dsl::PREC.PARENT, seq(cover_point_identifier, dsl::optseq([".", _bin_identifier]))),
     )
 }
 
-rule covergroup_range_list {
-    prec_left(0, seq(
-        covergroup_value_range,
-        repeat(prec_left(0, seq(
-            ",",
-            covergroup_value_range,
-        ))),
-    ))
-}
+rule covergroup_range_list { dsl::sep1(",", covergroup_value_range) }
 
 rule covergroup_value_range {
     choice(
         _covergroup_expression,
-        seq(
-            "[",
-            _covergroup_expression,
-            ":",
-            _covergroup_expression,
-            "]",
-        ),
+        seq("[", _covergroup_expression, ":", _covergroup_expression, "]"),
     )
 }
 
@@ -3271,55 +1611,27 @@ rule _cross_set_expression { _covergroup_expression }
 
 rule _covergroup_expression { expression }
 
+// A.2.12 Let declarations
+
 rule let_declaration {
     seq(
-        "let",
-        let_identifier,
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    let_port_list,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
-        ),
-        "=",
-        expression,
-        ";",
+        "let", let_identifier,
+        dsl::optseq(["(", optional(let_port_list), ")"]),
+        "=", expression, ";",
     )
 }
 
 rule let_identifier { _identifier }
 
-rule let_port_list {
-    prec_left(0, seq(
-        let_port_item,
-        repeat(prec_left(0, seq(
-            ",",
-            let_port_item,
-        ))),
-    ))
-}
+rule let_port_list { dsl::sep1(",", let_port_item) }
 
 rule let_port_item {
     seq(
         repeat(attribute_instance),
-        choice(
-            let_formal_type1,
-            blank(),
-        ),
+        optional(let_formal_type1),
         formal_port_identifier,
         repeat(_variable_dimension),
-        choice(
-            prec_left(0, seq(
-                "=",
-                expression,
-            )),
-            blank(),
-        ),
+        dsl::optseq(["=", expression]),
     )
 }
 
@@ -3332,52 +1644,20 @@ rule let_formal_type1 {
 
 rule let_expression {
     prec_left(0, seq(
-        choice(
-            package_scope,
-            blank(),
-        ),
+        optional(package_scope),
         let_identifier,
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    let_list_of_arguments,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
-        ),
+        dsl::optseq(["(", optional(let_list_of_arguments), ")"]),
     ))
 }
 
 rule let_list_of_arguments {
     choice(
-        prec_left(0, seq(
-            seq(
-                ".",
-                _identifier,
-                "(",
-                choice(
-                    let_actual_arg,
-                    blank(),
-                ),
-                ")",
-            ),
-            repeat(prec_left(0, seq(
-                ",",
-                seq(
-                    ".",
-                    _identifier,
-                    "(",
-                    choice(
-                        let_actual_arg,
-                        blank(),
-                    ),
-                    ")",
-                ),
-            ))),
-        )),
+        // FIXME empty string
+        // seq(
+        //   sep1(',', optional($.let_actual_arg)),
+        //   repseq(',', '.', $._identifier, '(', optional($.let_actual_arg), ')')
+        // ),
+        dsl::sep1(",", seq(".", _identifier, "(", optional(let_actual_arg), ")")),
     )
 }
 

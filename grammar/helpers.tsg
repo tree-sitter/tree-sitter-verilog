@@ -1,0 +1,86 @@
+// Shared grammar-building helpers and SystemVerilog operator precedences.
+
+let PREC = {
+    PARENT: 37,
+    UNARY: 36,
+    POW: 35,
+    MUL: 34,
+    ADD: 33,
+    SHIFT: 32,
+    RELATIONAL: 31,
+    EQUAL: 30,
+    AND: 29,
+    XOR: 28,
+    OR: 27,
+    MATCHES: 26,
+    LOGICAL_AND: 25,
+    LOGICAL_OR: 24,
+    CONDITIONAL: 23,
+    IMPLICATION: 22,
+    ASSIGN: 21,
+    CONCAT: 20,
+    SPARENT: 19,
+    SHARP2: 18,
+    throughout: 17,
+    within: 16,
+    intersect: 15,
+    nexttime: 14,
+    and: 13,
+    or: 12,
+    iff: 11,
+    until: 10,
+    INCIDENCE: 9,
+    always: 8,
+}
+
+// Shared by expression and constant_expression. Keeping this as data makes
+// operator additions and precedence changes a single edit.
+let BINARY_OPERATORS = [
+    (PREC.ADD, choice("+", "-")),
+    (PREC.MUL, choice("*", "/", "%")),
+    (PREC.EQUAL, choice("==", "!=", "===", "!==", "==?", "!=?")),
+    (PREC.LOGICAL_AND, "&&"),
+    (PREC.LOGICAL_OR, "||"),
+    (PREC.POW, "**"),
+    (PREC.RELATIONAL, choice("<", "<=", ">", ">=")),
+    (PREC.AND, "&"),
+    (PREC.OR, "|"),
+    (PREC.XOR, choice("^", "^~", "~^")),
+    (PREC.SHIFT, choice(">>", "<<", ">>>", "<<<")),
+    (PREC.IMPLICATION, choice("->", "<->")),
+]
+
+macro optseq(parts: list_t<rule_t>) rule_t {
+    optional(prec_left(0, seq(for (part: rule_t) in parts { part })))
+}
+
+macro repseq(parts: list_t<rule_t>) rule_t {
+    repeat(prec_left(0, seq(for (part: rule_t) in parts { part })))
+}
+
+macro sep1(separator: rule_t, item: rule_t) rule_t {
+    prec_left(0, seq(item, repeat(prec_left(0, seq(separator, item)))))
+}
+
+macro psep1(precedence: int_t, separator: rule_t, item: rule_t) rule_t {
+    prec_left(precedence, seq(item, repeat(prec_left(0, seq(separator, item)))))
+}
+
+macro binary_operator(
+    expression: rule_t,
+    attribute: rule_t,
+    precedence: int_t,
+    operators: rule_t,
+) rule_t {
+    prec_left(precedence, seq(expression, operators, repeat(attribute), expression))
+}
+
+macro binary_operators(expression: rule_t, attribute: rule_t) rule_t {
+    choice(for (precedence: int_t, operators: rule_t) in BINARY_OPERATORS {
+        binary_operator(expression, attribute, precedence, operators)
+    })
+}
+
+macro directive(command: str_t) rule_t {
+    alias(regexp(concat("`", command)), concat("directive_", command))
+}

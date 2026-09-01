@@ -1,52 +1,44 @@
 // A.9 Attributes, comments, identifiers, and whitespace.
 
+let dsl = import("helpers.tsg")
+
 expect class_scope
 expect constant_bit_select1
 expect constant_expression
 expect implicit_class_handle
 
-rule attribute_instance {
-    seq(
-        "(*",
-        prec_left(0, seq(
-            attr_spec,
-            repeat(prec_left(0, seq(
-                ",",
-                attr_spec,
-            ))),
-        )),
-        "*)",
-    )
-}
+// A.9 General
 
-rule attr_spec {
-    seq(
-        _attr_name,
-        choice(
-            prec_left(0, seq(
-                "=",
-                constant_expression,
-            )),
-            blank(),
-        ),
-    )
-}
+// A.9.1 Attributes
+
+rule attribute_instance { seq("(*", dsl::sep1(",", attr_spec), "*)") }
+
+rule attr_spec { seq(_attr_name, dsl::optseq(["=", constant_expression])) }
 
 rule _attr_name { _identifier }
 
+// A.9.2 Comments
+
+// comment: $ => one_line_comment | block_comment
+// one_line_comment: $ => // comment_text \n
+// block_comment: $ => /* comment_text */
+// comment_text: $ => { Any_ASCII_character }
+
+// http://stackoverflow.com/questions/13014947/regex-to-match-a-c-style-multiline-comment/36328890#36328890
+// from: https://github.com/tree-sitter/tree-sitter-c/blob/master/grammar.js
+
 rule comment {
     token(choice(
-        seq(
-            "//",
-            regexp(".*"),
-        ),
+        seq("//", regexp(r".*")),
         seq(
             "/*",
-            regexp("[^*]*\\*+([^/*][^*]*\\*+)*"),
+            regexp(r"[^*]*\*+([^/*][^*]*\*+)*"),
             "/",
         ),
     ))
 }
+
+// A.9.3 Identifiers
 
 rule _array_identifier { _identifier }
 
@@ -54,7 +46,7 @@ rule _block_identifier { _identifier }
 
 rule _bin_identifier { _identifier }
 
-rule c_identifier { regexp("[a-zA-Z_][a-zA-Z0-9_]*") }
+rule c_identifier { regexp(r"[a-zA-Z_][a-zA-Z0-9_]*") }
 
 rule cell_identifier { alias(_identifier, cell_identifier) }
 
@@ -74,6 +66,8 @@ rule constraint_identifier { alias(_identifier, constraint_identifier) }
 
 rule covergroup_identifier { alias(_identifier, covergroup_identifier) }
 
+// covergroup_variable_identifier = _variable_identifier
+
 rule cover_point_identifier { alias(_identifier, cover_point_identifier) }
 
 rule cross_identifier { alias(_identifier, cross_identifier) }
@@ -82,12 +76,7 @@ rule dynamic_array_variable_identifier { alias(_variable_identifier, dynamic_arr
 
 rule enum_identifier { alias(_identifier, enum_identifier) }
 
-rule escaped_identifier {
-    seq(
-        "\\",
-        regexp("[^\\s]*"),
-    )
-}
+rule escaped_identifier { seq("\\", regexp(r"[^\s]*")) }
 
 rule formal_identifier { alias(_identifier, formal_identifier) }
 
@@ -107,21 +96,8 @@ rule _hierarchical_event_identifier { hierarchical_identifier }
 
 rule hierarchical_identifier {
     prec_left(0, seq(
-        choice(
-            prec_left(0, seq(
-                "$root",
-                ".",
-            )),
-            blank(),
-        ),
-        repeat(prec_left(0, seq(
-            _identifier,
-            choice(
-                constant_bit_select1,
-                blank(),
-            ),
-            ".",
-        ))),
+        dsl::optseq(["$root", "."]),
+        dsl::repseq([_identifier, optional(constant_bit_select1), "."]),
         _identifier,
     ))
 }
@@ -179,14 +155,8 @@ rule package_identifier { alias(_identifier, package_identifier) }
 
 rule package_scope {
     choice(
-        seq(
-            package_identifier,
-            "::",
-        ),
-        seq(
-            "$unit",
-            "::",
-        ),
+        seq(package_identifier, "::"),
+        seq("$unit", "::"),
     )
 }
 
@@ -202,109 +172,63 @@ rule property_identifier { alias(_identifier, property_identifier) }
 
 rule ps_class_identifier {
     seq(
-        choice(
-            package_scope,
-            blank(),
-        ),
-        class_identifier,
+        optional(package_scope), class_identifier,
     )
 }
 
 rule ps_covergroup_identifier {
     seq(
-        choice(
-            package_scope,
-            blank(),
-        ),
-        covergroup_identifier,
+        optional(package_scope), covergroup_identifier,
     )
 }
 
 rule ps_checker_identifier {
     seq(
-        choice(
-            package_scope,
-            blank(),
-        ),
-        checker_identifier,
+        optional(package_scope), checker_identifier,
     )
 }
 
 rule ps_identifier {
     seq(
-        choice(
-            package_scope,
-            blank(),
-        ),
-        _identifier,
+        optional(package_scope), _identifier,
     )
 }
 
 rule ps_or_hierarchical_array_identifier {
     seq(
-        choice(
-            choice(
-                seq(
-                    implicit_class_handle,
-                    ".",
-                ),
-                class_scope,
-                package_scope,
-            ),
-            blank(),
-        ),
+        optional(choice(
+            seq(implicit_class_handle, "."),
+            class_scope,
+            package_scope,
+        )),
         _hierarchical_array_identifier,
     )
 }
 
 rule ps_or_hierarchical_net_identifier {
     choice(
-        prec_left(37, seq(
-            choice(
-                package_scope,
-                blank(),
-            ),
-            _net_identifier,
-        )),
+        prec_left(dsl::PREC.PARENT, seq(optional(package_scope), _net_identifier)),
         _hierarchical_net_identifier,
     )
 }
 
 rule ps_or_hierarchical_property_identifier {
     choice(
-        seq(
-            choice(
-                package_scope,
-                blank(),
-            ),
-            property_identifier,
-        ),
+        seq(optional(package_scope), property_identifier),
         _hierarchical_property_identifier,
     )
 }
 
 rule ps_or_hierarchical_sequence_identifier {
     choice(
-        seq(
-            choice(
-                package_scope,
-                blank(),
-            ),
-            _sequence_identifier,
-        ),
+        seq(optional(package_scope), _sequence_identifier),
         _hierarchical_sequence_identifier,
     )
 }
 
 rule ps_or_hierarchical_tf_identifier {
     choice(
-        seq(
-            choice(
-                package_scope,
-                blank(),
-            ),
-            tf_identifier,
-        ),
+        seq(optional(package_scope), tf_identifier),
         _hierarchical_tf_identifier,
     )
 }
@@ -312,28 +236,18 @@ rule ps_or_hierarchical_tf_identifier {
 rule ps_parameter_identifier {
     choice(
         seq(
-            choice(
-                choice(
-                    package_scope,
-                    class_scope,
-                ),
-                blank(),
-            ),
+            optional(choice(
+                package_scope,
+                class_scope,
+            )),
             parameter_identifier,
         ),
         seq(
-            repeat(prec_left(0, seq(
-                generate_block_identifier,
-                choice(
-                    prec_left(0, seq(
-                        "[",
-                        constant_expression,
-                        "]",
-                    )),
-                    blank(),
-                ),
-                ".",
-            ))),
+            dsl::repseq(
+                [generate_block_identifier,
+                dsl::optseq(["[", constant_expression, "]"]),
+                "."],
+            ),
             parameter_identifier,
         ),
     )
@@ -341,17 +255,11 @@ rule ps_parameter_identifier {
 
 rule ps_type_identifier {
     seq(
-        choice(
-            choice(
-                seq(
-                    "local",
-                    "::",
-                ),
-                package_scope,
-                class_scope,
-            ),
-            blank(),
-        ),
+        optional(choice(
+            seq("local", "::"),
+            package_scope,
+            class_scope,
+        )),
         _type_identifier,
     )
 }
@@ -360,11 +268,18 @@ rule _sequence_identifier { _identifier }
 
 rule _signal_identifier { _identifier }
 
-rule simple_identifier { regexp("[a-zA-Z_][a-zA-Z0-9_$]*") }
+// A simple_identifier or c_identifier shall
+// start with an alpha or underscore ( _ ) character,
+// shall have at least one character, and shall not have any spaces.
+
+rule simple_identifier { regexp(r"[a-zA-Z_][a-zA-Z0-9_$]*") }
 
 rule specparam_identifier { alias(_identifier, specparam_identifier) }
 
-rule system_tf_identifier { regexp("\\$[a-zA-Z0-9_$]+") }
+// The $ character in a system_tf_identifier shall
+// not be followed by white_space. A system_tf_identifier shall not be escaped.
+
+rule system_tf_identifier { regexp(r"\$[a-zA-Z0-9_$]+") }
 
 rule task_identifier { alias(_identifier, task_identifier) }
 

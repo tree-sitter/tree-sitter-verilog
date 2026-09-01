@@ -1,5 +1,7 @@
 // A.5 UDP declarations and instantiations.
 
+let dsl = import("helpers.tsg")
+
 expect _udp_identifier
 expect _variable_identifier
 expect attribute_instance
@@ -14,113 +16,52 @@ expect output_port_identifier
 expect output_terminal
 expect port_identifier
 
+// A.5 UDP declaration and instantiation
+
+// A.5.1 UDP declaration
+
 rule udp_nonansi_declaration {
     seq(
-        repeat(attribute_instance),
-        "primitive",
-        _udp_identifier,
-        "(",
-        udp_port_list,
-        ")",
-        ";",
+        repeat(attribute_instance), "primitive", _udp_identifier, "(", udp_port_list, ")", ";",
     )
 }
 
 rule udp_ansi_declaration {
     seq(
-        repeat(attribute_instance),
-        "primitive",
-        _udp_identifier,
-        "(",
-        udp_declaration_port_list,
-        ")",
-        ";",
+        repeat(attribute_instance), "primitive", _udp_identifier, "(", udp_declaration_port_list, ")", ";",
     )
 }
 
 rule udp_declaration {
     choice(
         seq(
-            udp_nonansi_declaration,
-            udp_port_declaration,
+            udp_nonansi_declaration, udp_port_declaration, repeat(udp_port_declaration),
+            _udp_body,
+            "endprimitive", dsl::optseq([":", _udp_identifier]),
+        ),
+        seq(udp_ansi_declaration, _udp_body, "endprimitive", dsl::optseq([":", _udp_identifier])),
+        seq("extern", udp_nonansi_declaration),
+        seq("extern", udp_ansi_declaration),
+        seq(
+            repeat(attribute_instance), "primitive", _udp_identifier, "(", ".*", ")", ";",
             repeat(udp_port_declaration),
             _udp_body,
-            "endprimitive",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    _udp_identifier,
-                )),
-                blank(),
-            ),
-        ),
-        seq(
-            udp_ansi_declaration,
-            _udp_body,
-            "endprimitive",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    _udp_identifier,
-                )),
-                blank(),
-            ),
-        ),
-        seq(
-            "extern",
-            udp_nonansi_declaration,
-        ),
-        seq(
-            "extern",
-            udp_ansi_declaration,
-        ),
-        seq(
-            repeat(attribute_instance),
-            "primitive",
-            _udp_identifier,
-            "(",
-            ".*",
-            ")",
-            ";",
-            repeat(udp_port_declaration),
-            _udp_body,
-            "endprimitive",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    _udp_identifier,
-                )),
-                blank(),
-            ),
+            "endprimitive", dsl::optseq([":", _udp_identifier]),
         ),
     )
 }
 
+// A.5.2 UDP ports
+
 rule udp_port_list {
     seq(
-        output_port_identifier,
-        ",",
-        prec_left(0, seq(
-            input_port_identifier,
-            repeat(prec_left(0, seq(
-                ",",
-                input_port_identifier,
-            ))),
-        )),
+        output_port_identifier, ",", dsl::sep1(",", input_port_identifier),
     )
 }
 
 rule udp_declaration_port_list {
     seq(
-        udp_output_declaration,
-        ",",
-        prec_left(0, seq(
-            udp_input_declaration,
-            repeat(prec_left(0, seq(
-                ",",
-                udp_input_declaration,
-            ))),
-        )),
+        udp_output_declaration, ",", dsl::sep1(",", udp_input_declaration),
     )
 }
 
@@ -141,191 +82,98 @@ rule udp_output_declaration {
         "output",
         choice(
             port_identifier,
-            seq(
-                "reg",
-                port_identifier,
-                choice(
-                    prec_left(0, seq(
-                        "=",
-                        constant_expression,
-                    )),
-                    blank(),
-                ),
-            ),
+            seq("reg", port_identifier, dsl::optseq(["=", constant_expression])),
         ),
     )
 }
 
 rule udp_input_declaration {
     seq(
-        repeat(attribute_instance),
-        "input",
-        list_of_udp_port_identifiers,
+        repeat(attribute_instance), "input", list_of_udp_port_identifiers,
     )
 }
 
 rule udp_reg_declaration {
     seq(
-        repeat(attribute_instance),
-        "reg",
-        _variable_identifier,
+        repeat(attribute_instance), "reg", _variable_identifier,
     )
 }
 
-rule _udp_body {
-    choice(
-        combinational_body,
-        sequential_body,
-    )
-}
+// A.5.3 UDP body
+
+rule _udp_body { choice(combinational_body, sequential_body) }
 
 rule combinational_body {
     seq(
-        "table",
-        repeat1(combinational_entry),
-        "endtable",
+        "table", repeat1(combinational_entry), "endtable",
     )
 }
 
-rule combinational_entry {
-    seq(
-        level_input_list,
-        ":",
-        output_symbol,
-        ";",
-    )
-}
+rule combinational_entry { seq(level_input_list, ":", output_symbol, ";") }
 
 rule sequential_body {
     seq(
-        choice(
-            udp_initial_statement,
-            blank(),
-        ),
-        "table",
-        repeat1(sequential_entry),
-        "endtable",
+        optional(udp_initial_statement),
+        "table", repeat1(sequential_entry), "endtable",
     )
 }
 
 rule udp_initial_statement {
     seq(
-        "initial",
-        output_port_identifier,
-        "=",
-        init_val,
-        ";",
+        "initial", output_port_identifier, "=", init_val, ";",
     )
 }
 
 rule init_val {
     choice(
-        "1'b0",
-        "1'b1",
-        "1'bx",
-        "1'bX",
-        "1'B0",
-        "1'B1",
-        "1'Bx",
-        "1'BX",
-        "1",
-        "0",
+        "1'b0", "1'b1", "1'bx", "1'bX", "1'B0", "1'B1", "1'Bx", "1'BX", "1", "0",
     )
 }
 
 rule sequential_entry {
     seq(
-        _seq_input_list,
-        ":",
-        _current_state,
-        ":",
-        next_state,
-        ";",
+        _seq_input_list, ":", _current_state, ":", next_state, ";",
     )
 }
 
-rule _seq_input_list {
-    choice(
-        level_input_list,
-        edge_input_list,
-    )
-}
+rule _seq_input_list { choice(level_input_list, edge_input_list) }
 
 rule level_input_list { repeat1(level_symbol) }
 
-rule edge_input_list {
-    seq(
-        repeat(level_symbol),
-        edge_indicator,
-        repeat(level_symbol),
-    )
-}
+rule edge_input_list { seq(repeat(level_symbol), edge_indicator, repeat(level_symbol)) }
 
 rule edge_indicator {
     choice(
-        seq(
-            "(",
-            level_symbol,
-            level_symbol,
-            ")",
-        ),
+        seq("(", level_symbol, level_symbol, ")"),
         edge_symbol,
     )
 }
 
 rule _current_state { level_symbol }
 
-rule next_state {
-    choice(
-        output_symbol,
-        "-",
-    )
-}
+rule next_state { choice(output_symbol, "-") }
 
-rule output_symbol { regexp("[01xX]") }
+rule output_symbol { regexp(r"[01xX]") }
 
-rule level_symbol { regexp("[01xX?bB]") }
+rule level_symbol { regexp(r"[01xX?bB]") }
 
-rule edge_symbol { regexp("[rRfFpPnN*]") }
+rule edge_symbol { regexp(r"[rRfFpPnN*]") }
+
+// A.5.4 UDP instantiation
 
 rule udp_instantiation {
     seq(
         _udp_identifier,
-        choice(
-            drive_strength,
-            blank(),
-        ),
-        choice(
-            delay2,
-            blank(),
-        ),
-        prec_left(0, seq(
-            udp_instance,
-            repeat(prec_left(0, seq(
-                ",",
-                udp_instance,
-            ))),
-        )),
+        optional(drive_strength),
+        optional(delay2),
+        dsl::sep1(",", udp_instance),
         ";",
     )
 }
 
 rule udp_instance {
     seq(
-        choice(
-            name_of_instance,
-            blank(),
-        ),
-        "(",
-        output_terminal,
-        ",",
-        prec_left(0, seq(
-            input_terminal,
-            repeat(prec_left(0, seq(
-                ",",
-                input_terminal,
-            ))),
-        )),
-        ")",
+        optional(name_of_instance),
+        "(", output_terminal, ",", dsl::sep1(",", input_terminal), ")",
     )
 }

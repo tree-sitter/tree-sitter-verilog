@@ -1,5 +1,7 @@
 // A.6 Behavioral statements.
 
+let dsl = import("helpers.tsg")
+
 expect _assertion_item_declaration
 expect _block_identifier
 expect _concurrent_assertion_statement
@@ -44,26 +46,21 @@ expect type_reference
 expect value_range
 expect variable_lvalue
 
+// A.6 Behavioral statements
+
+// A.6.1 Continuous assignment and net alias statements
+
 rule continuous_assign {
     seq(
         "assign",
         choice(
             seq(
-                choice(
-                    drive_strength,
-                    blank(),
-                ),
-                choice(
-                    delay3,
-                    blank(),
-                ),
+                optional(drive_strength),
+                optional(delay3),
                 list_of_net_assignments,
             ),
             seq(
-                choice(
-                    delay_control,
-                    blank(),
-                ),
+                optional(delay_control),
                 list_of_variable_assignments,
             ),
         ),
@@ -71,265 +68,140 @@ rule continuous_assign {
     )
 }
 
-rule list_of_net_assignments {
-    prec_left(0, seq(
-        net_assignment,
-        repeat(prec_left(0, seq(
-            ",",
-            net_assignment,
-        ))),
-    ))
-}
+rule list_of_net_assignments { dsl::sep1(",", net_assignment) }
 
-rule list_of_variable_assignments {
-    prec_left(0, seq(
-        variable_assignment,
-        repeat(prec_left(0, seq(
-            ",",
-            variable_assignment,
-        ))),
-    ))
-}
+rule list_of_variable_assignments { dsl::sep1(",", variable_assignment) }
 
 rule net_alias {
-    prec_left(21, seq(
-        "alias",
-        net_lvalue,
-        "=",
-        prec_left(0, seq(
-            seq(
-                "=",
-                net_lvalue,
-            ),
-            repeat(prec_left(0, seq(
-                ",",
-                seq(
-                    "=",
-                    net_lvalue,
-                ),
-            ))),
-        )),
-        ";",
+    prec_left(dsl::PREC.ASSIGN, seq(
+        "alias", net_lvalue, "=", dsl::sep1(",", seq("=", net_lvalue)), ";",
     ))
 }
 
 rule net_assignment {
-    prec_left(21, seq(
-        net_lvalue,
-        "=",
-        expression,
-    ))
-}
-
-rule initial_construct {
-    seq(
-        "initial",
-        statement_or_null,
+    prec_left(dsl::PREC.ASSIGN,
+        seq(net_lvalue, "=", expression),
     )
 }
 
-rule always_construct {
-    seq(
-        always_keyword,
-        statement,
-    )
-}
+// A.6.2 Procedural blocks and assignments
+
+rule initial_construct { seq("initial", statement_or_null) }
+
+rule always_construct { seq(always_keyword, statement) }
 
 rule always_keyword {
     choice(
-        "always",
-        "always_comb",
-        "always_latch",
-        "always_ff",
+        "always", "always_comb", "always_latch", "always_ff",
     )
 }
 
-rule final_construct {
-    seq(
-        "final",
-        function_statement,
-    )
-}
+rule final_construct { seq("final", function_statement) }
 
 rule blocking_assignment {
     choice(
-        prec_left(21, seq(
-            variable_lvalue,
-            "=",
-            delay_or_event_control,
-            expression,
+        prec_left(dsl::PREC.ASSIGN, seq(
+            variable_lvalue, "=", delay_or_event_control, expression,
         )),
-        prec_left(21, seq(
-            nonrange_variable_lvalue,
-            "=",
-            dynamic_array_new,
+        prec_left(dsl::PREC.ASSIGN, seq(
+            nonrange_variable_lvalue, "=", dynamic_array_new,
         )),
+        // seq(
+        //   optional(choice(
+        //     seq($.implicit_class_handle, '.'),
+        //     $.class_scope,
+        //     $.package_scope
+        //   )),
+        //   $._hierarchical_variable_identifier
+        //   $.select,
+        //   '=',
+        //   $.class_new
+        // ),
         operator_assignment,
     )
 }
 
 rule operator_assignment {
-    prec_left(21, seq(
-        variable_lvalue,
-        assignment_operator,
-        expression,
-    ))
+    prec_left(dsl::PREC.ASSIGN,
+        seq(variable_lvalue, assignment_operator, expression),
+    )
 }
 
 rule assignment_operator {
     choice(
-        "=",
-        "+=",
-        "-=",
-        "*=",
-        "/=",
-        "%=",
-        "&=",
-        "|=",
-        "^=",
-        "<<=",
-        ">>=",
-        "<<<=",
-        ">>>=",
+        "=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", "<<<=", ">>>=",
     )
 }
 
 rule nonblocking_assignment {
-    prec_left(21, seq(
+    prec_left(dsl::PREC.ASSIGN, seq(
         variable_lvalue,
         "<=",
-        choice(
-            delay_or_event_control,
-            blank(),
-        ),
+        optional(delay_or_event_control),
         expression,
     ))
 }
 
 rule procedural_continuous_assignment {
     choice(
-        seq(
-            "assign",
-            variable_assignment,
-        ),
-        seq(
-            "deassign",
-            variable_lvalue,
-        ),
-        seq(
-            "force",
-            variable_assignment,
-        ),
-        seq(
-            "force",
-            net_assignment,
-        ),
-        seq(
-            "release",
-            variable_lvalue,
-        ),
-        seq(
-            "release",
-            net_lvalue,
-        ),
+        seq("assign", variable_assignment),
+        seq("deassign", variable_lvalue),
+        seq("force", variable_assignment),
+        seq("force", net_assignment),
+        seq("release", variable_lvalue),
+        seq("release", net_lvalue),
     )
 }
 
 rule variable_assignment {
-    prec_left(21, seq(
+    prec_left(dsl::PREC.ASSIGN, seq(
         variable_lvalue,
         "=",
         expression,
     ))
 }
 
+// A.6.3 Parallel and sequential blocks
+
 rule action_block {
     choice(
         statement_or_null,
-        seq(
-            choice(
-                statement,
-                blank(),
-            ),
-            "else",
-            statement_or_null,
-        ),
+        seq(optional(statement), "else", statement_or_null),
     )
 }
 
 rule seq_block {
     seq(
-        "begin",
-        choice(
-            prec_left(0, seq(
-                ":",
-                _block_identifier,
-            )),
-            blank(),
-        ),
+        "begin", dsl::optseq([":", _block_identifier]),
         repeat(block_item_declaration),
         repeat(statement_or_null),
-        "end",
-        choice(
-            prec_left(0, seq(
-                ":",
-                _block_identifier,
-            )),
-            blank(),
-        ),
+        "end", dsl::optseq([":", _block_identifier]),
     )
 }
 
 rule par_block {
     seq(
-        "fork",
-        choice(
-            prec_left(0, seq(
-                ":",
-                _block_identifier,
-            )),
-            blank(),
-        ),
+        "fork", dsl::optseq([":", _block_identifier]),
         repeat(block_item_declaration),
         repeat(statement_or_null),
-        join_keyword,
-        choice(
-            prec_left(0, seq(
-                ":",
-                _block_identifier,
-            )),
-            blank(),
-        ),
+        join_keyword, dsl::optseq([":", _block_identifier]),
     )
 }
 
-rule join_keyword {
-    choice(
-        "join",
-        "join_any",
-        "join_none",
-    )
-}
+rule join_keyword { choice("join", "join_any", "join_none") }
+
+// A.6.4 Statements
 
 rule statement_or_null {
     choice(
         statement,
-        seq(
-            repeat(attribute_instance),
-            ";",
-        ),
+        seq(repeat(attribute_instance), ";"),
     )
 }
 
 rule statement {
     seq(
-        choice(
-            prec_left(0, seq(
-                _block_identifier,
-                ":",
-            )),
-            blank(),
-        ),
+        dsl::optseq([_block_identifier, ":"]),
         repeat(attribute_instance),
         statement_item,
     )
@@ -337,28 +209,14 @@ rule statement {
 
 rule statement_item {
     choice(
-        seq(
-            blocking_assignment,
-            ";",
-        ),
-        seq(
-            nonblocking_assignment,
-            ";",
-        ),
-        seq(
-            procedural_continuous_assignment,
-            ";",
-        ),
-        seq(
-            system_tf_call,
-            ";",
-        ),
+        seq(blocking_assignment, ";"),
+        seq(nonblocking_assignment, ";"),
+        seq(procedural_continuous_assignment, ";"),
+        seq(system_tf_call, ";"),
         case_statement,
         conditional_statement,
-        seq(
-            inc_or_dec_expression,
-            ";",
-        ),
+        seq(inc_or_dec_expression, ";"),
+        // $.subroutine_call_statement,
         disable_statement,
         event_trigger,
         loop_statement,
@@ -368,10 +226,8 @@ rule statement_item {
         procedural_timing_control_statement,
         wait_statement,
         _procedural_assertion_statement,
-        seq(
-            clocking_drive,
-            ";",
-        ),
+        seq(clocking_drive, ";"),
+        // $.randsequence_statement,
         randcase_statement,
         expect_property_statement,
     )
@@ -382,27 +238,17 @@ rule function_statement { statement }
 rule function_statement_or_null {
     choice(
         function_statement,
-        seq(
-            repeat(attribute_instance),
-            ";",
-        ),
+        seq(repeat(attribute_instance), ";"),
     )
 }
 
-rule variable_identifier_list {
-    prec_left(0, seq(
-        _variable_identifier,
-        repeat(prec_left(0, seq(
-            ",",
-            _variable_identifier,
-        ))),
-    ))
-}
+rule variable_identifier_list { dsl::sep1(",", _variable_identifier) }
+
+// A.6.5 Timing control statements
 
 rule procedural_timing_control_statement {
     seq(
-        _procedural_timing_control,
-        statement_or_null,
+        _procedural_timing_control, statement_or_null, // statement_or_null1
     )
 }
 
@@ -410,77 +256,61 @@ rule delay_or_event_control {
     choice(
         delay_control,
         event_control,
-        seq(
-            "repeat",
-            "(",
-            expression,
-            ")",
-            event_control,
-        ),
+        seq("repeat", "(", expression, ")", event_control),
     )
 }
 
 rule delay_control {
-    seq(
-        "#",
-        choice(
-            delay_value,
-            seq(
-                "(",
-                mintypmax_expression,
-                ")",
-            ),
-        ),
-    )
+    seq("#", choice(
+        delay_value,
+        seq("(", mintypmax_expression, ")"),
+    ))
 }
 
 rule event_control {
     choice(
-        seq(
-            "@",
-            _hierarchical_event_identifier,
-        ),
-        seq(
-            "@",
-            "(",
-            event_expression,
-            ")",
-        ),
+        seq("@", _hierarchical_event_identifier),
+        seq("@", "(", event_expression, ")"),
         "@*",
-        seq(
-            "@",
-            "(",
-            "*",
-            ")",
-        ),
-        seq(
-            "@",
-            ps_or_hierarchical_sequence_identifier,
-        ),
+        seq("@", "(", "*", ")"),
+        seq("@", ps_or_hierarchical_sequence_identifier),
     )
 }
 
 rule event_expression {
-    choice(
-        prec_left(0, seq(
-            event_expression,
-            "or",
-            event_expression,
-        )),
-        prec_left(0, seq(
-            event_expression,
-            ",",
-            event_expression,
-        )),
+    choice( // reordered : brake recursion
+        prec_left(0, seq(event_expression, "or", event_expression)),
+        prec_left(0, seq(event_expression, ",", event_expression)),
         seq(
-            choice(
-                edge_identifier,
-                blank(),
-            ),
+            optional(edge_identifier),
             expression,
-        ),
+        ), // reordered : help parser
+        // seq(
+        //   optional($.edge_identifier),
+        //   $.expression,
+        //   optseq('iff', $.expression)
+        // ),
+        // seq(
+        //   $.sequence_instance,
+        //   optseq('iff', $.expression)
+        // ),
+        // seq('(', $.event_expression, ')')
     )
 }
+
+// event_expression_2: $ => choice( // reordered : help parser
+//   seq($.edge_identifier, $.expression), // reordered : help parser
+//   seq(
+//     optional($.edge_identifier),
+//     $.expression,
+//     optseq('iff', $.expression)
+//   ),
+//   // seq(
+//   //   $.sequence_instance,
+//   //   optseq('iff', $.expression)
+//   // ),
+//   seq('(', $.event_expression, ')')
+// ),
 
 rule _procedural_timing_control {
     choice(
@@ -492,132 +322,51 @@ rule _procedural_timing_control {
 
 rule jump_statement {
     choice(
-        seq(
-            "return",
-            choice(
-                expression,
-                blank(),
-            ),
-            ";",
-        ),
-        seq(
-            "break",
-            ";",
-        ),
-        seq(
-            "continue",
-            ";",
-        ),
+        seq("return", optional(expression), ";"),
+        seq("break", ";"),
+        seq("continue", ";"),
     )
 }
 
 rule wait_statement {
     choice(
-        seq(
-            "wait",
-            "(",
-            expression,
-            ")",
-            statement_or_null,
-        ),
-        seq(
-            "wait",
-            "fork",
-            ";",
-        ),
-        seq(
-            "wait_order",
-            "(",
-            prec_left(0, seq(
-                hierarchical_identifier,
-                repeat(prec_left(0, seq(
-                    ",",
-                    hierarchical_identifier,
-                ))),
-            )),
-            ")",
-            action_block,
-        ),
+        seq("wait", "(", expression, ")", statement_or_null),
+        seq("wait", "fork", ";"),
+        seq("wait_order", "(", dsl::sep1(",", hierarchical_identifier), ")", action_block),
     )
 }
 
 rule event_trigger {
     choice(
-        seq(
-            "->",
-            _hierarchical_event_identifier,
-            ";",
-        ),
-        seq(
-            "->>",
-            choice(
-                delay_or_event_control,
-                blank(),
-            ),
-            _hierarchical_event_identifier,
-            ";",
-        ),
+        seq("->", _hierarchical_event_identifier, ";"),
+        seq("->>", optional(delay_or_event_control), _hierarchical_event_identifier, ";"),
     )
 }
 
 rule disable_statement {
     choice(
-        seq(
-            "disable",
-            _hierarchical_task_identifier,
-            ";",
-        ),
-        seq(
-            "disable",
-            _hierarchical_block_identifier,
-            ";",
-        ),
-        seq(
-            "disable",
-            "fork",
-            ";",
-        ),
+        seq("disable", _hierarchical_task_identifier, ";"),
+        seq("disable", _hierarchical_block_identifier, ";"),
+        seq("disable", "fork", ";"),
     )
 }
+
+// A.6.6 Conditional statements
 
 rule conditional_statement {
     prec_left(0, seq(
-        choice(
-            unique_priority,
-            blank(),
-        ),
-        "if",
-        "(",
-        cond_predicate,
-        ")",
-        statement_or_null,
-        choice(
-            prec_left(0, seq(
-                "else",
-                statement_or_null,
-            )),
-            blank(),
-        ),
+        optional(unique_priority),
+        "if", "(", cond_predicate, ")", statement_or_null,
+        // repseq('else', 'if', '(', $.cond_predicate, ')', $.statement_or_null),
+        dsl::optseq(["else", statement_or_null]),
     ))
 }
 
-rule unique_priority {
-    choice(
-        "unique",
-        "unique0",
-        "priority",
-    )
-}
+rule unique_priority { choice("unique", "unique0", "priority") }
 
-rule cond_predicate {
-    prec_left(37, seq(
-        _expression_or_cond_pattern,
-        repeat(prec_left(0, seq(
-            "&&&",
-            _expression_or_cond_pattern,
-        ))),
-    ))
-}
+rule cond_predicate { dsl::psep1(dsl::PREC.PARENT, "&&&", _expression_or_cond_pattern) }
+
+// FIXME precedence
 
 rule _expression_or_cond_pattern {
     choice(
@@ -626,115 +375,48 @@ rule _expression_or_cond_pattern {
     )
 }
 
-rule cond_pattern {
-    prec_left(26, seq(
-        expression,
-        "matches",
-        pattern,
-    ))
-}
+rule cond_pattern { prec_left(dsl::PREC.MATCHES, seq(expression, "matches", pattern)) }
+
+// A.6.7 Case statements
 
 rule case_statement {
     seq(
-        choice(
-            unique_priority,
-            blank(),
-        ),
+        optional(unique_priority),
         seq(
             case_keyword,
-            "(",
-            case_expression,
-            ")",
+            "(", case_expression, ")",
             choice(
                 repeat1(case_item),
-                seq(
-                    "matches",
-                    repeat1(case_pattern_item),
-                ),
-                seq(
-                    "inside",
-                    repeat1(case_inside_item),
-                ),
+                seq("matches", repeat1(case_pattern_item)),
+                seq("inside", repeat1(case_inside_item)), // only case
             ),
         ),
         "endcase",
     )
 }
 
-rule case_keyword {
-    choice(
-        "case",
-        "casez",
-        "casex",
-    )
-}
+rule case_keyword { choice("case", "casez", "casex") }
 
 rule case_expression { expression }
 
 rule case_item {
     choice(
-        seq(
-            prec_left(0, seq(
-                case_item_expression,
-                repeat(prec_left(0, seq(
-                    ",",
-                    case_item_expression,
-                ))),
-            )),
-            ":",
-            statement_or_null,
-        ),
-        seq(
-            "default",
-            choice(
-                ":",
-                blank(),
-            ),
-            statement_or_null,
-        ),
+        seq(dsl::sep1(",", case_item_expression), ":", statement_or_null),
+        seq("default", optional(":"), statement_or_null),
     )
 }
 
 rule case_pattern_item {
     choice(
-        seq(
-            pattern,
-            choice(
-                prec_left(0, seq(
-                    "&&&",
-                    expression,
-                )),
-                blank(),
-            ),
-            ":",
-            statement_or_null,
-        ),
-        seq(
-            "default",
-            choice(
-                ":",
-                blank(),
-            ),
-            statement_or_null,
-        ),
+        seq(pattern, dsl::optseq(["&&&", expression]), ":", statement_or_null),
+        seq("default", optional(":"), statement_or_null),
     )
 }
 
 rule case_inside_item {
     choice(
-        seq(
-            open_range_list,
-            ":",
-            statement_or_null,
-        ),
-        seq(
-            "default",
-            choice(
-                ":",
-                blank(),
-            ),
-            statement_or_null,
-        ),
+        seq(open_range_list, ":", statement_or_null),
+        seq("default", optional(":"), statement_or_null),
     )
 }
 
@@ -742,79 +424,26 @@ rule case_item_expression { expression }
 
 rule randcase_statement {
     seq(
-        "randcase",
-        randcase_item,
-        repeat(randcase_item),
-        "endcase",
+        "randcase", randcase_item, repeat(randcase_item), "endcase",
     )
 }
 
-rule randcase_item {
-    seq(
-        expression,
-        ":",
-        statement_or_null,
-    )
-}
+rule randcase_item { seq(expression, ":", statement_or_null) }
 
-rule open_range_list {
-    prec_left(0, seq(
-        open_value_range,
-        repeat(prec_left(0, seq(
-            ",",
-            open_value_range,
-        ))),
-    ))
-}
+rule open_range_list { dsl::sep1(",", open_value_range) }
 
 rule open_value_range { value_range }
 
+// A.6.7.1 Patterns
+
 rule pattern {
     choice(
-        seq(
-            ".",
-            _variable_identifier,
-        ),
+        seq(".", _variable_identifier),
         ".*",
         constant_expression,
-        seq(
-            "tagged",
-            member_identifier,
-            choice(
-                pattern,
-                blank(),
-            ),
-        ),
-        seq(
-            "'{",
-            prec_left(0, seq(
-                pattern,
-                repeat(prec_left(0, seq(
-                    ",",
-                    pattern,
-                ))),
-            )),
-            "}",
-        ),
-        seq(
-            "'{",
-            prec_left(0, seq(
-                seq(
-                    member_identifier,
-                    ":",
-                    pattern,
-                ),
-                repeat(prec_left(0, seq(
-                    ",",
-                    seq(
-                        member_identifier,
-                        ":",
-                        pattern,
-                    ),
-                ))),
-            )),
-            "}",
-        ),
+        seq("tagged", member_identifier, optional(pattern)),
+        seq("'{", dsl::sep1(",", pattern), "}"),
+        seq("'{", dsl::sep1(",", seq(member_identifier, ":", pattern)), "}"),
     )
 }
 
@@ -822,40 +451,10 @@ rule assignment_pattern {
     seq(
         "'{",
         choice(
-            prec_left(0, seq(
-                expression,
-                repeat(prec_left(0, seq(
-                    ",",
-                    expression,
-                ))),
-            )),
-            prec_left(0, seq(
-                seq(
-                    _array_pattern_key,
-                    ":",
-                    expression,
-                ),
-                repeat(prec_left(0, seq(
-                    ",",
-                    seq(
-                        _array_pattern_key,
-                        ":",
-                        expression,
-                    ),
-                ))),
-            )),
-            seq(
-                constant_expression,
-                "{",
-                prec_left(0, seq(
-                    expression,
-                    repeat(prec_left(0, seq(
-                        ",",
-                        expression,
-                    ))),
-                )),
-                "}",
-            ),
+            dsl::sep1(",", expression),
+            // sep1(',', seq($._structure_pattern_key, ':', $.expression)),
+            dsl::sep1(",", seq(_array_pattern_key, ":", expression)),
+            seq(constant_expression, "{", dsl::sep1(",", expression), "}"),
         ),
         "}",
     )
@@ -884,17 +483,14 @@ rule assignment_pattern_key {
 
 rule assignment_pattern_expression {
     seq(
-        choice(
-            _assignment_pattern_expression_type,
-            blank(),
-        ),
-        assignment_pattern,
+        optional(_assignment_pattern_expression_type), assignment_pattern,
     )
 }
 
 rule _assignment_pattern_expression_type {
     choice(
         ps_type_identifier,
+        // $.ps_parameter_identifier,
         integer_atom_type,
         type_reference,
     )
@@ -904,90 +500,37 @@ rule constant_assignment_pattern_expression { assignment_pattern_expression }
 
 rule assignment_pattern_net_lvalue {
     seq(
-        "'{",
-        prec_left(0, seq(
-            net_lvalue,
-            repeat(prec_left(0, seq(
-                ",",
-                net_lvalue,
-            ))),
-        )),
-        "}",
+        "'{", dsl::sep1(",", net_lvalue), "}",
     )
 }
 
 rule assignment_pattern_variable_lvalue {
     seq(
-        "'{",
-        prec_left(0, seq(
-            variable_lvalue,
-            repeat(prec_left(0, seq(
-                ",",
-                variable_lvalue,
-            ))),
-        )),
-        "}",
+        "'{", dsl::sep1(",", variable_lvalue), "}",
     )
 }
 
+// A.6.8 Looping statements
+
 rule loop_statement {
     choice(
+        seq("forever", statement_or_null),
+        seq("repeat", "(", expression, ")", statement_or_null),
+        seq("while", "(", expression, ")", statement_or_null),
         seq(
-            "forever",
-            statement_or_null,
-        ),
-        seq(
-            "repeat",
-            "(",
-            expression,
+            "for", "(",
+            optional(for_initialization), ";",
+            optional(expression), ";",
+            optional(for_step),
             ")",
             statement_or_null,
         ),
+        seq("do", statement_or_null, "while", "(", expression, ")", ";"),
         seq(
-            "while",
-            "(",
-            expression,
-            ")",
-            statement_or_null,
-        ),
-        seq(
-            "for",
-            "(",
-            choice(
-                for_initialization,
-                blank(),
-            ),
-            ";",
-            choice(
-                expression,
-                blank(),
-            ),
-            ";",
-            choice(
-                for_step,
-                blank(),
-            ),
-            ")",
-            statement_or_null,
-        ),
-        seq(
-            "do",
-            statement_or_null,
-            "while",
-            "(",
-            expression,
-            ")",
-            ";",
-        ),
-        seq(
-            "foreach",
-            "(",
+            "foreach", "(",
             ps_or_hierarchical_array_identifier,
             "[",
-            choice(
-                loop_variables1,
-                blank(),
-            ),
+            optional(loop_variables1),
             "]",
             ")",
             statement,
@@ -998,50 +541,20 @@ rule loop_statement {
 rule for_initialization {
     choice(
         list_of_variable_assignments,
-        prec_left(0, seq(
-            for_variable_declaration,
-            repeat(prec_left(0, seq(
-                ",",
-                for_variable_declaration,
-            ))),
-        )),
+        dsl::sep1(",", for_variable_declaration),
     )
 }
 
 rule for_variable_declaration {
     seq(
-        choice(
-            "var",
-            blank(),
-        ),
-        data_type,
-        prec_left(0, seq(
-            seq(
-                _variable_identifier,
-                "=",
-                expression,
-            ),
-            repeat(prec_left(0, seq(
-                ",",
-                seq(
-                    _variable_identifier,
-                    "=",
-                    expression,
-                ),
-            ))),
+        optional("var"), data_type,
+        dsl::sep1(",", seq(
+            _variable_identifier, "=", expression,
         )),
     )
 }
 
-rule for_step {
-    prec_left(0, seq(
-        _for_step_assignment,
-        repeat(prec_left(0, seq(
-            ",",
-            _for_step_assignment,
-        ))),
-    ))
-}
+rule for_step { dsl::sep1(",", _for_step_assignment) }
 
 rule _for_step_assignment {
     choice(
@@ -1054,31 +567,20 @@ rule _for_step_assignment {
 rule loop_variables1 {
     seq(
         index_variable_identifier,
-        repeat(prec_left(0, seq(
-            ",",
-            choice(
-                index_variable_identifier,
-                blank(),
-            ),
-        ))),
+        dsl::repseq([",", optional(index_variable_identifier)]),
     )
 }
 
+// A.6.9 Subroutine call statements
+
 rule subroutine_call_statement {
     choice(
-        seq(
-            subroutine_call,
-            ";",
-        ),
-        seq(
-            "void'",
-            "(",
-            function_subroutine_call,
-            ")",
-            ";",
-        ),
+        seq(subroutine_call, ";"),
+        seq("void'", "(", function_subroutine_call, ")", ";"),
     )
 }
+
+// A.6.10 Assertion statements
 
 rule _assertion_item {
     choice(
@@ -1089,12 +591,8 @@ rule _assertion_item {
 
 rule deferred_immediate_assertion_item {
     seq(
-        choice(
-            prec_left(0, seq(
-                _block_identifier,
-                ":",
-            )),
-            blank(),
+        dsl::optseq(
+            [_block_identifier, ":"],
         ),
         _deferred_immediate_assertion_statement,
     )
@@ -1125,31 +623,19 @@ rule _simple_immediate_assertion_statement {
 
 rule simple_immediate_assert_statement {
     seq(
-        "assert",
-        "(",
-        expression,
-        ")",
-        action_block,
+        "assert", "(", expression, ")", action_block,
     )
 }
 
 rule simple_immediate_assume_statement {
     seq(
-        "assume",
-        "(",
-        expression,
-        ")",
-        action_block,
+        "assume", "(", expression, ")", action_block,
     )
 }
 
 rule simple_immediate_cover_statement {
     seq(
-        "cover",
-        "(",
-        expression,
-        ")",
-        statement_or_null,
+        "cover", "(", expression, ")", statement_or_null,
     )
 }
 
@@ -1164,237 +650,100 @@ rule _deferred_immediate_assertion_statement {
 rule deferred_immediate_assert_statement {
     seq(
         "assert",
-        choice(
-            "#0",
-            "final",
-        ),
-        "(",
-        expression,
-        ")",
-        action_block,
+        choice("#0", "final"),
+        "(", expression, ")", action_block,
     )
 }
 
 rule deferred_immediate_assume_statement {
     seq(
         "assume",
-        choice(
-            "#0",
-            "final",
-        ),
-        "(",
-        expression,
-        ")",
-        action_block,
+        choice("#0", "final"),
+        "(", expression, ")", action_block,
     )
 }
 
 rule deferred_immediate_cover_statement {
     seq(
         "cover",
-        choice(
-            "#0",
-            "final",
-        ),
-        "(",
-        expression,
-        ")",
-        statement_or_null,
+        choice("#0", "final"),
+        "(", expression, ")", statement_or_null,
     )
 }
+
+// A.6.11 Clocking block
 
 rule clocking_declaration {
     choice(
         seq(
-            choice(
-                "default",
-                blank(),
-            ),
-            "clocking",
-            choice(
-                clocking_identifier,
-                blank(),
-            ),
-            clocking_event,
-            ";",
+            optional("default"),
+            "clocking", optional(clocking_identifier), clocking_event, ";",
             repeat(clocking_item),
-            "endclocking",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    clocking_identifier,
-                )),
-                blank(),
-            ),
+            "endclocking", dsl::optseq([":", clocking_identifier]),
         ),
         seq(
             "global",
-            "clocking",
-            choice(
-                clocking_identifier,
-                blank(),
-            ),
-            clocking_event,
-            ";",
-            "endclocking",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    clocking_identifier,
-                )),
-                blank(),
-            ),
+            "clocking", optional(clocking_identifier), clocking_event, ";",
+            "endclocking", dsl::optseq([":", clocking_identifier]),
         ),
     )
 }
 
 rule clocking_event {
-    seq(
-        "@",
-        choice(
-            _identifier,
-            seq(
-                "(",
-                event_expression,
-                ")",
-            ),
-        ),
-    )
+    seq("@", choice(
+        _identifier,
+        seq("(", event_expression, ")"),
+    ))
 }
 
 rule clocking_item {
     choice(
-        seq(
-            "default",
-            default_skew,
-            ";",
-        ),
-        seq(
-            clocking_direction,
-            list_of_clocking_decl_assign,
-            ";",
-        ),
-        seq(
-            repeat(attribute_instance),
-            _assertion_item_declaration,
-        ),
+        seq("default", default_skew, ";"),
+        seq(clocking_direction, list_of_clocking_decl_assign, ";"),
+        seq(repeat(attribute_instance), _assertion_item_declaration),
     )
 }
 
 rule default_skew {
     choice(
-        seq(
-            "input",
-            clocking_skew,
-        ),
-        seq(
-            "output",
-            clocking_skew,
-        ),
-        seq(
-            "input",
-            clocking_skew,
-            "output",
-            clocking_skew,
-        ),
+        seq("input", clocking_skew),
+        seq("output", clocking_skew),
+        seq("input", clocking_skew, "output", clocking_skew),
     )
 }
 
 rule clocking_direction {
     choice(
-        seq(
-            "input",
-            choice(
-                clocking_skew,
-                blank(),
-            ),
-        ),
-        seq(
-            "output",
-            choice(
-                clocking_skew,
-                blank(),
-            ),
-        ),
-        seq(
-            "input",
-            choice(
-                clocking_skew,
-                blank(),
-            ),
-            "output",
-            choice(
-                clocking_skew,
-                blank(),
-            ),
-        ),
-        seq(
-            "inout",
-        ),
+        seq("input", optional(clocking_skew)),
+        seq("output", optional(clocking_skew)),
+        seq("input", optional(clocking_skew), "output", optional(clocking_skew)),
+        seq("inout"),
     )
 }
 
-rule list_of_clocking_decl_assign {
-    prec_left(0, seq(
-        clocking_decl_assign,
-        repeat(prec_left(0, seq(
-            ",",
-            clocking_decl_assign,
-        ))),
-    ))
-}
+rule list_of_clocking_decl_assign { dsl::sep1(",", clocking_decl_assign) }
 
-rule clocking_decl_assign {
-    seq(
-        _signal_identifier,
-        choice(
-            prec_left(0, seq(
-                "=",
-                expression,
-            )),
-            blank(),
-        ),
-    )
-}
+rule clocking_decl_assign { seq(_signal_identifier, dsl::optseq(["=", expression])) }
 
 rule clocking_skew {
     choice(
-        seq(
-            edge_identifier,
-            choice(
-                delay_control,
-                blank(),
-            ),
-        ),
+        seq(edge_identifier, optional(delay_control)),
         delay_control,
     )
 }
 
 rule clocking_drive {
-    prec_left(21, seq(
-        clockvar_expression,
-        "<=",
-        choice(
-            cycle_delay,
-            blank(),
-        ),
-        expression,
-    ))
+    prec_left(dsl::PREC.ASSIGN,
+        seq(clockvar_expression, "<=", optional(cycle_delay), expression),
+    )
 }
 
 rule cycle_delay {
-    prec_left(0, seq(
-        "##",
-        choice(
-            integral_number,
-            _identifier,
-            seq(
-                "(",
-                expression,
-                ")",
-            ),
-        ),
-    ))
+    prec_left(0, seq("##", choice(
+        integral_number,
+        _identifier,
+        seq("(", expression, ")"),
+    )))
 }
 
 rule clockvar { hierarchical_identifier }
@@ -1402,9 +751,6 @@ rule clockvar { hierarchical_identifier }
 rule clockvar_expression {
     seq(
         clockvar,
-        choice(
-            select1,
-            blank(),
-        ),
+        optional(select1),
     )
 }

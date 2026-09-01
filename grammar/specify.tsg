@@ -1,5 +1,7 @@
 // A.7 Specify sections and timing checks.
 
+let dsl = import("helpers.tsg")
+
 expect _constant_range_expression
 expect _variable_identifier
 expect constant_expression
@@ -15,13 +17,43 @@ expect port_identifier
 expect specparam_declaration
 expect terminal_identifier
 
-rule specify_block {
-    seq(
-        "specify",
-        repeat(_specify_item),
-        "endspecify",
-    )
-}
+// A.6.12 Randsequence
+
+// randsequence_statement = randsequence ( [ production_identifier ] )
+// production { production }
+// endsequence
+// production
+//   = [ data_type_or_void ] production_identifier
+//  [ ( tf_port_list ) ] : rs_rule { | rs_rule } ;
+// rs_rule = rs_production_list [ := weight_specification [ rs_code_block ] ]
+// rs_production_list =
+// rs_prod { rs_prod }
+// | rand join [ ( expression ) ] production_item
+//   production_item { production_item }
+// weight_specification =
+// integral_number
+// | ps_identifier
+// | ( expression )
+// rs_code_block = { { data_declaration } { statement_or_null } }
+// rs_prod =
+// production_item
+// | rs_code_block
+// | rs_if_else
+// | rs_repeat
+// | rs_case
+// production_item = production_identifier [ ( list_of_arguments ) ]
+// rs_if_else = if ( expression ) production_item [ else production_item ]
+// rs_repeat = repeat ( expression ) production_item
+// rs_case = case ( case_expression ) rs_case_item { rs_case_item } endcase
+// rs_case_item =
+// case_item_expression { , case_item_expression } : production_item ;
+// | default [ : ] production_item ;
+
+// A.7 Specify section
+
+// A.7.1 Specify block declaration
+
+rule specify_block { seq("specify", repeat(_specify_item), "endspecify") }
 
 rule _specify_item {
     choice(
@@ -35,10 +67,7 @@ rule _specify_item {
 
 rule pulsestyle_declaration {
     seq(
-        choice(
-            "pulsestyle_onevent",
-            "pulsestyle_ondetect",
-        ),
+        choice("pulsestyle_onevent", "pulsestyle_ondetect"),
         list_of_path_outputs,
         ";",
     )
@@ -46,14 +75,17 @@ rule pulsestyle_declaration {
 
 rule showcancelled_declaration {
     seq(
-        choice(
-            "showcancelled",
-            "noshowcancelled",
-        ),
+        choice("showcancelled", "noshowcancelled"),
         list_of_path_outputs,
         ";",
     )
 }
+
+// A.7 Specify section
+
+// A.7.1 Specify block declaration
+
+// A.7.2 Specify path declarations
 
 rule path_declaration {
     seq(
@@ -68,10 +100,7 @@ rule path_declaration {
 
 rule simple_path_declaration {
     seq(
-        choice(
-            parallel_path_description,
-            full_path_description,
-        ),
+        choice(parallel_path_description, full_path_description),
         "=",
         path_delay_value,
     )
@@ -81,10 +110,7 @@ rule parallel_path_description {
     seq(
         "(",
         specify_input_terminal_descriptor,
-        choice(
-            polarity_operator,
-            blank(),
-        ),
+        optional(polarity_operator),
         "=>",
         specify_output_terminal_descriptor,
         ")",
@@ -95,61 +121,28 @@ rule full_path_description {
     seq(
         "(",
         list_of_path_inputs,
-        choice(
-            polarity_operator,
-            blank(),
-        ),
+        optional(polarity_operator),
         "*>",
         list_of_path_outputs,
         ")",
     )
 }
 
-rule list_of_path_inputs {
-    prec_left(0, seq(
-        specify_input_terminal_descriptor,
-        repeat(prec_left(0, seq(
-            ",",
-            specify_input_terminal_descriptor,
-        ))),
-    ))
-}
+rule list_of_path_inputs { dsl::sep1(",", specify_input_terminal_descriptor) }
 
-rule list_of_path_outputs {
-    prec_left(0, seq(
-        specify_output_terminal_descriptor,
-        repeat(prec_left(0, seq(
-            ",",
-            specify_output_terminal_descriptor,
-        ))),
-    ))
-}
+rule list_of_path_outputs { dsl::sep1(",", specify_output_terminal_descriptor) }
+
+// A.7.3 Specify block terminals
 
 rule specify_input_terminal_descriptor {
     seq(
-        input_identifier,
-        choice(
-            prec_left(0, seq(
-                "[",
-                _constant_range_expression,
-                "]",
-            )),
-            blank(),
-        ),
+        input_identifier, dsl::optseq(["[", _constant_range_expression, "]"]),
     )
 }
 
 rule specify_output_terminal_descriptor {
     seq(
-        output_identifier,
-        choice(
-            prec_left(0, seq(
-                "[",
-                _constant_range_expression,
-                "]",
-            )),
-            blank(),
-        ),
+        output_identifier, dsl::optseq(["[", _constant_range_expression, "]"]),
     )
 }
 
@@ -157,11 +150,7 @@ rule input_identifier {
     choice(
         input_port_identifier,
         inout_port_identifier,
-        seq(
-            interface_identifier,
-            ".",
-            port_identifier,
-        ),
+        seq(interface_identifier, ".", port_identifier), // FIXME glue dot?
     )
 }
 
@@ -169,34 +158,59 @@ rule output_identifier {
     choice(
         output_port_identifier,
         inout_port_identifier,
-        seq(
-            interface_identifier,
-            ".",
-            port_identifier,
-        ),
+        seq(interface_identifier, ".", port_identifier),
     )
 }
+
+// A.7.4 Specify path delays
 
 rule path_delay_value {
     choice(
         list_of_path_delay_expressions,
-        seq(
-            "(",
-            list_of_path_delay_expressions,
-            ")",
-        ),
+        seq("(", list_of_path_delay_expressions, ")"),
     )
 }
 
-rule list_of_path_delay_expressions {
-    prec_left(0, seq(
-        path_delay_expression,
-        repeat(prec_left(0, seq(
-            ",",
-            path_delay_expression,
-        ))),
-    ))
-}
+rule list_of_path_delay_expressions { dsl::sep1(",", path_delay_expression) }
+
+// list_of_path_delay_expressions: $ => choice(
+//   $.t_path_delay_expression,
+//   seq($.trise_path_delay_expression, ',', $.tfall_path_delay_expression),
+//   seq(
+//     $.trise_path_delay_expression, ',', $.tfall_path_delay_expression, ',',
+//     $.tz_path_delay_expression
+//   ),
+//   seq(
+//     $.t01_path_delay_expression, ',', $.t10_path_delay_expression, ',',
+//     $.t0z_path_delay_expression, ',', $.tz1_path_delay_expression, ',',
+//     $.t1z_path_delay_expression, ',', $.tz0_path_delay_expression
+//   ),
+//   seq(
+//     $.t01_path_delay_expression, ',', $.t10_path_delay_expression, ',',
+//     $.t0z_path_delay_expression, ',', $.tz1_path_delay_expression, ',',
+//     $.t1z_path_delay_expression, ',', $.tz0_path_delay_expression, ',',
+//     $.t0x_path_delay_expression, ',', $.tx1_path_delay_expression, ',',
+//     $.t1x_path_delay_expression, ',', $.tx0_path_delay_expression, ',',
+//     $.txz_path_delay_expression, ',', $.tzx_path_delay_expression
+//   )
+// ),
+//
+// t_path_delay_expression: $ => alias($.path_delay_expression, $.t_path_delay_expression),
+// trise_path_delay_expression: $ => alias($.path_delay_expression, $.trise_path_delay_expression),
+// tfall_path_delay_expression: $ => alias($.path_delay_expression, $.tfall_path_delay_expression),
+// tz_path_delay_expression: $ => alias($.path_delay_expression, $.tz_path_delay_expression),
+// t01_path_delay_expression: $ => alias($.path_delay_expression, $.t01_path_delay_expression),
+// t10_path_delay_expression: $ => alias($.path_delay_expression, $.t10_path_delay_expression),
+// t0z_path_delay_expression: $ => alias($.path_delay_expression, $.t0z_path_delay_expression),
+// tz1_path_delay_expression: $ => alias($.path_delay_expression, $.tz1_path_delay_expression),
+// t1z_path_delay_expression: $ => alias($.path_delay_expression, $.t1z_path_delay_expression),
+// tz0_path_delay_expression: $ => alias($.path_delay_expression, $.tz0_path_delay_expression),
+// t0x_path_delay_expression: $ => alias($.path_delay_expression, $.t0x_path_delay_expression),
+// tx1_path_delay_expression: $ => alias($.path_delay_expression, $.tx1_path_delay_expression),
+// t1x_path_delay_expression: $ => alias($.path_delay_expression, $.t1x_path_delay_expression),
+// tx0_path_delay_expression: $ => alias($.path_delay_expression, $.tx0_path_delay_expression),
+// txz_path_delay_expression: $ => alias($.path_delay_expression, $.txz_path_delay_expression),
+// tzx_path_delay_expression: $ => alias($.path_delay_expression, $.tzx_path_delay_expression),
 
 rule path_delay_expression { constant_mintypmax_expression }
 
@@ -206,30 +220,20 @@ rule edge_sensitive_path_declaration {
             parallel_edge_sensitive_path_description,
             full_edge_sensitive_path_description,
         ),
-        "=",
-        path_delay_value,
+        "=", path_delay_value,
     )
 }
 
 rule parallel_edge_sensitive_path_description {
     seq(
         "(",
-        choice(
-            edge_identifier,
-            blank(),
-        ),
+        optional(edge_identifier),
         specify_input_terminal_descriptor,
-        choice(
-            polarity_operator,
-            blank(),
-        ),
+        optional(polarity_operator),
         "=>",
         "(",
         specify_output_terminal_descriptor,
-        choice(
-            polarity_operator,
-            blank(),
-        ),
+        optional(polarity_operator),
         ":",
         data_source_expression,
         ")",
@@ -240,22 +244,13 @@ rule parallel_edge_sensitive_path_description {
 rule full_edge_sensitive_path_description {
     seq(
         "(",
-        choice(
-            edge_identifier,
-            blank(),
-        ),
+        optional(edge_identifier),
         list_of_path_inputs,
-        choice(
-            polarity_operator,
-            blank(),
-        ),
+        optional(polarity_operator),
         "*>",
         "(",
         list_of_path_outputs,
-        choice(
-            polarity_operator,
-            blank(),
-        ),
+        optional(polarity_operator),
         ":",
         data_source_expression,
         ")",
@@ -265,43 +260,21 @@ rule full_edge_sensitive_path_description {
 
 rule data_source_expression { expression }
 
-rule edge_identifier {
-    choice(
-        "posedge",
-        "negedge",
-        "edge",
-    )
-}
+rule edge_identifier { choice("posedge", "negedge", "edge") }
 
 rule state_dependent_path_declaration {
     choice(
-        seq(
-            "if",
-            "(",
-            module_path_expression,
-            ")",
-            simple_path_declaration,
-        ),
-        seq(
-            "if",
-            "(",
-            module_path_expression,
-            ")",
-            edge_sensitive_path_declaration,
-        ),
-        seq(
-            "ifnone",
-            simple_path_declaration,
-        ),
+        seq("if", "(", module_path_expression, ")", simple_path_declaration),
+        seq("if", "(", module_path_expression, ")", edge_sensitive_path_declaration),
+        seq("ifnone", simple_path_declaration),
     )
 }
 
-rule polarity_operator {
-    choice(
-        "+",
-        "-",
-    )
-}
+rule polarity_operator { choice("+", "-") }
+
+// A.7.5 System timing checks
+
+// A.7.5.1 System timing check commands
 
 rule _system_timing_check {
     choice(
@@ -322,417 +295,155 @@ rule _system_timing_check {
 
 rule setup_timing_check {
     seq(
-        "$setup",
-        "(",
-        data_event,
-        ",",
-        reference_event,
-        ",",
-        timing_check_limit,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-            )),
-            blank(),
-        ),
-        ")",
-        ";",
+        "$setup", "(",
+        data_event, ",", reference_event, ",", timing_check_limit,
+        dsl::optseq([",", optional(notifier)]),
+        ")", ";",
     )
 }
 
 rule hold_timing_check {
     seq(
-        "$hold",
-        "(",
-        reference_event,
-        ",",
-        data_event,
-        ",",
-        timing_check_limit,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-            )),
-            blank(),
-        ),
-        ")",
-        ";",
+        "$hold", "(",
+        reference_event, ",", data_event, ",", timing_check_limit,
+        dsl::optseq([",", optional(notifier)]),
+        ")", ";",
     )
 }
 
 rule setuphold_timing_check {
     seq(
-        "$setuphold",
-        "(",
-        reference_event,
-        ",",
-        data_event,
-        ",",
-        timing_check_limit,
-        ",",
-        timing_check_limit,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-                choice(
-                    prec_left(0, seq(
-                        ",",
-                        choice(
-                            timestamp_condition,
-                            blank(),
-                        ),
-                        choice(
-                            prec_left(0, seq(
-                                ",",
-                                choice(
-                                    timecheck_condition,
-                                    blank(),
-                                ),
-                                choice(
-                                    prec_left(0, seq(
-                                        ",",
-                                        choice(
-                                            delayed_reference,
-                                            blank(),
-                                        ),
-                                        choice(
-                                            prec_left(0, seq(
-                                                ",",
-                                                choice(
-                                                    delayed_data,
-                                                    blank(),
-                                                ),
-                                            )),
-                                            blank(),
-                                        ),
-                                    )),
-                                    blank(),
-                                ),
-                            )),
-                            blank(),
-                        ),
-                    )),
-                    blank(),
-                ),
-            )),
-            blank(),
+        "$setuphold", "(",
+        reference_event, ",", data_event, ",", timing_check_limit, ",", timing_check_limit,
+        dsl::optseq(
+            [",",
+            optional(notifier),
+            dsl::optseq(
+                [",",
+                optional(timestamp_condition),
+                dsl::optseq(
+                    [",",
+                    optional(timecheck_condition),
+                    dsl::optseq(
+                        [",",
+                        optional(delayed_reference),
+                        dsl::optseq(
+                            [",",
+                            optional(delayed_data)],
+                        )],
+                    )],
+                )],
+            )],
         ),
-        ")",
-        ";",
+        ")", ";",
     )
 }
 
 rule recovery_timing_check {
     seq(
-        "$recovery",
-        "(",
-        reference_event,
-        ",",
-        data_event,
-        ",",
-        timing_check_limit,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-            )),
-            blank(),
-        ),
-        ")",
-        ";",
+        "$recovery", "(",
+        reference_event, ",", data_event, ",", timing_check_limit,
+        dsl::optseq([",", optional(notifier)]),
+        ")", ";",
     )
 }
 
 rule removal_timing_check {
     seq(
-        "$removal",
-        "(",
-        reference_event,
-        ",",
-        data_event,
-        ",",
-        timing_check_limit,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-            )),
-            blank(),
-        ),
-        ")",
-        ";",
+        "$removal", "(",
+        reference_event, ",", data_event, ",", timing_check_limit,
+        dsl::optseq([",", optional(notifier)]),
+        ")", ";",
     )
 }
 
 rule recrem_timing_check {
     seq(
-        "$recrem",
-        "(",
-        reference_event,
-        ",",
-        data_event,
-        ",",
-        timing_check_limit,
-        ",",
-        timing_check_limit,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-                choice(
-                    prec_left(0, seq(
-                        ",",
-                        choice(
-                            timestamp_condition,
-                            blank(),
-                        ),
-                        choice(
-                            prec_left(0, seq(
-                                ",",
-                                choice(
-                                    timecheck_condition,
-                                    blank(),
-                                ),
-                            )),
-                            blank(),
-                        ),
-                        choice(
-                            prec_left(0, seq(
-                                ",",
-                                choice(
-                                    delayed_reference,
-                                    blank(),
-                                ),
-                                choice(
-                                    prec_left(0, seq(
-                                        ",",
-                                        choice(
-                                            delayed_data,
-                                            blank(),
-                                        ),
-                                    )),
-                                    blank(),
-                                ),
-                            )),
-                            blank(),
-                        ),
-                    )),
-                    blank(),
-                ),
-            )),
-            blank(),
+        "$recrem", "(",
+        reference_event, ",", data_event, ",", timing_check_limit, ",", timing_check_limit,
+        dsl::optseq(
+            [",",
+            optional(notifier),
+            dsl::optseq([",",
+                optional(timestamp_condition),
+                dsl::optseq([",", optional(timecheck_condition)]),
+                dsl::optseq(
+                    [",",
+                    optional(delayed_reference),
+                    dsl::optseq([",", optional(delayed_data)])],
+                )],
+            )],
         ),
-        ")",
-        ";",
+        ")", ";",
     )
 }
 
 rule skew_timing_check {
     seq(
-        "$skew",
-        "(",
-        reference_event,
-        ",",
-        data_event,
-        ",",
-        timing_check_limit,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-            )),
-            blank(),
-        ),
-        ")",
-        ";",
+        "$skew", "(",
+        reference_event, ",", data_event, ",", timing_check_limit,
+        dsl::optseq([",", optional(notifier)]),
+        ")", ";",
     )
 }
 
 rule timeskew_timing_check {
     seq(
-        "$timeskew",
-        "(",
-        reference_event,
-        ",",
-        data_event,
-        ",",
-        timing_check_limit,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-                choice(
-                    prec_left(0, seq(
-                        ",",
-                        choice(
-                            event_based_flag,
-                            blank(),
-                        ),
-                        choice(
-                            prec_left(0, seq(
-                                ",",
-                                choice(
-                                    remain_active_flag,
-                                    blank(),
-                                ),
-                            )),
-                            blank(),
-                        ),
-                    )),
-                    blank(),
-                ),
-            )),
-            blank(),
+        "$timeskew", "(",
+        reference_event, ",", data_event, ",", timing_check_limit,
+        dsl::optseq([",",
+            optional(notifier),
+            dsl::optseq([",",
+                optional(event_based_flag),
+                dsl::optseq([",", optional(remain_active_flag)])],
+            )],
         ),
-        ")",
-        ";",
+        ")", ";",
     )
 }
 
 rule fullskew_timing_check {
     seq(
-        "$fullskew",
-        "(",
-        reference_event,
-        ",",
-        data_event,
-        ",",
-        timing_check_limit,
-        ",",
-        timing_check_limit,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-                choice(
-                    prec_left(0, seq(
-                        ",",
-                        choice(
-                            event_based_flag,
-                            blank(),
-                        ),
-                        choice(
-                            prec_left(0, seq(
-                                ",",
-                                choice(
-                                    remain_active_flag,
-                                    blank(),
-                                ),
-                            )),
-                            blank(),
-                        ),
-                    )),
-                    blank(),
-                ),
-            )),
-            blank(),
+        "$fullskew", "(",
+        reference_event, ",", data_event, ",", timing_check_limit, ",", timing_check_limit,
+        dsl::optseq([",",
+            optional(notifier),
+            dsl::optseq([",",
+                optional(event_based_flag),
+                dsl::optseq([",", optional(remain_active_flag)])],
+            )],
         ),
-        ")",
-        ";",
+        ")", ";",
     )
 }
 
 rule period_timing_check {
     seq(
-        "$period",
-        "(",
-        controlled_reference_event,
-        ",",
-        timing_check_limit,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-            )),
-            blank(),
-        ),
-        ")",
-        ";",
+        "$period", "(", controlled_reference_event, ",", timing_check_limit,
+        dsl::optseq([",", optional(notifier)]),
+        ")", ";",
     )
 }
 
 rule width_timing_check {
     seq(
-        "$width",
-        "(",
-        controlled_reference_event,
-        ",",
-        timing_check_limit,
-        ",",
-        threshold,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-            )),
-            blank(),
-        ),
-        ")",
-        ";",
+        "$width", "(",
+        controlled_reference_event, ",", timing_check_limit, ",", threshold,
+        dsl::optseq([",", optional(notifier)]),
+        ")", ";",
     )
 }
 
 rule nochange_timing_check {
     seq(
-        "$nochange",
-        "(",
-        reference_event,
-        ",",
-        data_event,
-        ",",
-        start_edge_offset,
-        ",",
-        end_edge_offset,
-        choice(
-            prec_left(0, seq(
-                ",",
-                choice(
-                    notifier,
-                    blank(),
-                ),
-            )),
-            blank(),
-        ),
-        ")",
-        ";",
+        "$nochange", "(",
+        reference_event, ",", data_event, ",", start_edge_offset, ",", end_edge_offset,
+        dsl::optseq([",", optional(notifier)]),
+        ")", ";",
     )
 }
+
+// A.7.5.2 System timing check command arguments
 
 rule timecheck_condition { mintypmax_expression }
 
@@ -742,21 +453,13 @@ rule data_event { timing_check_event }
 
 rule delayed_data {
     seq(
-        terminal_identifier,
-        choice(
-            constant_mintypmax_expression,
-            blank(),
-        ),
+        terminal_identifier, optional(constant_mintypmax_expression),
     )
 }
 
 rule delayed_reference {
     seq(
-        terminal_identifier,
-        choice(
-            constant_mintypmax_expression,
-            blank(),
-        ),
+        terminal_identifier, optional(constant_mintypmax_expression),
     )
 }
 
@@ -778,20 +481,13 @@ rule threshold { constant_expression }
 
 rule timing_check_limit { expression }
 
+// A.7.5.3 System timing check event definitions
+
 rule timing_check_event {
     seq(
-        choice(
-            timing_check_event_control,
-            blank(),
-        ),
+        optional(timing_check_event_control),
         _specify_terminal_descriptor,
-        choice(
-            prec_left(0, seq(
-                "&&&",
-                timing_check_condition,
-            )),
-            blank(),
-        ),
+        dsl::optseq(["&&&", timing_check_condition]),
     )
 }
 
@@ -799,22 +495,13 @@ rule controlled_timing_check_event {
     seq(
         timing_check_event_control,
         _specify_terminal_descriptor,
-        choice(
-            prec_left(0, seq(
-                "&&&",
-                timing_check_condition,
-            )),
-            blank(),
-        ),
+        dsl::optseq(["&&&", timing_check_condition]),
     )
 }
 
 rule timing_check_event_control {
     choice(
-        "posedge",
-        "negedge",
-        "edge",
-        edge_control_specifier,
+        "posedge", "negedge", "edge", edge_control_specifier,
     )
 }
 
@@ -827,66 +514,36 @@ rule _specify_terminal_descriptor {
 
 rule edge_control_specifier {
     seq(
-        "edge",
-        "[",
-        prec_left(0, seq(
-            edge_descriptor,
-            repeat(prec_left(0, seq(
-                ",",
-                edge_descriptor,
-            ))),
-        )),
-        "]",
+        "edge", "[", dsl::sep1(",", edge_descriptor), "]",
     )
 }
+
+// Note: Embedded spaces are illegal.
 
 rule edge_descriptor {
     choice(
         "01",
         "10",
-        regexp("[xXzZ][01]"),
-        regexp("[01][xXzZ]"),
+        regexp(r"[xXzZ][01]"),
+        regexp(r"[01][xXzZ]"),
     )
 }
 
 rule timing_check_condition {
     choice(
         scalar_timing_check_condition,
-        seq(
-            "(",
-            scalar_timing_check_condition,
-            ")",
-        ),
+        seq("(", scalar_timing_check_condition, ")"),
     )
 }
 
 rule scalar_timing_check_condition {
     choice(
         expression,
-        seq(
-            "~",
-            expression,
-        ),
-        seq(
-            expression,
-            "==",
-            scalar_constant,
-        ),
-        seq(
-            expression,
-            "===",
-            scalar_constant,
-        ),
-        seq(
-            expression,
-            "!=",
-            scalar_constant,
-        ),
-        seq(
-            expression,
-            "!==",
-            scalar_constant,
-        ),
+        seq("~", expression),
+        seq(expression, "==", scalar_constant),
+        seq(expression, "===", scalar_constant),
+        seq(expression, "!=", scalar_constant),
+        seq(expression, "!==", scalar_constant),
     )
 }
 

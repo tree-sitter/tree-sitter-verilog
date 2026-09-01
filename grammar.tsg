@@ -1,5 +1,4 @@
-// Verilog grammar for tree-sitter (native DSL).
-// Mechanically translated from the normalized grammar.js representation.
+// SystemVerilog grammar for tree-sitter, using the native grammar DSL.
 
 let directives = import("grammar/directives.tsg")
 let source_text = import("grammar/source_text.tsg")

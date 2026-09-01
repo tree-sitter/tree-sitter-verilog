@@ -1,5 +1,7 @@
 // A.4 Generated and module/interface instantiations.
 
+let dsl = import("helpers.tsg")
+
 expect _checker_or_generate_item
 expect _genvar_expression
 expect _module_identifier
@@ -23,52 +25,31 @@ expect program_identifier
 expect ps_checker_identifier
 expect unpacked_dimension
 
+// A.4 Instantiations
+
+// A.4.1 Instantiation
+
+// A.4.1.1 Module instantiation
+
 rule module_instantiation {
     seq(
         _module_identifier,
-        choice(
-            parameter_value_assignment,
-            blank(),
-        ),
-        prec_left(0, seq(
-            hierarchical_instance,
-            repeat(prec_left(0, seq(
-                ",",
-                hierarchical_instance,
-            ))),
-        )),
+        optional(parameter_value_assignment),
+        dsl::sep1(",", hierarchical_instance),
         ";",
     )
 }
 
 rule parameter_value_assignment {
     seq(
-        "#",
-        "(",
-        choice(
-            list_of_parameter_assignments,
-            blank(),
-        ),
-        ")",
+        "#", "(", optional(list_of_parameter_assignments), ")",
     )
 }
 
 rule list_of_parameter_assignments {
     choice(
-        prec_left(0, seq(
-            ordered_parameter_assignment,
-            repeat(prec_left(0, seq(
-                ",",
-                ordered_parameter_assignment,
-            ))),
-        )),
-        prec_left(0, seq(
-            named_parameter_assignment,
-            repeat(prec_left(0, seq(
-                ",",
-                named_parameter_assignment,
-            ))),
-        )),
+        dsl::sep1(",", ordered_parameter_assignment),
+        dsl::sep1(",", named_parameter_assignment),
     )
 }
 
@@ -76,52 +57,28 @@ rule ordered_parameter_assignment { alias(param_expression, _ordered_parameter_a
 
 rule named_parameter_assignment {
     seq(
-        ".",
-        parameter_identifier,
-        "(",
-        choice(
-            param_expression,
-            blank(),
-        ),
-        ")",
+        ".", parameter_identifier, "(", optional(param_expression), ")",
     )
 }
 
 rule hierarchical_instance {
     seq(
-        name_of_instance,
-        "(",
-        choice(
-            list_of_port_connections,
-            blank(),
-        ),
-        ")",
+        name_of_instance, "(", optional(list_of_port_connections), ")",
     )
 }
 
 rule name_of_instance {
     seq(
-        instance_identifier,
-        repeat(unpacked_dimension),
+        instance_identifier, repeat(unpacked_dimension),
     )
 }
 
+// Reordered
+
 rule list_of_port_connections {
     choice(
-        prec_left(0, seq(
-            named_port_connection,
-            repeat(prec_left(0, seq(
-                ",",
-                named_port_connection,
-            ))),
-        )),
-        prec_left(0, seq(
-            ordered_port_connection,
-            repeat(prec_left(0, seq(
-                ",",
-                ordered_port_connection,
-            ))),
-        )),
+        dsl::sep1(",", named_port_connection),
+        dsl::sep1(",", ordered_port_connection),
     )
 }
 
@@ -132,145 +89,67 @@ rule ordered_port_connection {
     )
 }
 
+// from spec:
+// named_port_connection: $ =>
+//   { attribute_instance } . port_identifier [ ( [ expression ] ) ]
+// | { attribute_instance } .*
+
 rule named_port_connection {
     seq(
         repeat(attribute_instance),
         choice(
-            seq(
-                ".",
-                port_identifier,
-                choice(
-                    prec_left(0, seq(
-                        "(",
-                        choice(
-                            expression,
-                            blank(),
-                        ),
-                        ")",
-                    )),
-                    blank(),
-                ),
-            ),
+            seq(".", port_identifier, dsl::optseq(
+                ["(", optional(expression), ")"],
+            )),
             ".*",
         ),
     )
 }
 
+// A.4.1.2 Interface instantiation
+
 rule interface_instantiation {
     seq(
         interface_identifier,
-        choice(
-            parameter_value_assignment,
-            blank(),
-        ),
-        prec_left(0, seq(
-            hierarchical_instance,
-            repeat(prec_left(0, seq(
-                ",",
-                hierarchical_instance,
-            ))),
-        )),
+        optional(parameter_value_assignment),
+        dsl::sep1(",", hierarchical_instance),
         ";",
     )
 }
 
+// A.4.1.3 Program instantiation
+
 rule program_instantiation {
     seq(
         program_identifier,
-        choice(
-            parameter_value_assignment,
-            blank(),
-        ),
-        prec_left(0, seq(
-            hierarchical_instance,
-            repeat(prec_left(0, seq(
-                ",",
-                hierarchical_instance,
-            ))),
-        )),
+        optional(parameter_value_assignment),
+        dsl::sep1(",", hierarchical_instance),
         ";",
     )
 }
+
+// A.4.1.4 Checker instantiation
 
 rule checker_instantiation {
     seq(
         ps_checker_identifier,
         name_of_instance,
         "(",
+        // optional($.list_of_checker_port_connections),
         choice(
-            prec_left(0, seq(
-                choice(
-                    prec_left(0, seq(
-                        repeat(attribute_instance),
-                        choice(
-                            _property_actual_arg,
-                            blank(),
-                        ),
-                    )),
-                    blank(),
-                ),
-                repeat(prec_left(0, seq(
-                    ",",
-                    choice(
-                        prec_left(0, seq(
-                            repeat(attribute_instance),
-                            choice(
-                                _property_actual_arg,
-                                blank(),
-                            ),
-                        )),
-                        blank(),
-                    ),
-                ))),
+            dsl::sep1(",", dsl::optseq(
+                [repeat(attribute_instance),
+                optional(_property_actual_arg)],
             )),
-            prec_left(0, seq(
-                choice(
-                    seq(
-                        repeat(attribute_instance),
-                        ".",
-                        formal_port_identifier,
-                        choice(
-                            prec_left(0, seq(
-                                "(",
-                                choice(
-                                    _property_actual_arg,
-                                    blank(),
-                                ),
-                                ")",
-                            )),
-                            blank(),
-                        ),
-                    ),
-                    seq(
-                        repeat(attribute_instance),
-                        ".*",
-                    ),
+            // sep1(',', $.named_checker_port_connection)
+            dsl::sep1(",", choice(
+                seq(
+                    repeat(attribute_instance), ".", formal_port_identifier,
+                    dsl::optseq(["(", optional(_property_actual_arg), ")"]),
                 ),
-                repeat(prec_left(0, seq(
-                    ",",
-                    choice(
-                        seq(
-                            repeat(attribute_instance),
-                            ".",
-                            formal_port_identifier,
-                            choice(
-                                prec_left(0, seq(
-                                    "(",
-                                    choice(
-                                        _property_actual_arg,
-                                        blank(),
-                                    ),
-                                    ")",
-                                )),
-                                blank(),
-                            ),
-                        ),
-                        seq(
-                            repeat(attribute_instance),
-                            ".*",
-                        ),
-                    ),
-                ))),
+                seq(
+                    repeat(attribute_instance), ".*",
+                ),
             )),
         ),
         ")",
@@ -278,23 +157,38 @@ rule checker_instantiation {
     )
 }
 
+// list_of_checker_port_connections1: $ => choice(
+//   sep1(',', optional($.ordered_checker_port_connection1)),
+//   sep1(',', $.named_checker_port_connection)
+// ),
+
+// ordered_checker_port_connection: $ => seq(
+//   repeat($.attribute_instance),
+//   optional($._property_actual_arg)
+// ),
+
+// named_checker_port_connection: $ => choice(
+//   seq(
+//     repeat($.attribute_instance), '.', $.formal_port_identifier,
+//     optseq('(', optional($._property_actual_arg), ')')
+//   ),
+//   seq(
+//     repeat($.attribute_instance, '.*')
+//   )
+// ),
+
+// A.4.2 Generated instantiation
+
 rule generate_region {
     seq(
-        "generate",
-        repeat(_generate_item),
-        "endgenerate",
+        "generate", repeat(_generate_item), "endgenerate",
     )
 }
 
 rule loop_generate_construct {
     seq(
-        "for",
-        "(",
-        genvar_initialization,
-        ";",
-        _genvar_expression,
-        ";",
-        genvar_iteration,
+        "for", "(",
+        genvar_initialization, ";", _genvar_expression, ";", genvar_iteration,
         ")",
         generate_block,
     )
@@ -302,10 +196,7 @@ rule loop_generate_construct {
 
 rule genvar_initialization {
     seq(
-        choice(
-            "genvar",
-            blank(),
-        ),
+        optional("genvar"),
         genvar_identifier,
         "=",
         constant_expression,
@@ -314,19 +205,9 @@ rule genvar_initialization {
 
 rule genvar_iteration {
     choice(
-        seq(
-            genvar_identifier,
-            assignment_operator,
-            _genvar_expression,
-        ),
-        seq(
-            inc_or_dec_operator,
-            genvar_identifier,
-        ),
-        seq(
-            genvar_identifier,
-            inc_or_dec_operator,
-        ),
+        seq(genvar_identifier, assignment_operator, _genvar_expression),
+        seq(inc_or_dec_operator, genvar_identifier),
+        seq(genvar_identifier, inc_or_dec_operator),
     )
 }
 
@@ -339,28 +220,14 @@ rule _conditional_generate_construct {
 
 rule if_generate_construct {
     prec_left(0, seq(
-        "if",
-        "(",
-        constant_expression,
-        ")",
-        generate_block,
-        choice(
-            prec_left(0, seq(
-                "else",
-                generate_block,
-            )),
-            blank(),
-        ),
+        "if", "(", constant_expression, ")", generate_block,
+        dsl::optseq(["else", generate_block]),
     ))
 }
 
 rule case_generate_construct {
     seq(
-        "case",
-        "(",
-        constant_expression,
-        ")",
-        case_generate_item,
+        "case", "(", constant_expression, ")", case_generate_item,
         repeat(case_generate_item),
         "endcase",
     )
@@ -368,25 +235,8 @@ rule case_generate_construct {
 
 rule case_generate_item {
     choice(
-        seq(
-            prec_left(0, seq(
-                constant_expression,
-                repeat(prec_left(0, seq(
-                    ",",
-                    constant_expression,
-                ))),
-            )),
-            ":",
-            generate_block,
-        ),
-        seq(
-            "default",
-            choice(
-                ":",
-                blank(),
-            ),
-            generate_block,
-        ),
+        seq(dsl::sep1(",", constant_expression), ":", generate_block),
+        seq("default", optional(":"), generate_block),
     )
 }
 
@@ -394,30 +244,12 @@ rule generate_block {
     choice(
         _generate_item,
         seq(
-            choice(
-                prec_left(0, seq(
-                    generate_block_identifier,
-                    ":",
-                )),
-                blank(),
-            ),
+            dsl::optseq([generate_block_identifier, ":"]),
             "begin",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    generate_block_identifier,
-                )),
-                blank(),
-            ),
+            dsl::optseq([":", generate_block_identifier]),
             repeat(_generate_item),
             "end",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    generate_block_identifier,
-                )),
-                blank(),
-            ),
+            dsl::optseq([":", generate_block_identifier]),
         ),
     )
 }

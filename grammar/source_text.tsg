@@ -1,5 +1,7 @@
 // A.1 Source text and top-level items.
 
+let dsl = import("helpers.tsg")
+
 expect _any_parameter_declaration
 expect _assertion_item
 expect _assertion_item_declaration
@@ -98,6 +100,29 @@ expect udp_instantiation
 expect unpacked_dimension
 expect value_range
 
+// A.1.1 Library source text
+
+// library_text: $ => repeat($.library_description),
+
+// library_description: $ => choice(
+//   $.library_declaration,
+//   $.include_statement,
+//   $.config_declaration,
+//   ';'
+// ),
+//
+// library_declaration: $ => seq(
+//   'library',
+//   $.library_identifier,
+//   sep1(',', $.file_path_spec),
+//   optseq('-incdir', sep1(',', $.file_path_spec)),
+//   ';'
+// ),
+//
+// include_statement: $ => seq('include', $.file_path_spec, ';'),
+
+// A.1.2 SystemVerilog source text
+
 rule _description {
     choice(
         _directives,
@@ -106,25 +131,35 @@ rule _description {
         interface_declaration,
         program_declaration,
         package_declaration,
-        seq(
-            repeat(attribute_instance),
-            _package_item,
-        ),
-        seq(
-            repeat(attribute_instance),
-            bind_directive,
-        ),
+        seq(repeat(attribute_instance), _package_item),
+        seq(repeat(attribute_instance), bind_directive),
+        // $.config_declaration,
     )
 }
+
+// module_nonansi_header: $ =>
+//   { attribute_instance } module_keyword [ lifetime ] _module_identifier
+//     { package_import_declaration } [ parameter_port_list ] list_of_ports ';'
+//
+// module_ansi_header: $ =>
+//   { attribute_instance } module_keyword [ lifetime ] _module_identifier
+//     { package_import_declaration } [ parameter_port_list ] [ list_of_port_declarations ] ';'
+//
+// module_declaration: $ =>
+//   module_nonansi_header [ timeunits_declaration ] { module_item }
+//     'endmodule' [ ':' _module_identifier ]
+// | module_ansi_header [ timeunits_declaration ] { non_port_module_item }
+//     'endmodule' [ ':' _module_identifier ]
+// | { attribute_instance } module_keyword [ lifetime ] _module_identifier '(' '.*' ')' ';'
+//   [ timeunits_declaration ] { module_item } 'endmodule' [ ':' _module_identifier ]
+// | 'extern' module_nonansi_header
+// | 'extern' module_ansi_header
 
 rule module_header {
     seq(
         repeat(attribute_instance),
         module_keyword,
-        choice(
-            lifetime,
-            blank(),
-        ),
+        optional(lifetime),
         _module_identifier,
     )
 }
@@ -132,10 +167,7 @@ rule module_header {
 rule module_nonansi_header {
     seq(
         repeat(package_import_declaration),
-        choice(
-            parameter_port_list,
-            blank(),
-        ),
+        optional(parameter_port_list),
         list_of_ports,
     )
 }
@@ -144,13 +176,7 @@ rule module_ansi_header {
     seq(
         repeat(package_import_declaration),
         choice(
-            seq(
-                parameter_port_list,
-                choice(
-                    list_of_port_declarations,
-                    blank(),
-                ),
-            ),
+            seq(parameter_port_list, optional(list_of_port_declarations)),
             list_of_port_declarations,
         ),
     )
@@ -160,115 +186,50 @@ rule module_declaration {
     choice(
         seq(
             module_header,
-            choice(
-                choice(
-                    module_nonansi_header,
-                    module_ansi_header,
-                    seq(
-                        "(",
-                        ".*",
-                        ")",
-                    ),
-                ),
-                blank(),
-            ),
-            ";",
-            choice(
-                timeunits_declaration,
-                blank(),
-            ),
-            repeat(_module_item),
-            "endmodule",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    _module_identifier,
-                )),
-                blank(),
-            ),
-        ),
-        seq(
-            "extern",
-            module_header,
-            choice(
+            optional(choice(
                 module_nonansi_header,
                 module_ansi_header,
-            ),
+                seq("(", ".*", ")"),
+            )),
+            ";",
+            optional(timeunits_declaration),
+            repeat(_module_item),
+            "endmodule", dsl::optseq([":", _module_identifier]),
         ),
+        seq("extern", module_header, choice(
+            module_nonansi_header,
+            module_ansi_header,
+        )),
     )
 }
 
-rule module_keyword {
-    choice(
-        "module",
-        "macromodule",
-    )
-}
+rule module_keyword { choice("module", "macromodule") }
 
 rule interface_declaration {
     choice(
         seq(
             interface_nonansi_header,
-            choice(
-                timeunits_declaration,
-                blank(),
-            ),
+            optional(timeunits_declaration),
             repeat(interface_item),
-            "endinterface",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    interface_identifier,
-                )),
-                blank(),
-            ),
+            "endinterface", dsl::optseq([":", interface_identifier]),
         ),
         seq(
             interface_ansi_header,
-            choice(
-                timeunits_declaration,
-                blank(),
-            ),
+            optional(timeunits_declaration),
             repeat(_non_port_interface_item),
-            "endinterface",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    interface_identifier,
-                )),
-                blank(),
-            ),
+            "endinterface", dsl::optseq([":", interface_identifier]),
         ),
         seq(
             repeat(attribute_instance),
             "interface",
             interface_identifier,
-            "(",
-            ".*",
-            ")",
-            ";",
-            choice(
-                timeunits_declaration,
-                blank(),
-            ),
+            "(", ".*", ")", ";",
+            optional(timeunits_declaration),
             repeat(interface_item),
-            "endinterface",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    interface_identifier,
-                )),
-                blank(),
-            ),
+            "endinterface", dsl::optseq([":", interface_identifier]),
         ),
-        seq(
-            "extern",
-            interface_nonansi_header,
-        ),
-        seq(
-            "extern",
-            interface_ansi_header,
-        ),
+        seq("extern", interface_nonansi_header),
+        seq("extern", interface_ansi_header),
     )
 }
 
@@ -276,16 +237,10 @@ rule interface_nonansi_header {
     seq(
         repeat(attribute_instance),
         "interface",
-        choice(
-            lifetime,
-            blank(),
-        ),
+        optional(lifetime),
         interface_identifier,
         repeat(package_import_declaration),
-        choice(
-            parameter_port_list,
-            blank(),
-        ),
+        optional(parameter_port_list),
         list_of_ports,
         ";",
     )
@@ -295,20 +250,11 @@ rule interface_ansi_header {
     seq(
         repeat(attribute_instance),
         "interface",
-        choice(
-            lifetime,
-            blank(),
-        ),
+        optional(lifetime),
         interface_identifier,
         repeat(package_import_declaration),
-        choice(
-            parameter_port_list,
-            blank(),
-        ),
-        choice(
-            list_of_port_declarations,
-            blank(),
-        ),
+        optional(parameter_port_list),
+        optional(list_of_port_declarations),
         ";",
     )
 }
@@ -317,66 +263,27 @@ rule program_declaration {
     choice(
         seq(
             program_nonansi_header,
-            choice(
-                timeunits_declaration,
-                blank(),
-            ),
+            optional(timeunits_declaration),
             repeat(program_item),
-            "endprogram",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    program_identifier,
-                )),
-                blank(),
-            ),
+            "endprogram", dsl::optseq([":", program_identifier]),
         ),
         seq(
             program_ansi_header,
-            choice(
-                timeunits_declaration,
-                blank(),
-            ),
+            optional(timeunits_declaration),
             repeat(non_port_program_item),
-            "endprogram",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    program_identifier,
-                )),
-                blank(),
-            ),
+            "endprogram", dsl::optseq([":", program_identifier]),
         ),
         seq(
             repeat(attribute_instance),
             "program",
             program_identifier,
-            "(",
-            ".*",
-            ")",
-            ";",
-            choice(
-                timeunits_declaration,
-                blank(),
-            ),
+            "(", ".*", ")", ";",
+            optional(timeunits_declaration),
             repeat(program_item),
-            "endprogram",
-            choice(
-                prec_left(0, seq(
-                    ":",
-                    program_identifier,
-                )),
-                blank(),
-            ),
+            "endprogram", dsl::optseq([":", program_identifier]),
         ),
-        seq(
-            "extern",
-            program_nonansi_header,
-        ),
-        seq(
-            "extern",
-            program_ansi_header,
-        ),
+        seq("extern", program_nonansi_header),
+        seq("extern", program_ansi_header),
     )
 }
 
@@ -384,16 +291,10 @@ rule program_nonansi_header {
     seq(
         repeat(attribute_instance),
         "program",
-        choice(
-            lifetime,
-            blank(),
-        ),
+        optional(lifetime),
         program_identifier,
         repeat(package_import_declaration),
-        choice(
-            parameter_port_list,
-            blank(),
-        ),
+        optional(parameter_port_list),
         list_of_ports,
         ";",
     )
@@ -403,20 +304,11 @@ rule program_ansi_header {
     seq(
         repeat(attribute_instance),
         "program",
-        choice(
-            lifetime,
-            blank(),
-        ),
+        optional(lifetime),
         program_identifier,
         repeat(package_import_declaration),
-        choice(
-            parameter_port_list,
-            blank(),
-        ),
-        choice(
-            list_of_port_declarations,
-            blank(),
-        ),
+        optional(parameter_port_list),
+        optional(list_of_port_declarations),
         ";",
     )
 }
@@ -425,248 +317,94 @@ rule checker_declaration {
     seq(
         "checker",
         checker_identifier,
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    checker_port_list,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
-        ),
+        dsl::optseq(["(", optional(checker_port_list), ")"]),
         ";",
-        repeat(prec_left(0, seq(
-            repeat(attribute_instance),
-            _checker_or_generate_item,
-        ))),
-        "endchecker",
-        choice(
-            prec_left(0, seq(
-                ":",
-                checker_identifier,
-            )),
-            blank(),
+        dsl::repseq(
+            [repeat(attribute_instance),
+            _checker_or_generate_item],
         ),
+        "endchecker", dsl::optseq([":", checker_identifier]),
     )
 }
 
 rule class_declaration {
     seq(
-        choice(
-            "virtual",
-            blank(),
-        ),
+        optional("virtual"),
         "class",
-        choice(
-            lifetime,
-            blank(),
-        ),
+        optional(lifetime),
         class_identifier,
-        choice(
-            parameter_port_list,
-            blank(),
+        optional(parameter_port_list),
+        dsl::optseq(
+            ["extends", class_type, optional(list_of_arguments_parent)],
         ),
-        choice(
-            prec_left(0, seq(
-                "extends",
-                class_type,
-                choice(
-                    list_of_arguments_parent,
-                    blank(),
-                ),
-            )),
-            blank(),
-        ),
-        choice(
-            prec_left(0, seq(
-                "implements",
-                prec_left(0, seq(
-                    interface_class_type,
-                    repeat(prec_left(0, seq(
-                        ",",
-                        interface_class_type,
-                    ))),
-                )),
-            )),
-            blank(),
+        dsl::optseq(
+            ["implements", dsl::sep1(",", interface_class_type)],
         ),
         ";",
         repeat(class_item),
-        "endclass",
-        choice(
-            prec_left(0, seq(
-                ":",
-                class_identifier,
-            )),
-            blank(),
-        ),
+        "endclass", dsl::optseq([":", class_identifier]),
     )
 }
 
 rule interface_class_type {
     seq(
         ps_class_identifier,
-        choice(
-            parameter_value_assignment,
-            blank(),
-        ),
+        optional(parameter_value_assignment),
     )
 }
 
 rule interface_class_declaration {
     seq(
-        "interface",
-        "class",
+        "interface", "class",
         class_identifier,
-        choice(
-            parameter_port_list,
-            blank(),
-        ),
-        choice(
-            prec_left(0, seq(
-                "extends",
-                choice(
-                    prec_left(0, seq(
-                        interface_class_type,
-                        repeat(prec_left(0, seq(
-                            ",",
-                            interface_class_type,
-                        ))),
-                    )),
-                    blank(),
-                ),
-                ";",
-            )),
-            blank(),
+        optional(parameter_port_list),
+        dsl::optseq(
+            ["extends", optional(dsl::sep1(",", interface_class_type)), ";"],
         ),
         repeat(interface_class_item),
-        "endclass",
-        choice(
-            prec_left(0, seq(
-                ":",
-                class_identifier,
-            )),
-            blank(),
-        ),
+        "endclass", dsl::optseq([":", class_identifier]),
     )
 }
 
 rule interface_class_item {
     choice(
         type_declaration,
-        seq(
-            repeat(attribute_instance),
-            interface_class_method,
-        ),
-        seq(
-            _any_parameter_declaration,
-            ";",
-        ),
+        seq(repeat(attribute_instance), interface_class_method),
+        seq(_any_parameter_declaration, ";"),
         ";",
     )
 }
 
-rule interface_class_method {
-    seq(
-        "pure",
-        "virtual",
-        _method_prototype,
-        ";",
-    )
-}
+rule interface_class_method { seq("pure", "virtual", _method_prototype, ";") }
 
 rule package_declaration {
     seq(
         repeat(attribute_instance),
-        "package",
-        choice(
-            lifetime,
-            blank(),
-        ),
-        package_identifier,
-        ";",
-        choice(
-            timeunits_declaration,
-            blank(),
-        ),
-        repeat(prec_left(0, seq(
-            repeat(attribute_instance),
-            _package_item,
-        ))),
-        "endpackage",
-        choice(
-            prec_left(0, seq(
-                ":",
-                package_identifier,
-            )),
-            blank(),
-        ),
+        "package", optional(lifetime), package_identifier, ";",
+        optional(timeunits_declaration),
+        dsl::repseq([repeat(attribute_instance), _package_item]),
+        "endpackage", dsl::optseq([":", package_identifier]),
     )
 }
 
 rule timeunits_declaration {
     choice(
-        prec_left(0, seq(
-            "timeunit",
-            time_literal,
-            choice(
-                prec_left(0, seq(
-                    "/",
-                    time_literal,
-                )),
-                blank(),
-            ),
-            ";",
-        )),
-        prec_left(0, seq(
-            "timeprecision",
-            time_literal,
-            ";",
-        )),
-        prec_left(0, seq(
-            "timeunit",
-            time_literal,
-            ";",
-            "timeprecision",
-            time_literal,
-            ";",
-        )),
-        prec_left(0, seq(
-            "timeprecision",
-            time_literal,
-            ";",
-            "timeunit",
-            time_literal,
-            ";",
-        )),
+        prec_left(0, seq("timeunit", time_literal, dsl::optseq(["/", time_literal]), ";")),
+        prec_left(0, seq("timeprecision", time_literal, ";")),
+        prec_left(0, seq("timeunit", time_literal, ";", "timeprecision", time_literal, ";")),
+        prec_left(0, seq("timeprecision", time_literal, ";", "timeunit", time_literal, ";")),
     )
 }
 
+// A.1.3 Module parameters and ports
+
 rule parameter_port_list {
     seq(
-        "#",
-        "(",
-        choice(
-            choice(
-                seq(
-                    list_of_param_assignments,
-                    repeat(prec_left(0, seq(
-                        ",",
-                        parameter_port_declaration,
-                    ))),
-                ),
-                prec_left(0, seq(
-                    parameter_port_declaration,
-                    repeat(prec_left(0, seq(
-                        ",",
-                        parameter_port_declaration,
-                    ))),
-                )),
-            ),
-            blank(),
-        ),
+        "#", "(",
+        optional(choice(
+            seq(list_of_param_assignments, dsl::repseq([",", parameter_port_declaration])),
+            dsl::sep1(",", parameter_port_declaration),
+        )),
         ")",
     )
 }
@@ -674,50 +412,19 @@ rule parameter_port_list {
 rule parameter_port_declaration {
     choice(
         _any_parameter_declaration,
-        seq(
-            data_type,
-            list_of_param_assignments,
-        ),
-        seq(
-            "type",
-            list_of_type_assignments,
-        ),
+        seq(data_type, list_of_param_assignments),
+        seq("type", list_of_type_assignments),
     )
 }
 
 rule list_of_ports {
     seq(
         "(",
-        choice(
-            prec_left(0, seq(
-                seq(
-                    choice(
-                        line_compiler_directive,
-                        blank(),
-                    ),
-                    port,
-                    choice(
-                        line_compiler_directive,
-                        blank(),
-                    ),
-                ),
-                repeat(prec_left(0, seq(
-                    ",",
-                    seq(
-                        choice(
-                            line_compiler_directive,
-                            blank(),
-                        ),
-                        port,
-                        choice(
-                            line_compiler_directive,
-                            blank(),
-                        ),
-                    ),
-                ))),
-            )),
-            blank(),
-        ),
+        optional(dsl::sep1(",", seq(
+            optional(line_compiler_directive),
+            port,
+            optional(line_compiler_directive),
+        ))),
         ")",
     )
 }
@@ -725,22 +432,10 @@ rule list_of_ports {
 rule list_of_port_declarations {
     seq(
         "(",
-        choice(
-            prec_left(0, seq(
-                seq(
-                    repeat(attribute_instance),
-                    ansi_port_declaration,
-                ),
-                repeat(prec_left(0, seq(
-                    ",",
-                    seq(
-                        repeat(attribute_instance),
-                        ansi_port_declaration,
-                    ),
-                ))),
-            )),
-            blank(),
-        ),
+        optional(dsl::sep1(",", seq(
+            repeat(attribute_instance),
+            ansi_port_declaration,
+        ))),
         ")",
     )
 }
@@ -761,74 +456,36 @@ rule port_declaration {
 rule port {
     choice(
         _port_expression,
-        seq(
-            ".",
-            port_identifier,
-            "(",
-            choice(
-                _port_expression,
-                blank(),
-            ),
-            ")",
-        ),
+        seq(".", port_identifier, "(", optional(_port_expression), ")"),
     )
 }
 
 rule _port_expression {
     choice(
         port_reference,
-        seq(
-            "{",
-            prec_left(0, seq(
-                port_reference,
-                repeat(prec_left(0, seq(
-                    ",",
-                    port_reference,
-                ))),
-            )),
-            "}",
-        ),
+        seq("{", dsl::sep1(",", port_reference), "}"),
     )
 }
 
 rule port_reference {
     seq(
         port_identifier,
-        choice(
-            constant_select1,
-            blank(),
-        ),
+        optional(constant_select1),
     )
 }
 
-rule port_direction {
-    choice(
-        "input",
-        "output",
-        "inout",
-        "ref",
-    )
-}
+rule port_direction { choice("input", "output", "inout", "ref") }
 
 rule net_port_header1 {
     choice(
-        seq(
-            choice(
-                port_direction,
-                blank(),
-            ),
-            net_port_type1,
-        ),
+        seq(optional(port_direction), net_port_type1),
         port_direction,
     )
 }
 
 rule variable_port_header {
     seq(
-        choice(
-            port_direction,
-            blank(),
-        ),
+        optional(port_direction),
         _variable_port_type,
     )
 }
@@ -839,111 +496,51 @@ rule interface_port_header {
             interface_identifier,
             "interface",
         ),
-        choice(
-            prec_left(0, seq(
-                ".",
-                modport_identifier,
-            )),
-            blank(),
-        ),
+        dsl::optseq([".", modport_identifier]),
     )
 }
 
 rule ansi_port_declaration {
     choice(
         seq(
-            choice(
-                choice(
-                    net_port_header1,
-                    interface_port_header,
-                ),
-                blank(),
-            ),
+            optional(choice(net_port_header1, interface_port_header)),
             port_identifier,
             repeat(unpacked_dimension),
-            choice(
-                prec_left(0, seq(
-                    "=",
-                    constant_expression,
-                )),
-                blank(),
-            ),
+            dsl::optseq(["=", constant_expression]),
         ),
         seq(
-            choice(
-                variable_port_header,
-                blank(),
-            ),
+            optional(variable_port_header),
             port_identifier,
             repeat(_variable_dimension),
-            choice(
-                prec_left(0, seq(
-                    "=",
-                    constant_expression,
-                )),
-                blank(),
-            ),
+            dsl::optseq(["=", constant_expression]),
         ),
         seq(
-            choice(
-                port_direction,
-                blank(),
-            ),
-            ".",
-            port_identifier,
-            "(",
-            choice(
-                expression,
-                blank(),
-            ),
-            ")",
+            optional(port_direction), ".", port_identifier,
+            "(", optional(expression), ")",
         ),
     )
 }
+
+// A.1.4 Module items
 
 rule elaboration_system_task {
     choice(
         seq(
             "$fatal",
-            choice(
-                prec_left(0, seq(
-                    "(",
-                    finish_number,
-                    choice(
-                        prec_left(0, seq(
-                            ",",
-                            list_of_arguments,
-                        )),
-                        blank(),
-                    ),
-                    ")",
-                )),
-                blank(),
+            dsl::optseq(
+                ["(", finish_number, dsl::optseq([",", list_of_arguments]), ")"],
             ),
             ";",
         ),
         seq(
-            choice(
-                "$error",
-                "$warning",
-                "$info",
-            ),
-            choice(
-                list_of_arguments_parent,
-                blank(),
-            ),
+            choice("$error", "$warning", "$info"),
+            optional(list_of_arguments_parent),
             ";",
         ),
     )
 }
 
-rule finish_number {
-    choice(
-        "0",
-        "1",
-        "2",
-    )
-}
+rule finish_number { choice("0", "1", "2") }
 
 rule _module_common_item {
     choice(
@@ -965,10 +562,7 @@ rule _module_common_item {
 
 rule _module_item {
     choice(
-        seq(
-            port_declaration,
-            ";",
-        ),
+        seq(port_declaration, ";"),
         _non_port_module_item,
     )
 }
@@ -991,19 +585,8 @@ rule _module_or_generate_item_declaration {
         package_or_generate_item_declaration,
         genvar_declaration,
         clocking_declaration,
-        seq(
-            "default",
-            "clocking",
-            clocking_identifier,
-            ";",
-        ),
-        seq(
-            "default",
-            "disable",
-            "iff",
-            expression_or_dist,
-            ";",
-        ),
+        seq("default", "clocking", clocking_identifier, ";"),
+        seq("default", "disable", "iff", expression_or_dist, ";"),
     )
 }
 
@@ -1013,10 +596,7 @@ rule _non_port_module_item {
         generate_region,
         module_or_generate_item,
         specify_block,
-        seq(
-            repeat(attribute_instance),
-            specparam_declaration,
-        ),
+        seq(repeat(attribute_instance), specparam_declaration),
         program_declaration,
         module_declaration,
         interface_declaration,
@@ -1038,13 +618,7 @@ rule bind_directive {
         choice(
             seq(
                 bind_target_scope,
-                choice(
-                    prec_left(0, seq(
-                        ":",
-                        bind_target_instance_list,
-                    )),
-                    blank(),
-                ),
+                dsl::optseq([":", bind_target_instance_list]),
             ),
             bind_target_instance,
         ),
@@ -1056,28 +630,18 @@ rule bind_directive {
 rule bind_target_scope {
     choice(
         _module_identifier,
+        // $.interface_identifier
     )
 }
 
 rule bind_target_instance {
     seq(
         hierarchical_identifier,
-        choice(
-            constant_bit_select1,
-            blank(),
-        ),
+        optional(constant_bit_select1),
     )
 }
 
-rule bind_target_instance_list {
-    prec_left(0, seq(
-        bind_target_instance,
-        repeat(prec_left(0, seq(
-            ",",
-            bind_target_instance,
-        ))),
-    ))
-}
+rule bind_target_instance_list { dsl::sep1(",", bind_target_instance) }
 
 rule _bind_instantiation {
     choice(
@@ -1088,192 +652,83 @@ rule _bind_instantiation {
     )
 }
 
+// A.1.5 Configuration source text
+
 rule config_declaration {
     seq(
-        "config",
-        config_identifier,
-        ";",
-        repeat(prec_left(0, seq(
-            local_parameter_declaration,
-            ";",
-        ))),
+        "config", config_identifier, ";",
+        dsl::repseq([local_parameter_declaration, ";"]),
         design_statement,
         repeat(config_rule_statement),
-        "endconfig",
-        choice(
-            prec_left(0, seq(
-                ":",
-                config_identifier,
-            )),
-            blank(),
-        ),
+        "endconfig", dsl::optseq([":", config_identifier]),
     )
 }
 
 rule design_statement {
     seq(
         "design",
-        repeat(prec_left(0, seq(
-            choice(
-                prec_left(0, seq(
-                    library_identifier,
-                    ".",
-                )),
-                blank(),
-            ),
-            cell_identifier,
-        ))),
+        dsl::repseq(
+            [dsl::optseq([library_identifier, "."]),
+            cell_identifier],
+        ),
         ";",
     )
 }
 
 rule config_rule_statement {
     choice(
-        seq(
-            default_clause,
-            liblist_clause,
-            ";",
-        ),
-        seq(
-            inst_clause,
-            liblist_clause,
-            ";",
-        ),
-        seq(
-            inst_clause,
-            use_clause,
-            ";",
-        ),
-        seq(
-            cell_clause,
-            liblist_clause,
-            ";",
-        ),
-        seq(
-            cell_clause,
-            use_clause,
-            ";",
-        ),
+        seq(default_clause, liblist_clause, ";"),
+        seq(inst_clause, liblist_clause, ";"),
+        seq(inst_clause, use_clause, ";"),
+        seq(cell_clause, liblist_clause, ";"),
+        seq(cell_clause, use_clause, ";"),
     )
 }
 
 rule default_clause { "default" }
 
-rule inst_clause {
-    seq(
-        "instance",
-        inst_name,
-    )
-}
+rule inst_clause { seq("instance", inst_name) }
 
-rule inst_name {
-    seq(
-        topmodule_identifier,
-        repeat(prec_left(0, seq(
-            ".",
-            instance_identifier,
-        ))),
-    )
-}
+rule inst_name { seq(topmodule_identifier, dsl::repseq([".", instance_identifier])) }
 
-rule cell_clause {
-    seq(
-        "cell",
-        choice(
-            prec_left(0, seq(
-                library_identifier,
-                ".",
-            )),
-            blank(),
-        ),
-        cell_identifier,
-    )
-}
+rule cell_clause { seq("cell", dsl::optseq([library_identifier, "."]), cell_identifier) }
 
-rule liblist_clause {
-    seq(
-        "liblist",
-        repeat(library_identifier),
-    )
-}
+rule liblist_clause { seq("liblist", repeat(library_identifier)) }
 
 rule use_clause {
     seq(
         "use",
         choice(
-            prec_left(0, seq(
-                named_parameter_assignment,
-                repeat(prec_left(0, seq(
-                    ",",
-                    named_parameter_assignment,
-                ))),
-            )),
+            dsl::sep1(",", named_parameter_assignment),
             seq(
-                choice(
-                    prec_left(0, seq(
-                        library_identifier,
-                        ".",
-                    )),
-                    blank(),
-                ),
+                dsl::optseq([library_identifier, "."]),
                 cell_identifier,
-                choice(
-                    prec_left(0, seq(
-                        named_parameter_assignment,
-                        repeat(prec_left(0, seq(
-                            ",",
-                            named_parameter_assignment,
-                        ))),
-                    )),
-                    blank(),
-                ),
+                optional(dsl::sep1(",", named_parameter_assignment)),
             ),
         ),
-        choice(
-            prec_left(0, seq(
-                ":",
-                "config",
-            )),
-            blank(),
-        ),
+        dsl::optseq([":", "config"]),
     )
 }
 
+// A.1.6 Interface items
+
 rule interface_or_generate_item {
     choice(
-        seq(
-            repeat(attribute_instance),
-            _module_common_item,
-        ),
-        seq(
-            repeat(attribute_instance),
-            extern_tf_declaration,
-        ),
+        seq(repeat(attribute_instance), _module_common_item),
+        seq(repeat(attribute_instance), extern_tf_declaration),
     )
 }
 
 rule extern_tf_declaration {
     choice(
-        seq(
-            "extern",
-            _method_prototype,
-            ";",
-        ),
-        seq(
-            "extern",
-            "forkjoin",
-            task_prototype,
-            ";",
-        ),
+        seq("extern", _method_prototype, ";"),
+        seq("extern", "forkjoin", task_prototype, ";"),
     )
 }
 
 rule interface_item {
     choice(
-        seq(
-            port_declaration,
-            ";",
-        ),
+        seq(port_declaration, ";"),
         _non_port_interface_item,
     )
 }
@@ -1289,38 +744,22 @@ rule _non_port_interface_item {
     )
 }
 
+// A.1.7 Program items
+
 rule program_item {
     choice(
-        seq(
-            port_declaration,
-            ";",
-        ),
+        seq(port_declaration, ";"),
         non_port_program_item,
     )
 }
 
 rule non_port_program_item {
     choice(
-        seq(
-            repeat(attribute_instance),
-            continuous_assign,
-        ),
-        seq(
-            repeat(attribute_instance),
-            _module_or_generate_item_declaration,
-        ),
-        seq(
-            repeat(attribute_instance),
-            initial_construct,
-        ),
-        seq(
-            repeat(attribute_instance),
-            final_construct,
-        ),
-        seq(
-            repeat(attribute_instance),
-            concurrent_assertion_item,
-        ),
+        seq(repeat(attribute_instance), continuous_assign),
+        seq(repeat(attribute_instance), _module_or_generate_item_declaration),
+        seq(repeat(attribute_instance), initial_construct),
+        seq(repeat(attribute_instance), final_construct),
+        seq(repeat(attribute_instance), concurrent_assertion_item),
         timeunits_declaration,
         _program_generate_item,
     )
@@ -1335,45 +774,22 @@ rule _program_generate_item {
     )
 }
 
-rule checker_port_list {
-    prec_left(0, seq(
-        checker_port_item,
-        repeat(prec_left(0, seq(
-            ",",
-            checker_port_item,
-        ))),
-    ))
-}
+// A.1.8 Checker items
+
+rule checker_port_list { dsl::sep1(",", checker_port_item) }
 
 rule checker_port_item {
     seq(
         repeat(attribute_instance),
-        choice(
-            checker_port_direction,
-            blank(),
-        ),
-        choice(
-            property_formal_type1,
-            blank(),
-        ),
+        optional(checker_port_direction),
+        optional(property_formal_type1),
         formal_port_identifier,
         repeat(_variable_dimension),
-        choice(
-            prec_left(0, seq(
-                "=",
-                _property_actual_arg,
-            )),
-            blank(),
-        ),
+        dsl::optseq(["=", _property_actual_arg]),
     )
 }
 
-rule checker_port_direction {
-    choice(
-        "input",
-        "output",
-    )
-}
+rule checker_port_direction { choice("input", "output") }
 
 rule _checker_or_generate_item {
     choice(
@@ -1389,32 +805,15 @@ rule _checker_or_generate_item {
 
 rule checker_or_generate_item_declaration {
     choice(
-        seq(
-            choice(
-                "rand",
-                blank(),
-            ),
-            data_declaration,
-        ),
+        seq(optional("rand"), data_declaration),
         function_declaration,
         checker_declaration,
         _assertion_item_declaration,
         covergroup_declaration,
         genvar_declaration,
         clocking_declaration,
-        seq(
-            "default",
-            "clocking",
-            clocking_identifier,
-            ";",
-        ),
-        prec_right(11, seq(
-            "default",
-            "disable",
-            "iff",
-            expression_or_dist,
-            ";",
-        )),
+        seq("default", "clocking", clocking_identifier, ";"),
+        prec_right(dsl::PREC.iff, seq("default", "disable", "iff", expression_or_dist, ";")),
         ";",
     )
 }
@@ -1428,55 +827,30 @@ rule _checker_generate_item {
     )
 }
 
+// A.1.9 Class items
+
 rule class_item {
     choice(
         _directives,
-        seq(
-            repeat(attribute_instance),
-            class_property,
-        ),
-        seq(
-            repeat(attribute_instance),
-            class_method,
-        ),
-        seq(
-            repeat(attribute_instance),
-            _class_constraint,
-        ),
-        seq(
-            repeat(attribute_instance),
-            class_declaration,
-        ),
-        seq(
-            repeat(attribute_instance),
-            covergroup_declaration,
-        ),
-        seq(
-            _any_parameter_declaration,
-            ";",
-        ),
+        seq(repeat(attribute_instance), class_property),
+        seq(repeat(attribute_instance), class_method),
+        seq(repeat(attribute_instance), _class_constraint),
+        seq(repeat(attribute_instance), class_declaration),
+        seq(repeat(attribute_instance), covergroup_declaration),
+        seq(_any_parameter_declaration, ";"),
         ";",
     )
 }
 
 rule class_property {
     choice(
-        seq(
-            repeat(_property_qualifier),
-            data_declaration,
-        ),
+        seq(repeat(_property_qualifier), data_declaration),
         seq(
             "const",
             repeat(class_item_qualifier),
             data_type,
             const_identifier,
-            choice(
-                prec_left(0, seq(
-                    "=",
-                    constant_expression,
-                )),
-                blank(),
-            ),
+            dsl::optseq(["=", constant_expression]),
             ";",
         ),
     )
@@ -1484,55 +858,18 @@ rule class_property {
 
 rule class_method {
     choice(
-        seq(
-            repeat(method_qualifier),
-            task_declaration,
-        ),
-        seq(
-            repeat(method_qualifier),
-            function_declaration,
-        ),
-        seq(
-            "pure",
-            "virtual",
-            repeat(class_item_qualifier),
-            _method_prototype,
-            ";",
-        ),
-        seq(
-            "extern",
-            repeat(method_qualifier),
-            _method_prototype,
-            ";",
-        ),
-        seq(
-            repeat(method_qualifier),
-            class_constructor_declaration,
-        ),
-        seq(
-            "extern",
-            repeat(method_qualifier),
-            class_constructor_prototype,
-        ),
+        seq(repeat(method_qualifier), task_declaration),
+        seq(repeat(method_qualifier), function_declaration),
+        seq("pure", "virtual", repeat(class_item_qualifier), _method_prototype, ";"),
+        seq("extern", repeat(method_qualifier), _method_prototype, ";"),
+        seq(repeat(method_qualifier), class_constructor_declaration),
+        seq("extern", repeat(method_qualifier), class_constructor_prototype),
     )
 }
 
 rule class_constructor_prototype {
     seq(
-        "function",
-        "new",
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    tf_port_list,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
-        ),
-        ";",
+        "function", "new", dsl::optseq(["(", optional(tf_port_list), ")"]), ";",
     )
 }
 
@@ -1543,13 +880,7 @@ rule _class_constraint {
     )
 }
 
-rule class_item_qualifier {
-    choice(
-        "static",
-        "protected",
-        "local",
-    )
-}
+rule class_item_qualifier { choice("static", "protected", "local") }
 
 rule _property_qualifier {
     choice(
@@ -1558,22 +889,11 @@ rule _property_qualifier {
     )
 }
 
-rule random_qualifier {
-    choice(
-        "rand",
-        "randc",
-    )
-}
+rule random_qualifier { choice("rand", "randc") }
 
 rule method_qualifier {
     choice(
-        seq(
-            choice(
-                "pure",
-                blank(),
-            ),
-            "virtual",
-        ),
+        seq(optional("pure"), "virtual"),
         class_item_qualifier,
     )
 }
@@ -1588,246 +908,108 @@ rule _method_prototype {
 rule class_constructor_declaration {
     seq(
         "function",
-        choice(
-            class_scope,
-            blank(),
-        ),
+        optional(class_scope),
         "new",
-        choice(
-            prec_left(0, seq(
-                "(",
-                choice(
-                    tf_port_list,
-                    blank(),
-                ),
-                ")",
-            )),
-            blank(),
-        ),
+        dsl::optseq(["(", optional(tf_port_list), ")"]),
         ";",
         repeat(block_item_declaration),
-        choice(
-            prec_left(0, seq(
-                "super",
-                ".",
-                "new",
-                choice(
-                    list_of_arguments_parent,
-                    blank(),
-                ),
-                ";",
-            )),
-            blank(),
+        dsl::optseq(
+            ["super", ".", "new",
+            optional(list_of_arguments_parent),
+            ";"],
         ),
         repeat(function_statement_or_null),
-        "endfunction",
-        choice(
-            prec_left(0, seq(
-                ":",
-                "new",
-            )),
-            blank(),
-        ),
+        "endfunction", dsl::optseq([":", "new"]),
     )
 }
 
+// A.1.10 Constraints
+
 rule constraint_declaration {
     seq(
-        choice(
-            "static",
-            blank(),
-        ),
+        optional("static"),
         "constraint",
         constraint_identifier,
         constraint_block,
     )
 }
 
-rule constraint_block {
-    seq(
-        "{",
-        repeat(constraint_block_item),
-        "}",
-    )
-}
+rule constraint_block { seq("{", repeat(constraint_block_item), "}") }
 
 rule constraint_block_item {
     choice(
-        seq(
-            "solve",
-            solve_before_list,
-            "before",
-            solve_before_list,
-            ";",
-        ),
+        seq("solve", solve_before_list, "before", solve_before_list, ";"),
         constraint_expression,
     )
 }
 
-rule solve_before_list {
-    prec_left(0, seq(
-        constraint_primary,
-        repeat(prec_left(0, seq(
-            ",",
-            constraint_primary,
-        ))),
-    ))
-}
+rule solve_before_list { dsl::sep1(",", constraint_primary) }
 
 rule constraint_primary {
     seq(
-        choice(
-            choice(
-                seq(
-                    implicit_class_handle,
-                    ".",
-                ),
-                class_scope,
-            ),
-            blank(),
-        ),
+        optional(choice(
+            seq(implicit_class_handle, "."),
+            class_scope,
+        )),
         hierarchical_identifier,
-        choice(
-            select1,
-            blank(),
-        ),
+        optional(select1),
     )
 }
 
 rule constraint_expression {
     choice(
-        seq(
-            choice(
-                "soft",
-                blank(),
-            ),
-            expression_or_dist,
-            ";",
-        ),
-        seq(
-            uniqueness_constraint,
-            ";",
-        ),
-        prec_right(22, seq(
-            expression,
-            "–>",
-            constraint_set,
-        )),
+        seq(optional("soft"), expression_or_dist, ";"),
+        seq(uniqueness_constraint, ";"),
+        prec_right(dsl::PREC.IMPLICATION, seq(expression, "–>", constraint_set)),
         prec_left(0, seq(
-            "if",
-            "(",
-            expression,
-            ")",
-            constraint_set,
-            choice(
-                prec_left(0, seq(
-                    "else",
-                    constraint_set,
-                )),
-                blank(),
-            ),
+            "if", "(", expression, ")", constraint_set,
+            dsl::optseq(["else", constraint_set]),
         )),
         seq(
-            "foreach",
-            "(",
+            "foreach", "(",
             ps_or_hierarchical_array_identifier,
-            "[",
-            choice(
-                loop_variables1,
-                blank(),
-            ),
-            "]",
+            "[", optional(loop_variables1), "]",
             ")",
             constraint_set,
         ),
-        seq(
-            "disable",
-            "soft",
-            constraint_primary,
-            ";",
-        ),
+        seq("disable", "soft", constraint_primary, ";"),
     )
 }
 
 rule uniqueness_constraint {
     seq(
-        "unique",
-        "{",
-        open_range_list,
-        "}",
+        "unique", "{", open_range_list, "}",
     )
 }
 
 rule constraint_set {
     choice(
         constraint_expression,
-        seq(
-            "{",
-            repeat(constraint_expression),
-            "}",
-        ),
+        seq("{", repeat(constraint_expression), "}"),
     )
 }
 
-rule dist_list {
-    prec_left(0, seq(
-        dist_item,
-        repeat(prec_left(0, seq(
-            ",",
-            dist_item,
-        ))),
-    ))
-}
+rule dist_list { dsl::sep1(",", dist_item) }
 
-rule dist_item {
-    seq(
-        value_range,
-        choice(
-            dist_weight,
-            blank(),
-        ),
-    )
-}
+rule dist_item { seq(value_range, optional(dist_weight)) }
 
-rule dist_weight {
-    seq(
-        choice(
-            ":=",
-            ":/",
-        ),
-        expression,
-    )
-}
+rule dist_weight { seq(choice(":=", ":/"), expression) }
 
 rule constraint_prototype {
     seq(
-        choice(
-            constraint_prototype_qualifier,
-            blank(),
-        ),
-        choice(
-            "static",
-            blank(),
-        ),
+        optional(constraint_prototype_qualifier),
+        optional("static"),
         "constraint",
         constraint_identifier,
         ";",
     )
 }
 
-rule constraint_prototype_qualifier {
-    choice(
-        "extern",
-        "pure",
-    )
-}
+rule constraint_prototype_qualifier { choice("extern", "pure") }
 
 rule extern_constraint_declaration {
     seq(
-        choice(
-            "static",
-            blank(),
-        ),
+        optional("static"),
         "constraint",
         class_scope,
         constraint_identifier,
@@ -1835,15 +1017,9 @@ rule extern_constraint_declaration {
     )
 }
 
-rule identifier_list {
-    prec_left(0, seq(
-        _identifier,
-        repeat(prec_left(0, seq(
-            ",",
-            _identifier,
-        ))),
-    ))
-}
+rule identifier_list { dsl::sep1(",", _identifier) }
+
+// A.1.11 Package items
 
 rule _package_item {
     choice(
@@ -1864,12 +1040,9 @@ rule package_or_generate_item_declaration {
         dpi_import_export,
         extern_constraint_declaration,
         class_declaration,
-        interface_class_declaration,
+        interface_class_declaration, // not in spec
         class_constructor_declaration,
-        seq(
-            _any_parameter_declaration,
-            ";",
-        ),
+        seq(_any_parameter_declaration, ";"),
         covergroup_declaration,
         overload_declaration,
         _assertion_item_declaration,
@@ -1879,10 +1052,7 @@ rule package_or_generate_item_declaration {
 
 rule anonymous_program {
     seq(
-        "program",
-        ";",
-        repeat(anonymous_program_item),
-        "endprogram",
+        "program", ";", repeat(anonymous_program_item), "endprogram",
     )
 }
 
